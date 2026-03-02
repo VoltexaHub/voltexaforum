@@ -8,16 +8,15 @@ const isDark = inject('isDark')
 const forumStore = useForumStore()
 
 const selectedGame = ref('all')
-const forums = ref([])
+const games = ref([])
 const loading = ref(true)
 const error = ref(null)
 
 onMounted(async () => {
   try {
     await forumStore.fetchConfig()
-    await forumStore.fetchGames()
     const res = await fetchForumsApi()
-    forums.value = res.data.data
+    games.value = res.data.data
   } catch (e) {
     error.value = 'Failed to load forums. Please try again.'
   } finally {
@@ -26,39 +25,11 @@ onMounted(async () => {
 })
 
 const isMultiGame = computed(() => forumStore.isMultiGame)
-const games = computed(() => forumStore.games)
-
-// Group forums by game > category
-const groupedForums = computed(() => {
-  const groups = {}
-  for (const forum of forums.value) {
-    const gameKey = forum.game?.slug || forum.game_slug || 'default'
-    const gameName = forum.game?.name || forum.game_name || ''
-    const gameIcon = forum.game?.icon || forum.game_icon || ''
-    const catName = forum.category?.name || forum.category_name || 'General'
-
-    if (!groups[gameKey]) {
-      groups[gameKey] = { name: gameName, icon: gameIcon, categories: {} }
-    }
-    if (!groups[gameKey].categories[catName]) {
-      groups[gameKey].categories[catName] = []
-    }
-    groups[gameKey].categories[catName].push(forum)
-  }
-  return groups
-})
 
 const filteredGames = computed(() => {
-  if (selectedGame.value === 'all') return Object.entries(groupedForums.value)
-  return Object.entries(groupedForums.value).filter(([key]) => key === selectedGame.value)
+  if (selectedGame.value === 'all') return games.value
+  return games.value.filter(g => g.slug === selectedGame.value)
 })
-
-const singleGameCategories = computed(() => {
-  const first = Object.values(groupedForums.value)[0]
-  return first ? Object.entries(first.categories) : []
-})
-
-const singleGameKey = computed(() => Object.keys(groupedForums.value)[0])
 </script>
 
 <template>
@@ -91,37 +62,30 @@ const singleGameKey = computed(() => Object.keys(groupedForums.value)[0])
 
     <!-- Content -->
     <div v-else class="flex flex-col lg:flex-row gap-6">
+
       <!-- Sidebar (multi-game only) -->
-      <aside v-if="isMultiGame" class="lg:w-56 shrink-0">
-        <div
-          class="rounded-xl p-4 transition-colors duration-300"
-          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-        >
-          <h3 class="text-sm font-semibold uppercase tracking-wider mb-3"
-              :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-            Games
-          </h3>
+      <aside v-if="isMultiGame && games.length > 1" class="lg:w-56 shrink-0">
+        <div class="rounded-xl p-4 transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
+          <h3 class="text-sm font-semibold uppercase tracking-wider mb-3" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Games</h3>
           <ul class="space-y-1">
             <li>
               <button
                 @click="selectedGame = 'all'"
                 class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                :class="selectedGame === 'all'
-                  ? 'bg-purple-accent/15 text-purple-accent'
-                  : isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
+                :class="selectedGame === 'all' ? 'bg-purple-accent/15 text-purple-accent' : isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
               >
-                <i class="fa-solid fa-gamepad"></i> All Games
+                <i class="fa-solid fa-gamepad w-4 text-center"></i> All Games
               </button>
             </li>
             <li v-for="game in games" :key="game.id">
               <button
                 @click="selectedGame = game.slug"
                 class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                :class="selectedGame === game.slug
-                  ? 'bg-purple-accent/15 text-purple-accent'
-                  : isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
+                :class="selectedGame === game.slug ? 'bg-purple-accent/15 text-purple-accent' : isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
               >
-                {{ game.icon }} {{ game.name }}
+                <i v-if="game.icon && game.icon.startsWith('fa-')" :class="[game.icon, 'w-4 text-center']"></i>
+                <span v-else class="w-4 text-center">{{ game.icon }}</span>
+                {{ game.name }}
               </button>
             </li>
           </ul>
@@ -130,58 +94,58 @@ const singleGameKey = computed(() => Object.keys(groupedForums.value)[0])
 
       <!-- Main content -->
       <main class="flex-1 min-w-0">
-        <!-- Multi-game mode -->
-        <template v-if="isMultiGame">
-          <div v-for="[gameKey, game] in filteredGames" :key="gameKey" class="mb-8">
-            <div class="flex items-center gap-2 mb-4">
-              <span class="text-xl">{{ game.icon }}</span>
-              <h2 class="text-lg font-bold uppercase tracking-wide">{{ game.name }}</h2>
-            </div>
+        <div v-for="game in filteredGames" :key="game.id" class="mb-8">
+          <!-- Game header (multi-game only) -->
+          <div v-if="isMultiGame && games.length > 1" class="flex items-center gap-2 mb-4">
+            <i v-if="game.icon && game.icon.startsWith('fa-')" :class="[game.icon, 'text-xl text-purple-accent']"></i>
+            <span v-else class="text-xl">{{ game.icon }}</span>
+            <h2 class="text-lg font-bold uppercase tracking-wide" :class="isDark ? 'text-white' : 'text-gray-900'">{{ game.name }}</h2>
+          </div>
 
-            <div v-for="(forums, catName) in game.categories" :key="catName" class="mb-4">
+          <!-- Categories -->
+          <div v-for="category in game.categories" :key="category.id" class="mb-4">
+            <div class="rounded-xl overflow-hidden transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
+              <!-- Category header -->
               <div
-                class="rounded-xl overflow-hidden transition-colors duration-300"
-                :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+                class="px-5 py-3 border-b border-l-4 border-l-purple-accent"
+                :class="isDark ? 'bg-gray-900 border-b-gray-800' : 'bg-gray-50 border-b-gray-200'"
               >
-                <div
-                  class="px-5 py-3 border-b border-l-4 border-l-purple-accent"
-                  :class="isDark ? 'bg-gray-900 border-b-gray-800' : 'bg-gray-50 border-b-gray-200'"
-                >
-                  <h3 class="font-semibold text-sm uppercase tracking-wider"
-                      :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-                    {{ catName }}
-                  </h3>
-                </div>
+                <h3 class="font-semibold text-sm uppercase tracking-wider" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+                  {{ category.name }}
+                </h3>
+                <p v-if="category.description" class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                  {{ category.description }}
+                </p>
+              </div>
 
-                <div
-                  v-for="(forum, idx) in forums"
-                  :key="forum.id"
-                  class="group"
-                >
+              <!-- Forums in category -->
+              <div v-if="category.forums && category.forums.length">
+                <div v-for="(forum, idx) in category.forums" :key="forum.id" class="group">
                   <router-link
                     :to="`/forum/${forum.slug}`"
                     class="flex items-center gap-4 px-5 py-4 transition-colors duration-150"
                     :class="[
                       isDark ? 'hover:bg-gray-800/60' : 'hover:bg-gray-50',
-                      idx < forums.length - 1 ? (isDark ? 'border-b border-gray-800/50' : 'border-b border-gray-100') : '',
+                      idx < category.forums.length - 1 ? (isDark ? 'border-b border-gray-800/50' : 'border-b border-gray-100') : '',
                     ]"
                   >
-                    <div
-                      class="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
-                      :class="isDark ? 'bg-gray-800' : 'bg-gray-100'"
-                    >
-                      <i :class="forum.icon || 'fa-solid fa-comment'" class="text-purple-accent"></i>
+                    <!-- Icon -->
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" :class="isDark ? 'bg-gray-800' : 'bg-gray-100'">
+                      <i :class="[forum.icon || 'fa-solid fa-comment', 'text-purple-accent text-lg']"></i>
                     </div>
+
+                    <!-- Name + description -->
                     <div class="flex-1 min-w-0">
-                      <div class="font-semibold group-hover:text-purple-accent transition-colors">
+                      <div class="font-semibold group-hover:text-purple-accent transition-colors" :class="isDark ? 'text-white' : 'text-gray-900'">
                         {{ forum.name }}
                       </div>
                       <div class="text-sm truncate" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
                         {{ forum.description }}
                       </div>
                     </div>
-                    <div class="hidden sm:flex items-center gap-8 shrink-0 text-sm"
-                         :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+
+                    <!-- Stats -->
+                    <div class="hidden sm:flex items-center gap-8 shrink-0 text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
                       <div class="text-center w-16">
                         <div class="font-semibold" :class="isDark ? 'text-gray-200' : 'text-gray-700'">
                           {{ (forum.threads_count ?? 0).toLocaleString() }}
@@ -195,110 +159,43 @@ const singleGameKey = computed(() => Object.keys(groupedForums.value)[0])
                         <div class="text-xs">Posts</div>
                       </div>
                     </div>
-                    <div v-if="forum.last_post" class="hidden md:flex items-center gap-3 shrink-0 w-52">
-                      <UserAvatar :name="forum.last_post.user?.username" :color="forum.last_post.user?.avatar_color || 'bg-purple-500'" :online="false" size="sm" />
+
+                    <!-- Last post -->
+                    <div v-if="forum.last_post_user" class="hidden md:flex items-center gap-3 shrink-0 w-52">
+                      <UserAvatar
+                        :name="forum.last_post_user.username"
+                        :color="forum.last_post_user.avatar_color || 'bg-purple-500'"
+                        :online="false"
+                        size="sm"
+                      />
                       <div class="min-w-0">
                         <div class="text-sm font-medium truncate" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-                          {{ forum.last_post.user?.username }}
+                          {{ forum.last_post_user.username }}
                         </div>
                         <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                          {{ forum.last_post.time_ago }}
+                          Latest post
                         </div>
                       </div>
                     </div>
                   </router-link>
                 </div>
               </div>
-            </div>
-          </div>
-        </template>
-
-        <!-- Single-game mode -->
-        <template v-else>
-          <div v-for="[catName, catForums] in singleGameCategories" :key="catName" class="mb-4">
-            <div
-              class="rounded-xl overflow-hidden transition-colors duration-300"
-              :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-            >
-              <div
-                class="px-5 py-3 border-b border-l-4 border-l-purple-accent"
-                :class="isDark ? 'bg-gray-900 border-b-gray-800' : 'bg-gray-50 border-b-gray-200'"
-              >
-                <h3 class="font-semibold text-sm uppercase tracking-wider"
-                    :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-                  {{ catName }}
-                </h3>
-              </div>
-
-              <div
-                v-for="(forum, idx) in catForums"
-                :key="forum.id"
-                class="group"
-              >
-                <router-link
-                  :to="`/forum/${forum.slug}`"
-                  class="flex items-center gap-4 px-5 py-4 transition-colors duration-150"
-                  :class="[
-                    isDark ? 'hover:bg-gray-800/60' : 'hover:bg-gray-50',
-                    idx < catForums.length - 1 ? (isDark ? 'border-b border-gray-800/50' : 'border-b border-gray-100') : '',
-                  ]"
-                >
-                  <div
-                    class="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
-                    :class="isDark ? 'bg-gray-800' : 'bg-gray-100'"
-                  >
-                    <i :class="forum.icon || 'fa-solid fa-comment'" class="text-purple-accent"></i>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="font-semibold group-hover:text-purple-accent transition-colors">
-                      {{ forum.name }}
-                    </div>
-                    <div class="text-sm truncate" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                      {{ forum.description }}
-                    </div>
-                  </div>
-                  <div class="hidden sm:flex items-center gap-8 shrink-0 text-sm"
-                       :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                    <div class="text-center w-16">
-                      <div class="font-semibold" :class="isDark ? 'text-gray-200' : 'text-gray-700'">
-                        {{ (forum.threads_count ?? 0).toLocaleString() }}
-                      </div>
-                      <div class="text-xs">Threads</div>
-                    </div>
-                    <div class="text-center w-16">
-                      <div class="font-semibold" :class="isDark ? 'text-gray-200' : 'text-gray-700'">
-                        {{ (forum.posts_count ?? 0).toLocaleString() }}
-                      </div>
-                      <div class="text-xs">Posts</div>
-                    </div>
-                  </div>
-                  <div v-if="forum.last_post" class="hidden md:flex items-center gap-3 shrink-0 w-52">
-                    <UserAvatar :name="forum.last_post.user?.username" :color="forum.last_post.user?.avatar_color || 'bg-purple-500'" :online="false" size="sm" />
-                    <div class="min-w-0">
-                      <div class="text-sm font-medium truncate" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-                        {{ forum.last_post.user?.username }}
-                      </div>
-                      <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                        {{ forum.last_post.time_ago }}
-                      </div>
-                    </div>
-                  </div>
-                </router-link>
+              <div v-else class="px-5 py-4 text-sm" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                No forums yet.
               </div>
             </div>
           </div>
-        </template>
 
-        <!-- Stats bar -->
-        <div
-          v-if="forumStore.config?.stats"
-          class="rounded-xl px-6 py-4 text-center text-sm transition-colors duration-300"
-          :class="isDark ? 'bg-gray-900 text-gray-400' : 'bg-white text-gray-500 shadow-sm'"
-        >
-          <span class="font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ forumStore.config.stats.threads?.toLocaleString() }}</span> Threads ·
-          <span class="font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ forumStore.config.stats.posts?.toLocaleString() }}</span> Posts ·
-          <span class="font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ forumStore.config.stats.members?.toLocaleString() }}</span> Members ·
-          Newest: <span class="text-purple-accent font-medium">{{ forumStore.config.stats.newest_member }}</span>
+          <!-- No categories -->
+          <div v-if="!game.categories || !game.categories.length" class="text-center py-10 text-gray-400">
+            No forums available.
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div v-if="!filteredGames.length" class="text-center py-20">
+          <i class="fa-solid fa-comments text-5xl text-gray-500 mb-4"></i>
+          <p class="text-lg font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">No forums found.</p>
         </div>
       </main>
     </div>
