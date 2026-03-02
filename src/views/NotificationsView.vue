@@ -32,14 +32,14 @@ function timeAgo(date) {
 
 function notifIcon(type) {
   const icons = {
-    reply: '💬',
-    mention: '📢',
-    like: '❤️',
-    award: '🎖️',
-    achievement: '🏆',
-    system: '⚙️',
+    reply: 'fa-solid fa-comment',
+    mention: 'fa-solid fa-at',
+    like: 'fa-solid fa-heart',
+    award: 'fa-solid fa-award',
+    achievement: 'fa-solid fa-trophy',
+    system: 'fa-solid fa-gear',
   }
-  return icons[type] || '🔔'
+  return icons[type] || 'fa-solid fa-bell'
 }
 
 async function handleMarkRead(n) {
@@ -128,7 +128,7 @@ function handleDelete(n) {
         ]"
       >
         <div class="flex items-start gap-3">
-          <span class="text-xl mt-0.5 shrink-0">{{ notifIcon(n.data?.type) }}</span>
+          <i :class="[notifIcon(n.data?.type), 'text-lg mt-0.5 shrink-0 w-5 text-center text-violet-400']"></i>
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-2">
               <div>
@@ -173,7 +173,7 @@ function handleDelete(n) {
       class="rounded-xl p-12 text-center border"
       :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
     >
-      <span class="text-4xl">🔔</span>
+      <i class="fa-solid fa-bell text-4xl text-gray-400"></i>
       <p class="text-lg font-semibold mt-4" :class="isDark ? 'text-white' : 'text-gray-900'">
         {{ activeTab === 'unread' ? 'No unread notifications' : 'No notifications yet' }}
       </p>

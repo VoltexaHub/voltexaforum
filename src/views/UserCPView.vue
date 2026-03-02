@@ -22,12 +22,12 @@ const saveMessage = ref(null)
 const saveError = ref(null)
 
 const sidebarLinks = [
-  { id: 'profile', label: 'Profile', icon: '&#128100;' },
-  { id: 'account', label: 'Account', icon: '&#128273;' },
-  { id: 'notifications', label: 'Notifications', icon: '&#128276;' },
-  { id: 'privacy', label: 'Privacy', icon: '&#128274;' },
-  { id: 'cosmetics', label: 'Cosmetics', icon: '&#10024;' },
-  { id: 'sessions', label: 'Sessions', icon: '&#128187;' },
+  { id: 'profile', label: 'Profile', icon: 'fa-solid fa-user' },
+  { id: 'account', label: 'Account', icon: 'fa-solid fa-lock' },
+  { id: 'notifications', label: 'Notifications', icon: 'fa-solid fa-bell' },
+  { id: 'privacy', label: 'Privacy', icon: 'fa-solid fa-eye' },
+  { id: 'cosmetics', label: 'Cosmetics', icon: 'fa-solid fa-palette' },
+  { id: 'sessions', label: 'Sessions', icon: 'fa-solid fa-desktop' },
 ]
 
 // Profile
@@ -268,7 +268,7 @@ async function handleRemoveSession(id) {
                 ? 'bg-purple-accent/15 text-purple-accent'
                 : isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'"
             >
-              <span v-html="link.icon" />
+              <i :class="[link.icon, 'w-4 text-center']"></i>
               {{ link.label }}
             </button>
           </nav>
@@ -355,7 +355,7 @@ async function handleRemoveSession(id) {
             <div class="mb-6 space-y-4">
               <label class="block text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">Social Links</label>
               <div class="flex items-center gap-3">
-                <span class="w-8 text-center text-lg">&#128172;</span>
+                <i class="fa-brands fa-discord w-8 text-center text-lg"></i>
                 <input
                   type="text"
                   v-model="discordUsername"
@@ -365,7 +365,7 @@ async function handleRemoveSession(id) {
                 />
               </div>
               <div class="flex items-center gap-3">
-                <span class="w-8 text-center text-lg">&#120143;</span>
+                <i class="fa-brands fa-x-twitter w-8 text-center text-lg"></i>
                 <input
                   type="text"
                   v-model="twitterHandle"
@@ -375,7 +375,7 @@ async function handleRemoveSession(id) {
                 />
               </div>
               <div class="flex items-center gap-3">
-                <span class="w-8 text-center text-lg">&#127760;</span>
+                <i class="fa-solid fa-globe w-8 text-center text-lg"></i>
                 <input
                   type="text"
                   v-model="website"
@@ -603,7 +603,7 @@ async function handleRemoveSession(id) {
                 :class="isDark ? 'border-gray-800 bg-gray-800/30' : 'border-gray-100 bg-gray-50'"
               >
                 <div class="flex items-center gap-3">
-                  <span class="text-2xl">{{ session.current ? '&#128187;' : '&#128421;&#65039;' }}</span>
+                  <i :class="session.current ? 'fa-solid fa-laptop' : 'fa-solid fa-desktop'" class="text-xl"></i>
                   <div>
                     <div class="flex items-center gap-2">
                       <p class="font-medium text-sm">{{ session.browser || session.device }}</p>

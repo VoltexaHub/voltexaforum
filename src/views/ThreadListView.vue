@@ -69,7 +69,7 @@ function tagClass(tag) {
 
     <!-- Error -->
     <div v-else-if="error" class="text-center py-20">
-      <span class="text-5xl">&#128533;</span>
+      <i class="fa-solid fa-face-sad-tear text-5xl text-gray-400"></i>
       <p class="text-lg font-medium mt-4" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ error }}</p>
       <button
         @click="loadThreads(currentPage)"

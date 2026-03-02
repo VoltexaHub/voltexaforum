@@ -14,36 +14,36 @@ const navSections = [
   {
     label: 'Overview',
     items: [
-      { to: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
+      { to: '/admin/dashboard', label: 'Dashboard', icon: 'fa-solid fa-chart-bar' },
     ],
   },
   {
     label: 'Community',
     items: [
-      { to: '/admin/users', label: 'Users', icon: '👥' },
-      { to: '/admin/forums', label: 'Forums', icon: '💬' },
-      { to: '/admin/moderation', label: 'Moderation', icon: '🛡️' },
+      { to: '/admin/users', label: 'Users', icon: 'fa-solid fa-users' },
+      { to: '/admin/forums', label: 'Forums', icon: 'fa-solid fa-comments' },
+      { to: '/admin/moderation', label: 'Moderation', icon: 'fa-solid fa-shield-halved' },
     ],
   },
   {
     label: 'Commerce',
     items: [
-      { to: '/admin/store/items', label: 'Store Items', icon: '🏪' },
-      { to: '/admin/store/purchases', label: 'Purchases', icon: '💳' },
+      { to: '/admin/store/items', label: 'Store Items', icon: 'fa-solid fa-store' },
+      { to: '/admin/store/purchases', label: 'Purchases', icon: 'fa-solid fa-credit-card' },
     ],
   },
   {
     label: 'Gamification',
     items: [
-      { to: '/admin/achievements', label: 'Achievements', icon: '🏆' },
-      { to: '/admin/awards', label: 'Awards', icon: '🎖️' },
+      { to: '/admin/achievements', label: 'Achievements', icon: 'fa-solid fa-trophy' },
+      { to: '/admin/awards', label: 'Awards', icon: 'fa-solid fa-award' },
     ],
   },
   {
     label: 'System',
     items: [
-      { to: '/admin/config', label: 'Config', icon: '⚙️' },
-      { to: '/admin/plugins', label: 'Plugins', icon: '🧩' },
+      { to: '/admin/config', label: 'Config', icon: 'fa-solid fa-gear' },
+      { to: '/admin/plugins', label: 'Plugins', icon: 'fa-solid fa-puzzle-piece' },
     ],
   },
 ]
@@ -70,7 +70,7 @@ function isActive(path) {
     >
       <!-- Logo -->
       <div class="h-16 flex items-center gap-2 px-5 border-b border-gray-800 shrink-0">
-        <span class="text-lg">⚡</span>
+        <i class="fa-solid fa-bolt text-violet-400"></i>
         <span class="font-bold text-gray-300 text-sm tracking-wide">VoltexaHub Admin</span>
       </div>
 
@@ -90,7 +90,7 @@ function isActive(path) {
               ? 'text-violet-400 bg-violet-500/10 border-l-2 border-violet-500 -ml-px'
               : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/60'"
           >
-            <span class="text-base">{{ item.icon }}</span>
+            <i :class="[item.icon, 'w-4 text-center']"></i>
             {{ item.label }}
           </router-link>
         </div>

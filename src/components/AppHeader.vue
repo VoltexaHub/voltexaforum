@@ -58,7 +58,7 @@ async function handleLogout() {
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <router-link to="/" class="flex items-center gap-2 font-bold text-xl shrink-0">
-          <span class="text-2xl">&#9889;</span>
+          <i class="fa-solid fa-bolt text-2xl text-violet-400"></i>
           <span class="text-purple-accent">Voltexa</span><span>Forum</span>
         </router-link>
 
@@ -94,7 +94,7 @@ async function handleLogout() {
                 class="relative p-2 rounded-lg transition-colors"
                 :class="isDark ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-600'"
               >
-                🔔
+                <i class="fa-solid fa-bell"></i>
                 <span
                   v-if="notifStore.unreadCount > 0"
                   class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 leading-none font-medium"
@@ -123,7 +123,7 @@ async function handleLogout() {
               class="relative p-2 rounded-lg transition-colors"
               :class="isDark ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-600'"
             >
-              ✉️
+              <i class="fa-solid fa-envelope"></i>
               <span
                 v-if="messagesStore.dmUnreadCount > 0"
                 class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 leading-none font-medium"
@@ -137,7 +137,7 @@ async function handleLogout() {
               class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
               :class="isDark ? 'hover:bg-gray-800 text-purple-accent' : 'hover:bg-gray-100 text-purple-accent'"
             >
-              &#9889; {{ authStore.credits.toLocaleString() }}
+              <i class="fa-solid fa-coins text-xs"></i> {{ authStore.credits.toLocaleString() }}
             </router-link>
 
             <!-- Avatar with dropdown -->
@@ -171,7 +171,7 @@ async function handleLogout() {
                   <!-- User info header -->
                   <div class="px-4 py-3 border-b" :class="isDark ? 'border-gray-700' : 'border-gray-100'">
                     <p class="text-sm font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ authStore.username }}</p>
-                    <p class="text-xs mt-0.5" :class="isDark ? 'text-gray-400' : 'text-gray-500'">&#9889; {{ authStore.credits.toLocaleString() }} credits</p>
+                    <p class="text-xs mt-0.5" :class="isDark ? 'text-gray-400' : 'text-gray-500'"><i class="fa-solid fa-coins text-xs"></i> {{ authStore.credits.toLocaleString() }} credits</p>
                   </div>
 
                   <!-- Admin panel link (admin only) -->
@@ -181,7 +181,7 @@ async function handleLogout() {
                     @click="closeDropdown"
                     class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors text-red-400 hover:bg-red-400/10"
                   >
-                    <span>👑</span> Admin Panel
+                    <i class="fa-solid fa-crown w-4 text-center"></i> Admin Panel
                   </router-link>
 
                   <!-- Mod tools (mod or admin) -->
@@ -191,7 +191,7 @@ async function handleLogout() {
                     @click="closeDropdown"
                     class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors text-amber-400 hover:bg-amber-400/10"
                   >
-                    <span>🛡️</span> Moderation
+                    <i class="fa-solid fa-shield-halved w-4 text-center"></i> Moderation
                   </router-link>
 
                   <div v-if="authStore.isModerator" class="border-t my-1" :class="isDark ? 'border-gray-700' : 'border-gray-100'" />
@@ -203,7 +203,7 @@ async function handleLogout() {
                     class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors"
                     :class="isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-50'"
                   >
-                    <span>👤</span> My Profile
+                    <i class="fa-solid fa-user w-4 text-center"></i> My Profile
                   </router-link>
                   <router-link
                     to="/messages"
@@ -211,7 +211,7 @@ async function handleLogout() {
                     class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors"
                     :class="isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-50'"
                   >
-                    <span>✉️</span> Messages
+                    <i class="fa-solid fa-envelope w-4 text-center"></i> Messages
                     <span
                       v-if="messagesStore.dmUnreadCount > 0"
                       class="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none ml-auto"
@@ -225,7 +225,7 @@ async function handleLogout() {
                     class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors"
                     :class="isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-50'"
                   >
-                    <span>⚙️</span> Settings
+                    <i class="fa-solid fa-gear w-4 text-center"></i> Settings
                   </router-link>
                   <router-link
                     to="/credits"
@@ -233,7 +233,7 @@ async function handleLogout() {
                     class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors"
                     :class="isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-50'"
                   >
-                    <span>⚡</span> Credits
+                    <i class="fa-solid fa-coins w-4 text-center"></i> Credits
                   </router-link>
                   <router-link
                     to="/achievements"
@@ -241,14 +241,14 @@ async function handleLogout() {
                     class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors"
                     :class="isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-50'"
                   >
-                    <span>🏆</span> Achievements
+                    <i class="fa-solid fa-trophy w-4 text-center"></i> Achievements
                   </router-link>
                   <div class="border-t my-1" :class="isDark ? 'border-gray-700' : 'border-gray-100'" />
                   <button
                     @click="handleLogout"
                     class="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-medium transition-colors text-red-400 hover:bg-red-400/10"
                   >
-                    <span>🚪</span> Log out
+                    <i class="fa-solid fa-right-from-bracket w-4 text-center"></i> Log out
                   </button>
                 </div>
               </Transition>
@@ -326,7 +326,7 @@ async function handleLogout() {
             class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors"
             :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
           >
-            <span>🔔 Notifications</span>
+            <span><i class="fa-solid fa-bell mr-1.5"></i> Notifications</span>
             <span
               v-if="notifStore.unreadCount > 0"
               class="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none"
@@ -340,7 +340,7 @@ async function handleLogout() {
             class="flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors"
             :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
           >
-            <span>✉️ Messages</span>
+            <span><i class="fa-solid fa-envelope mr-1.5"></i> Messages</span>
             <span
               v-if="messagesStore.dmUnreadCount > 0"
               class="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none"
@@ -354,7 +354,7 @@ async function handleLogout() {
             class="block px-3 py-2 rounded-lg font-medium transition-colors"
             :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
           >
-            &#128100; Profile
+            <i class="fa-solid fa-user mr-1.5"></i> Profile
           </router-link>
           <router-link
             to="/usercp"
@@ -362,7 +362,7 @@ async function handleLogout() {
             class="block px-3 py-2 rounded-lg font-medium transition-colors"
             :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
           >
-            &#9881;&#65039; Settings
+            <i class="fa-solid fa-gear mr-1.5"></i> Settings
           </router-link>
           <div class="flex items-center gap-3 px-3 pt-2">
             <button
@@ -377,7 +377,7 @@ async function handleLogout() {
               @click="mobileOpen = false"
               class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold text-purple-accent"
             >
-              &#9889; {{ authStore.credits.toLocaleString() }}
+              <i class="fa-solid fa-coins text-xs"></i> {{ authStore.credits.toLocaleString() }}
             </router-link>
             <router-link :to="`/profile/${authStore.username}`" @click="mobileOpen = false">
               <UserAvatar
@@ -392,7 +392,7 @@ async function handleLogout() {
             @click="handleLogout; mobileOpen = false"
             class="block w-full text-left px-3 py-2 rounded-lg font-medium text-red-400 hover:bg-red-400/10 transition-colors"
           >
-            &#128682; Log out
+            <i class="fa-solid fa-right-from-bracket mr-1.5"></i> Log out
           </button>
         </template>
 

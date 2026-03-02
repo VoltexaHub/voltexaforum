@@ -151,7 +151,7 @@ function getOtherParticipant(convo) {
         </div>
 
         <div v-else-if="messagesStore.conversations.length === 0" class="p-6 text-center">
-          <span class="text-3xl">💬</span>
+          <i class="fa-solid fa-comments text-3xl text-gray-400"></i>
           <p class="text-sm mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">No conversations yet</p>
         </div>
 
@@ -204,7 +204,7 @@ function getOtherParticipant(convo) {
           class="flex-1 flex items-center justify-center"
         >
           <div class="text-center">
-            <span class="text-4xl">💬</span>
+            <i class="fa-solid fa-comments text-4xl text-gray-400"></i>
             <p class="text-sm mt-3" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
               Select a conversation to start messaging
             </p>

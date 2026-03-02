@@ -79,7 +79,7 @@ const singleGameKey = computed(() => Object.keys(groupedForums.value)[0])
 
     <!-- Error -->
     <div v-else-if="error" class="text-center py-20">
-      <span class="text-5xl">&#128533;</span>
+      <i class="fa-solid fa-face-sad-tear text-5xl text-gray-400"></i>
       <p class="text-lg font-medium mt-4" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ error }}</p>
       <button
         @click="loading = true; error = null; $router.go(0)"
@@ -110,7 +110,7 @@ const singleGameKey = computed(() => Object.keys(groupedForums.value)[0])
                   ? 'bg-purple-accent/15 text-purple-accent'
                   : isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
               >
-                &#127918; All Games
+                <i class="fa-solid fa-gamepad"></i> All Games
               </button>
             </li>
             <li v-for="game in games" :key="game.id">

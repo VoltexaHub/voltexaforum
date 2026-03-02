@@ -18,10 +18,10 @@ const statCards = ref([])
 
 function buildStatCards(s) {
   return [
-    { label: 'Total Users', value: Number(s.user_count).toLocaleString(), icon: '👥' },
-    { label: 'Total Posts', value: Number(s.post_count).toLocaleString(), icon: '📝' },
-    { label: 'Total Threads', value: Number(s.thread_count).toLocaleString(), icon: '💬' },
-    { label: 'Revenue This Month', value: '$' + Number(s.revenue_this_month).toFixed(2), icon: '💰' },
+    { label: 'Total Users', value: Number(s.user_count).toLocaleString(), icon: 'fa-solid fa-users' },
+    { label: 'Total Posts', value: Number(s.post_count).toLocaleString(), icon: 'fa-solid fa-pen-to-square' },
+    { label: 'Total Threads', value: Number(s.thread_count).toLocaleString(), icon: 'fa-solid fa-comments' },
+    { label: 'Revenue This Month', value: '$' + Number(s.revenue_this_month).toFixed(2), icon: 'fa-solid fa-dollar-sign' },
   ]
 }
 
@@ -51,8 +51,8 @@ async function fetchData() {
 onMounted(fetchData)
 
 function activityIcon(type) {
-  const map = { registration: '👤', purchase: '💳', thread: '📝', ban: '🚫', post: '📝' }
-  return map[type] || '📌'
+  const map = { registration: 'fa-solid fa-user-plus', purchase: 'fa-solid fa-credit-card', thread: 'fa-solid fa-pen-to-square', ban: 'fa-solid fa-ban', post: 'fa-solid fa-comment' }
+  return map[type] || 'fa-solid fa-circle-info'
 }
 </script>
 
@@ -80,7 +80,7 @@ function activityIcon(type) {
           class="bg-gray-800 rounded-xl p-5 border border-gray-700/50"
         >
           <div class="flex items-center justify-between mb-3">
-            <span class="text-2xl">{{ stat.icon }}</span>
+            <i :class="[stat.icon, 'text-2xl text-violet-400']"></i>
           </div>
           <div class="text-2xl font-bold text-white">{{ stat.value }}</div>
           <div class="text-sm text-gray-400 mt-1">{{ stat.label }}</div>
@@ -91,13 +91,13 @@ function activityIcon(type) {
     <!-- Quick Actions -->
     <div v-if="!loading" class="flex flex-wrap gap-3">
       <button class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 text-amber-400 rounded-lg text-sm font-medium hover:bg-amber-500/20 transition-colors border border-amber-500/20">
-        🛡️ View Pending Reports ({{ quickActions.pending_reports }})
+        <i class="fa-solid fa-shield-halved"></i> View Pending Reports ({{ quickActions.pending_reports }})
       </button>
       <button class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-500/10 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-colors border border-red-500/20">
-        📦 Process Failed Deliveries ({{ quickActions.failed_deliveries }})
+        <i class="fa-solid fa-box"></i> Process Failed Deliveries ({{ quickActions.failed_deliveries }})
       </button>
       <router-link to="/admin/awards" class="inline-flex items-center gap-2 px-4 py-2.5 bg-violet-500/10 text-violet-400 rounded-lg text-sm font-medium hover:bg-violet-500/20 transition-colors border border-violet-500/20">
-        🎖️ New Award
+        <i class="fa-solid fa-award"></i> New Award
       </router-link>
     </div>
 
@@ -119,7 +119,7 @@ function activityIcon(type) {
           :key="event.id || i"
           class="flex items-center gap-3 px-5 py-3 hover:bg-gray-700/30 transition-colors"
         >
-          <span class="text-base">{{ activityIcon(event.type) }}</span>
+          <i :class="[activityIcon(event.type), 'text-sm text-violet-400 mt-0.5 shrink-0 w-4 text-center']"></i>
           <span class="text-sm text-gray-300 flex-1">{{ event.text }}</span>
           <span class="text-xs text-gray-500 shrink-0">{{ event.time }}</span>
         </div>
