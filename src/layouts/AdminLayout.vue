@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { users } from '../data/mockData'
+import { useAuthStore } from '../stores/auth'
 import UserAvatar from '../components/UserAvatar.vue'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const sidebarOpen = ref(false)
-const currentUser = users.find(u => u.username === 'xCrafter_Z')
 
 const pageTitle = computed(() => route.meta?.title || 'Admin')
 
@@ -100,24 +100,22 @@ function isActive(path) {
       <div class="border-t border-gray-800 p-4 shrink-0">
         <div class="flex items-center gap-3 mb-3">
           <UserAvatar
-            :name="currentUser?.username"
-            :color="currentUser?.avatarColor || 'bg-purple-500'"
+            :name="authStore.username"
+            :color="authStore.avatarColor"
             :online="true"
             size="sm"
           />
           <div class="min-w-0">
-            <div class="text-sm font-medium text-gray-200 truncate">{{ currentUser?.username }}</div>
-            <div class="text-xs text-gray-500">Admin</div>
+            <div class="text-sm font-medium text-gray-200 truncate">{{ authStore.username }}</div>
+            <div class="text-xs text-gray-500">{{ authStore.user?.email || 'Admin' }}</div>
           </div>
         </div>
         <router-link
           to="/"
           class="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-300 transition-colors"
         >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to Forum
+          <i class="fa-solid fa-arrow-left"></i>
+          Back to Site
         </router-link>
       </div>
     </aside>

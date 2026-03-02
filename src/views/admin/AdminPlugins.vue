@@ -29,10 +29,10 @@ export default {
   // Hook into credit events
   hooks: {
     onCreditEarn(user, amount, reason) {
-      console.log(\`\${user.name} earned \${amount} credits\`)
+      // Handle credit earn event
     },
     onPurchase(user, item) {
-      console.log(\`\${user.name} purchased \${item.name}\`)
+      // Handle purchase event
     },
   },
 

@@ -11,16 +11,18 @@ export const useNotificationsStore = defineStore('notifications', {
     notifications: [],
     unreadCount: 0,
     loading: false,
+    error: null,
   }),
   actions: {
     async fetchNotifications() {
       this.loading = true
+      this.error = null
       try {
         const res = await getNotifications()
         this.notifications = res.data.data || []
         this.unreadCount = this.notifications.filter(n => !n.read_at).length
-      } catch {
-        // silent
+      } catch (e) {
+        this.error = e.response?.data?.message || 'Failed to load notifications'
       } finally {
         this.loading = false
       }

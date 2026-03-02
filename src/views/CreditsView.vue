@@ -12,7 +12,9 @@ const error = ref(null)
 const currentPage = ref(1)
 const perPage = 10
 
-onMounted(async () => {
+async function fetchCredits() {
+  loading.value = true
+  error.value = null
   try {
     const res = await getUserCredits()
     creditsLog.value = res.data.data
@@ -21,7 +23,9 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(fetchCredits)
 
 const totalEarned = computed(() => creditsLog.value.filter(c => c.type === 'earn').reduce((sum, c) => sum + c.amount, 0))
 const totalSpent = computed(() => creditsLog.value.filter(c => c.type === 'spend').reduce((sum, c) => sum + c.amount, 0))
@@ -57,7 +61,7 @@ function formatDate(dateStr) {
       <span class="text-5xl">&#128533;</span>
       <p class="text-lg font-medium mt-4" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ error }}</p>
       <button
-        @click="loading = true; error = null; $router.go(0)"
+        @click="fetchCredits"
         class="mt-4 px-6 py-2.5 bg-purple-accent hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
       >
         Retry

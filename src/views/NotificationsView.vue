@@ -97,8 +97,26 @@ function handleDelete(n) {
       </button>
     </div>
 
+    <!-- Error -->
+    <div
+      v-if="notifStore.error && !notifStore.loading"
+      class="rounded-xl p-12 text-center border"
+      :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+    >
+      <i class="fa-solid fa-triangle-exclamation text-4xl text-red-400"></i>
+      <p class="text-lg font-medium mt-4" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+        {{ notifStore.error }}
+      </p>
+      <button
+        @click="notifStore.fetchNotifications()"
+        class="mt-4 px-6 py-2.5 bg-purple-accent hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+      >
+        Retry
+      </button>
+    </div>
+
     <!-- Loading -->
-    <div v-if="notifStore.loading" class="space-y-4">
+    <div v-else-if="notifStore.loading" class="space-y-4">
       <div
         v-for="i in 5"
         :key="i"

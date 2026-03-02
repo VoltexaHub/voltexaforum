@@ -1,11 +1,17 @@
 <script setup>
-import { inject, ref, onMounted, watch } from 'vue'
+import { inject, ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 import { getUserProfile } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
 
 const isDark = inject('isDark')
 const route = useRoute()
+const authStore = useAuthStore()
+
+const isOwnProfile = computed(() => {
+  return authStore.isLoggedIn && authStore.username === route.params.username
+})
 
 const profile = ref(null)
 const loading = ref(true)
@@ -100,6 +106,14 @@ function formatDate(dateStr) {
             <div v-if="profile.user_title" class="text-sm italic mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
               {{ profile.user_title }}
             </div>
+            <router-link
+              v-if="isOwnProfile"
+              to="/usercp"
+              class="inline-flex items-center gap-1.5 mt-3 px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors"
+              :class="isDark ? 'border-gray-700 text-gray-300 hover:bg-gray-800' : 'border-gray-200 text-gray-600 hover:bg-gray-100'"
+            >
+              <i class="fa-solid fa-pen-to-square text-xs"></i> Edit Profile
+            </router-link>
           </div>
         </div>
 

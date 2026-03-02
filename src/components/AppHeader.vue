@@ -364,6 +364,14 @@ async function handleLogout() {
           >
             <i class="fa-solid fa-gear mr-1.5"></i> Settings
           </router-link>
+          <router-link
+            to="/achievements"
+            @click="mobileOpen = false"
+            class="block px-3 py-2 rounded-lg font-medium transition-colors"
+            :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
+          >
+            <i class="fa-solid fa-trophy mr-1.5"></i> Achievements
+          </router-link>
           <div class="flex items-center gap-3 px-3 pt-2">
             <button
               @click="toggleTheme"
@@ -389,7 +397,7 @@ async function handleLogout() {
             </router-link>
           </div>
           <button
-            @click="handleLogout; mobileOpen = false"
+            @click="handleLogout(); mobileOpen = false"
             class="block w-full text-left px-3 py-2 rounded-lg font-medium text-red-400 hover:bg-red-400/10 transition-colors"
           >
             <i class="fa-solid fa-right-from-bracket mr-1.5"></i> Log out

@@ -2,13 +2,11 @@
 import { ref, watch, onMounted } from 'vue'
 import { getAdminUsers, banUser as banUserApi, unbanUser } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
-import { users as mockUsers, usergroups } from '../../data/mockData'
 import UserAvatar from '../../components/UserAvatar.vue'
 
 const toast = useToastStore()
 const loading = ref(true)
 const error = ref(null)
-const useMock = ref(false)
 
 const search = ref('')
 const roleFilter = ref('all')
@@ -34,21 +32,8 @@ async function fetchUsers() {
     userList.value = d.data || []
     totalPages.value = d.meta?.last_page || d.last_page || 1
     totalUsers.value = d.meta?.total || d.total || userList.value.length
-    useMock.value = false
   } catch (e) {
-    if (!userList.value.length) {
-      useMock.value = true
-      userList.value = mockUsers.map(u => ({
-        ...u,
-        email: `${u.username.toLowerCase()}@example.com`,
-        status: u.username === 'BlockMaster' ? 'banned' : 'active',
-        role: u.usergroup,
-        last_active: ['2 min ago', '15 min ago', '1 hr ago', '3 hrs ago', '1 day ago', '2 days ago', '5 hrs ago', 'Just now', '12 hrs ago', '3 days ago'][u.id - 1] || 'Unknown',
-      }))
-      totalPages.value = 1
-      totalUsers.value = userList.value.length
-    }
-    error.value = e.response?.data?.message || 'Failed to load users - showing mock data'
+    error.value = e.response?.data?.message || 'Failed to load users'
   } finally {
     loading.value = false
   }
@@ -104,12 +89,9 @@ onMounted(fetchUsers)
 <template>
   <div class="space-y-6">
     <!-- Error banner -->
-    <div v-if="error && !useMock" class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center justify-between">
+    <div v-if="error" class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center justify-between">
       <span class="text-sm text-red-400">{{ error }}</span>
       <button @click="fetchUsers" class="px-3 py-1.5 bg-red-500/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-500/30 transition-colors">Retry</button>
-    </div>
-    <div v-if="useMock" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
-      <span class="text-xs text-amber-400">API unavailable - showing mock data</span>
     </div>
 
     <!-- Top bar: Search + Filters -->

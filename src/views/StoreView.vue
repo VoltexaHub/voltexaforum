@@ -31,7 +31,9 @@ const categoryTabs = computed(() => {
   return tabs
 })
 
-onMounted(async () => {
+async function fetchStore() {
+  loading.value = true
+  error.value = null
   try {
     const res = await getStoreItems()
     items.value = res.data.data
@@ -40,7 +42,9 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(fetchStore)
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
@@ -92,7 +96,7 @@ async function handlePurchase(item) {
       <span class="text-5xl">&#128533;</span>
       <p class="text-lg font-medium mt-4" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ error }}</p>
       <button
-        @click="loading = true; error = null; $router.go(0)"
+        @click="fetchStore"
         class="mt-4 px-6 py-2.5 bg-purple-accent hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
       >
         Retry

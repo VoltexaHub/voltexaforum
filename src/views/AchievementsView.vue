@@ -12,7 +12,9 @@ const loading = ref(true)
 const error = ref(null)
 const activeCategory = ref('all')
 
-onMounted(async () => {
+async function fetchAchievements() {
+  loading.value = true
+  error.value = null
   try {
     const promises = [getAchievements()]
     if (authStore.isLoggedIn) {
@@ -28,7 +30,9 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(fetchAchievements)
 
 const unlockedIds = computed(() => new Set(userAchievements.value.map(a => a.achievement_id)))
 
@@ -91,7 +95,7 @@ function getProgress(ach) {
       <span class="text-5xl">&#128533;</span>
       <p class="text-lg font-medium mt-4" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ error }}</p>
       <button
-        @click="loading = true; error = null; $router.go(0)"
+        @click="fetchAchievements"
         class="mt-4 px-6 py-2.5 bg-purple-accent hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
       >
         Retry

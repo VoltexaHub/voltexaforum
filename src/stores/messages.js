@@ -13,15 +13,17 @@ export const useMessagesStore = defineStore('messages', {
     messages: [],
     dmUnreadCount: 0,
     loading: false,
+    error: null,
   }),
   actions: {
     async fetchConversations() {
       this.loading = true
+      this.error = null
       try {
         const res = await getConversations()
         this.conversations = res.data.data || []
-      } catch {
-        // silent
+      } catch (e) {
+        this.error = e.response?.data?.message || 'Failed to load conversations'
       } finally {
         this.loading = false
       }

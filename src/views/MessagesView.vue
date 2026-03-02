@@ -140,7 +140,18 @@ function getOtherParticipant(convo) {
           route.params.id ? 'hidden sm:block' : ''
         ]"
       >
-        <div v-if="messagesStore.loading" class="p-4 space-y-3">
+        <div v-if="messagesStore.error && !messagesStore.loading" class="p-6 text-center">
+          <i class="fa-solid fa-triangle-exclamation text-3xl text-red-400"></i>
+          <p class="text-sm mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ messagesStore.error }}</p>
+          <button
+            @click="messagesStore.fetchConversations()"
+            class="mt-3 px-4 py-2 bg-purple-accent hover:bg-purple-700 text-white text-sm rounded-lg font-medium transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+
+        <div v-else-if="messagesStore.loading" class="p-4 space-y-3">
           <div v-for="i in 5" :key="i" class="flex items-center gap-3 animate-pulse">
             <div class="w-10 h-10 rounded-full shrink-0" :class="isDark ? 'bg-gray-700' : 'bg-gray-200'" />
             <div class="flex-1 space-y-2">
