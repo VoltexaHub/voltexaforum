@@ -108,6 +108,9 @@ export const deleteAdminCategory = (id) => api.delete('/admin/categories/' + id)
 export const createAdminForum = (data) => api.post('/admin/forums', data)
 export const updateAdminForum = (id, data) => api.put('/admin/forums/' + id, data)
 export const deleteAdminForum = (id) => api.delete('/admin/forums/' + id)
+export const reorderGames = (items) => api.post('/admin/games/reorder', { items })
+export const reorderCategories = (items) => api.post('/admin/categories/reorder', { items })
+export const reorderForums = (items) => api.post('/admin/forums/reorder', { items })
 
 // Admin - Moderation
 export const getAdminThreads = (params) => api.get('/admin/threads', { params })
