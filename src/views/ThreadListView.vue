@@ -2,11 +2,13 @@
 import { inject, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getForumThreads } from '../services/api'
+import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
 import UserAvatar from '../components/UserAvatar.vue'
 
 const isDark = inject('isDark')
 const route = useRoute()
+const authStore = useAuthStore()
 const forumStore = useForumStore()
 
 const threads = ref([])
@@ -100,10 +102,11 @@ function tagClass(tag) {
       <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
         <h1 class="text-2xl font-bold">{{ forumMeta?.name || route.params.slug }}</h1>
         <router-link
-          to="#"
-          class="px-5 py-2.5 bg-purple-accent hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+          v-if="authStore.isLoggedIn"
+          :to="`/forum/${route.params.slug}/new-thread`"
+          class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-accent hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
         >
-          + New Thread
+          <i class="fa-solid fa-pen-to-square"></i> New Thread
         </router-link>
       </div>
 

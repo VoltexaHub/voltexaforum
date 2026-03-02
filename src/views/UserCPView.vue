@@ -10,6 +10,7 @@ import {
   toggleCosmetic,
   getUserSessions,
   deleteSession,
+  uploadAvatar,
 } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
 
@@ -29,6 +30,50 @@ const sidebarLinks = [
   { id: 'cosmetics', label: 'Cosmetics', icon: 'fa-solid fa-palette' },
   { id: 'sessions', label: 'Sessions', icon: 'fa-solid fa-desktop' },
 ]
+
+// Avatar upload
+const avatarFileInput = ref(null)
+const avatarPreview = ref(null)
+const avatarFile = ref(null)
+const avatarUploading = ref(false)
+
+function handleAvatarSelect(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  if (file.size > 2 * 1024 * 1024) {
+    saveError.value = 'Avatar must be under 2MB.'
+    return
+  }
+  avatarFile.value = file
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    avatarPreview.value = ev.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+async function handleAvatarUpload() {
+  if (!avatarFile.value) return
+  avatarUploading.value = true
+  clearMessages()
+  try {
+    const formData = new FormData()
+    formData.append('avatar', avatarFile.value)
+    const res = await uploadAvatar(formData)
+    const newUrl = res.data.data?.avatar_url || res.data.avatar_url
+    if (newUrl && authStore.user) {
+      authStore.user.avatar_url = newUrl
+    }
+    avatarPreview.value = null
+    avatarFile.value = null
+    saveMessage.value = 'Avatar uploaded successfully!'
+    await authStore.fetchUser()
+  } catch (e) {
+    saveError.value = e.response?.data?.message || 'Failed to upload avatar.'
+  } finally {
+    avatarUploading.value = false
+  }
+}
 
 // Profile
 const avatarColors = [
@@ -250,6 +295,7 @@ async function handleRemoveSession(id) {
               <UserAvatar
                 :name="authStore.username"
                 :color="selectedAvatar"
+                :avatar-url="authStore.avatarUrl"
                 :online="true"
                 size="xl"
               />
@@ -284,6 +330,63 @@ async function handleRemoveSession(id) {
           <!-- PROFILE -->
           <div v-show="activeSection === 'profile'">
             <h2 class="text-xl font-bold mb-6">Profile</h2>
+
+            <!-- Avatar Upload -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium mb-3" :class="isDark ? 'text-gray-300' : 'text-gray-700'">Avatar</label>
+              <div class="flex items-center gap-5">
+                <button
+                  type="button"
+                  @click="avatarFileInput?.click()"
+                  class="relative group cursor-pointer"
+                >
+                  <img
+                    v-if="avatarPreview"
+                    :src="avatarPreview"
+                    class="w-20 h-20 rounded-full object-cover"
+                  />
+                  <img
+                    v-else-if="authStore.avatarUrl"
+                    :src="authStore.avatarUrl"
+                    class="w-20 h-20 rounded-full object-cover"
+                  />
+                  <UserAvatar
+                    v-else
+                    :name="authStore.username"
+                    :color="selectedAvatar"
+                    :online="false"
+                    size="xl"
+                  />
+                  <div class="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="fa-solid fa-camera text-white text-lg"></i>
+                  </div>
+                </button>
+                <div>
+                  <input
+                    ref="avatarFileInput"
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    @change="handleAvatarSelect"
+                  />
+                  <button
+                    v-if="avatarFile"
+                    @click="handleAvatarUpload"
+                    :disabled="avatarUploading"
+                    class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-purple-accent hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <svg v-if="avatarUploading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    {{ avatarUploading ? 'Uploading...' : 'Upload' }}
+                  </button>
+                  <p v-else class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                    Click avatar to change. JPG, PNG, GIF, WebP &mdash; max 2MB
+                  </p>
+                </div>
+              </div>
+            </div>
 
             <div class="mb-6">
               <label class="block text-sm font-medium mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">Avatar Color</label>

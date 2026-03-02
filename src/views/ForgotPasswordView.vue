@@ -1,24 +1,27 @@
 <script setup>
 import { inject, ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
+import { forgotPassword } from '../services/api'
 
 const isDark = inject('isDark')
-const router = useRouter()
-const route = useRoute()
-const authStore = useAuthStore()
 const forumStore = useForumStore()
 const forumName = computed(() => forumStore.config?.forum_name || 'My Forum')
 
 const email = ref('')
-const password = ref('')
+const loading = ref(false)
+const success = ref(false)
+const error = ref(null)
 
-async function handleLogin() {
-  const success = await authStore.login({ email: email.value, password: password.value })
-  if (success) {
-    const redirect = route.query.redirect || '/'
-    router.push(redirect)
+async function handleSubmit() {
+  loading.value = true
+  error.value = null
+  try {
+    await forgotPassword(email.value)
+    success.value = true
+  } catch (e) {
+    error.value = e.response?.data?.message || 'No account found with that email address.'
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -36,28 +39,28 @@ async function handleLogin() {
           <span class="text-purple-accent">{{ forumName }}</span>
         </router-link>
         <p class="text-sm mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-          Sign in to your account
+          Reset your password
         </p>
       </div>
 
-      <!-- Password reset success -->
+      <!-- Success -->
       <div
-        v-if="route.query.reset === 'success'"
+        v-if="success"
         class="mb-6 p-4 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm"
       >
-        Password reset successfully! You can now sign in.
+        Check your email for a reset link.
       </div>
 
       <!-- Error -->
       <div
-        v-if="authStore.error"
+        v-if="error"
         class="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
       >
-        {{ authStore.error }}
+        {{ error }}
       </div>
 
       <!-- Form -->
-      <form @submit.prevent="handleLogin" class="space-y-5">
+      <form v-if="!success" @submit.prevent="handleSubmit" class="space-y-5">
         <div>
           <label class="block text-sm font-medium mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
             Email
@@ -72,43 +75,23 @@ async function handleLogin() {
           />
         </div>
 
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="block text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-              Password
-            </label>
-            <router-link to="/forgot-password" class="text-xs text-purple-accent hover:underline">
-              Forgot password?
-            </router-link>
-          </div>
-          <input
-            v-model="password"
-            type="password"
-            required
-            placeholder="Enter your password"
-            class="w-full px-4 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-purple-accent"
-            :class="isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'"
-          />
-        </div>
-
         <button
           type="submit"
-          :disabled="authStore.loading"
+          :disabled="loading"
           class="w-full py-2.5 rounded-lg font-semibold text-white bg-purple-accent hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          <svg v-if="authStore.loading" class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+          <svg v-if="loading" class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          {{ authStore.loading ? 'Signing in...' : 'Sign In' }}
+          {{ loading ? 'Sending...' : 'Send Reset Link' }}
         </button>
       </form>
 
-      <!-- Register link -->
+      <!-- Back to login -->
       <p class="text-center text-sm mt-6" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-        Don't have an account?
-        <router-link to="/register" class="text-purple-accent hover:underline font-medium">
-          Create one
+        <router-link to="/login" class="text-purple-accent hover:underline font-medium">
+          Back to Login
         </router-link>
       </p>
     </div>

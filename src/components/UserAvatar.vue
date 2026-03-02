@@ -4,12 +4,26 @@ defineProps({
   color: { type: String, default: 'bg-purple-500' },
   online: { type: Boolean, default: false },
   size: { type: String, default: 'md' },
+  avatarUrl: { type: String, default: null },
 })
 </script>
 
 <template>
   <div class="relative inline-flex shrink-0">
+    <img
+      v-if="avatarUrl"
+      :src="avatarUrl"
+      :alt="name"
+      class="rounded-full object-cover"
+      :class="[
+        size === 'sm' ? 'w-8 h-8'
+          : size === 'lg' ? 'w-14 h-14'
+          : size === 'xl' ? 'w-20 h-20'
+          : 'w-10 h-10',
+      ]"
+    />
     <div
+      v-else
       :class="[
         color,
         size === 'sm' ? 'w-8 h-8 text-xs'

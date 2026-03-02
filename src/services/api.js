@@ -34,6 +34,8 @@ export const login = (data) => api.post('/auth/login', data)
 export const register = (data) => api.post('/auth/register', data)
 export const logout = () => api.post('/auth/logout')
 export const getUser = () => api.get('/user')
+export const forgotPassword = (email) => api.post('/auth/forgot-password', { email })
+export const resetPassword = (data) => api.post('/auth/reset-password', data)
 
 // Forum
 export const getForumConfig = () => api.get('/forum/config')
@@ -49,6 +51,7 @@ export const reactToPost = (postId, type) => api.post('/posts/' + postId + '/rea
 export const deletePost = (postId) => api.delete('/posts/' + postId)
 
 // User
+export const uploadAvatar = (formData) => api.post('/user/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
 export const getUserProfile = (username) => api.get('/users/' + username + '/profile')
 export const updateProfile = (data) => api.put('/user/profile', data)
 export const updateAccount = (data) => api.put('/user/account', data)

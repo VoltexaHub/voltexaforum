@@ -9,6 +9,9 @@ import CreditsView from '../views/CreditsView.vue'
 import UserCPView from '../views/UserCPView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
+import ForgotPasswordView from '../views/ForgotPasswordView.vue'
+import ResetPasswordView from '../views/ResetPasswordView.vue'
+import NewThreadView from '../views/NewThreadView.vue'
 import NotificationsView from '../views/NotificationsView.vue'
 import MessagesView from '../views/MessagesView.vue'
 import { useAuthStore } from '../stores/auth'
@@ -26,8 +29,11 @@ const routes = [
   { path: '/notifications', name: 'Notifications', component: NotificationsView, meta: { requiresAuth: true } },
   { path: '/messages', name: 'Messages', component: MessagesView, meta: { requiresAuth: true } },
   { path: '/messages/:id', name: 'Conversation', component: MessagesView, meta: { requiresAuth: true } },
+  { path: '/forum/:slug/new-thread', name: 'NewThread', component: NewThreadView, meta: { requiresAuth: true } },
   { path: '/login', name: 'Login', component: LoginView },
   { path: '/register', name: 'Register', component: RegisterView },
+  { path: '/forgot-password', name: 'ForgotPassword', component: ForgotPasswordView },
+  { path: '/reset-password', name: 'ResetPassword', component: ResetPasswordView },
 
   // Admin routes — lazy loaded
   {
@@ -74,8 +80,8 @@ router.beforeEach((to) => {
     }
   }
 
-  // Redirect logged-in users away from login/register
-  if ((to.name === 'Login' || to.name === 'Register') && authStore.isLoggedIn) {
+  // Redirect logged-in users away from guest-only pages
+  if (['Login', 'Register', 'ForgotPassword', 'ResetPassword'].includes(to.name) && authStore.isLoggedIn) {
     return '/'
   }
 })

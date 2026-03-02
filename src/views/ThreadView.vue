@@ -1,9 +1,10 @@
 <script setup>
-import { inject, ref, onMounted } from 'vue'
+import { inject, ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
 import { getThread, getThreadPosts, createPost } from '../services/api'
+import { formatPostBody } from '../composables/useMentions'
 import UserAvatar from '../components/UserAvatar.vue'
 
 const isDark = inject('isDark')
@@ -20,6 +21,75 @@ const submitting = ref(false)
 const replyError = ref(null)
 const pagination = ref(null)
 const currentPage = ref(1)
+
+// Mention autocomplete state
+const replyTextarea = ref(null)
+const showMentionDropdown = ref(false)
+const mentionFilter = ref('')
+const mentionStartIndex = ref(-1)
+
+const participants = computed(() => {
+  const names = new Set()
+  for (const post of posts.value) {
+    if (post.author?.username) names.add(post.author.username)
+  }
+  return Array.from(names)
+})
+
+const filteredParticipants = computed(() => {
+  if (!mentionFilter.value) return participants.value.slice(0, 8)
+  const q = mentionFilter.value.toLowerCase()
+  return participants.value.filter(u => u.toLowerCase().includes(q)).slice(0, 8)
+})
+
+function handleReplyInput(e) {
+  const el = e.target
+  const val = el.value
+  const cursor = el.selectionStart
+
+  // Find the @ symbol before cursor
+  const textBeforeCursor = val.substring(0, cursor)
+  const atIndex = textBeforeCursor.lastIndexOf('@')
+
+  if (atIndex >= 0) {
+    const charBefore = atIndex > 0 ? val[atIndex - 1] : ' '
+    const textAfterAt = textBeforeCursor.substring(atIndex + 1)
+    // Only show if @ is at start or preceded by space, and no space after @
+    if ((charBefore === ' ' || charBefore === '\n' || atIndex === 0) && !/\s/.test(textAfterAt)) {
+      mentionStartIndex.value = atIndex
+      mentionFilter.value = textAfterAt
+      showMentionDropdown.value = true
+      return
+    }
+  }
+
+  showMentionDropdown.value = false
+}
+
+function insertMention(username) {
+  const val = replyText.value
+  const before = val.substring(0, mentionStartIndex.value)
+  const after = val.substring(mentionStartIndex.value + 1 + mentionFilter.value.length)
+  replyText.value = before + '@' + username + ' ' + after
+  showMentionDropdown.value = false
+
+  // Re-focus textarea
+  const el = replyTextarea.value
+  if (el) {
+    const newCursor = mentionStartIndex.value + username.length + 2
+    requestAnimationFrame(() => {
+      el.focus()
+      el.setSelectionRange(newCursor, newCursor)
+    })
+  }
+}
+
+function handleReplyKeydown(e) {
+  if (showMentionDropdown.value && e.key === 'Escape') {
+    showMentionDropdown.value = false
+    e.preventDefault()
+  }
+}
 
 async function loadThread() {
   loading.value = true
@@ -135,6 +205,7 @@ onMounted(loadThread)
               <UserAvatar
                 :name="post.author?.username"
                 :color="post.author?.avatar_color || 'bg-purple-500'"
+                :avatar-url="post.author?.avatar_url"
                 :online="post.author?.is_online || false"
                 size="lg"
               />
@@ -207,7 +278,7 @@ onMounted(loadThread)
                     class="rounded-lg p-4 text-sm overflow-x-auto font-mono"
                     :class="isDark ? 'bg-gray-950 text-gray-300' : 'bg-gray-100 text-gray-800'"
                   >{{ paragraph.replace(/```\w*/g, '').trim() }}</pre>
-                  <p v-else class="whitespace-pre-line">{{ paragraph }}</p>
+                  <p v-else class="whitespace-pre-line" v-html="formatPostBody(paragraph, authStore.username)"></p>
                 </div>
               </div>
             </div>
@@ -243,13 +314,34 @@ onMounted(loadThread)
           >
             {{ replyError }}
           </div>
-          <textarea
-            v-model="replyText"
-            rows="5"
-            placeholder="Write your reply..."
-            class="w-full rounded-lg px-4 py-3 text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-accent resize-y"
-            :class="isDark ? 'bg-gray-800 text-white border border-gray-700 placeholder-gray-500' : 'bg-gray-50 text-gray-900 border border-gray-200 placeholder-gray-400'"
-          />
+          <div class="relative">
+            <textarea
+              ref="replyTextarea"
+              v-model="replyText"
+              rows="5"
+              placeholder="Write your reply... Use @ to mention users"
+              @input="handleReplyInput"
+              @keydown="handleReplyKeydown"
+              class="w-full rounded-lg px-4 py-3 text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-accent resize-y"
+              :class="isDark ? 'bg-gray-800 text-white border border-gray-700 placeholder-gray-500' : 'bg-gray-50 text-gray-900 border border-gray-200 placeholder-gray-400'"
+            />
+            <!-- Mention autocomplete dropdown -->
+            <div
+              v-if="showMentionDropdown && filteredParticipants.length"
+              class="absolute bottom-full mb-1 left-0 w-60 rounded-lg border shadow-lg overflow-hidden z-10"
+              :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+            >
+              <button
+                v-for="user in filteredParticipants"
+                :key="user"
+                @mousedown.prevent="insertMention(user)"
+                class="w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2"
+                :class="isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-50 text-gray-700'"
+              >
+                <span class="text-purple-accent font-medium">@{{ user }}</span>
+              </button>
+            </div>
+          </div>
           <div class="flex justify-end mt-3">
             <button
               @click="submitReply"

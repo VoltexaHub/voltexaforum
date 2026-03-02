@@ -15,6 +15,7 @@ export const useAuthStore = defineStore('auth', {
     username: (state) => state.user?.username || '',
     credits: (state) => state.user?.credits || 0,
     avatarColor: (state) => state.user?.avatar_color || '#7c3aed',
+    avatarUrl: (state) => state.user?.avatar_url || null,
   },
   actions: {
     async login(credentials) {
