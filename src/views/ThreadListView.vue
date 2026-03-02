@@ -1,0 +1,216 @@
+<script setup>
+import { inject, ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { getForumThreads } from '../services/api'
+import { useForumStore } from '../stores/forum'
+import UserAvatar from '../components/UserAvatar.vue'
+
+const isDark = inject('isDark')
+const route = useRoute()
+const forumStore = useForumStore()
+
+const threads = ref([])
+const forumMeta = ref(null)
+const loading = ref(true)
+const error = ref(null)
+const currentPage = ref(1)
+const pagination = ref(null)
+
+async function loadThreads(page = 1) {
+  loading.value = true
+  error.value = null
+  try {
+    const res = await getForumThreads(route.params.slug, page)
+    threads.value = res.data.data
+    forumMeta.value = res.data.forum || null
+    pagination.value = res.data.meta || null
+    currentPage.value = page
+  } catch (e) {
+    error.value = 'Failed to load threads. Please try again.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  await forumStore.fetchConfig()
+  await loadThreads(Number(route.query.page) || 1)
+})
+
+watch(() => route.params.slug, () => {
+  loadThreads(1)
+})
+
+function tagClass(tag) {
+  switch (tag) {
+    case 'Solved': return 'bg-green-500/15 text-green-400'
+    case 'Hot': return 'bg-orange-500/15 text-orange-400'
+    case 'Pinned': return 'bg-purple-accent/15 text-purple-accent'
+    default: return 'bg-gray-500/15 text-gray-400'
+  }
+}
+</script>
+
+<template>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <!-- Loading -->
+    <div v-if="loading" class="space-y-4">
+      <div class="h-6 rounded w-1/3 animate-pulse" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'" />
+      <div class="rounded-xl animate-pulse" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
+        <div v-for="i in 5" :key="i" class="flex items-center gap-4 px-5 py-4" :class="i < 5 ? (isDark ? 'border-b border-gray-800/50' : 'border-b border-gray-100') : ''">
+          <div class="w-8 h-8 rounded-full" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'" />
+          <div class="flex-1 space-y-2">
+            <div class="h-4 rounded w-2/3" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'" />
+            <div class="h-3 rounded w-1/4" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="text-center py-20">
+      <span class="text-5xl">&#128533;</span>
+      <p class="text-lg font-medium mt-4" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ error }}</p>
+      <button
+        @click="loadThreads(currentPage)"
+        class="mt-4 px-6 py-2.5 bg-purple-accent hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+      >
+        Retry
+      </button>
+    </div>
+
+    <template v-else>
+      <!-- Breadcrumb -->
+      <nav class="flex items-center gap-2 text-sm mb-6 flex-wrap"
+           :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+        <router-link to="/" class="hover:text-purple-accent transition-colors">Home</router-link>
+        <template v-if="forumMeta?.game && forumStore.isMultiGame">
+          <span>&#8250;</span>
+          <span>{{ forumMeta.game.name }}</span>
+        </template>
+        <template v-if="forumMeta?.category">
+          <span>&#8250;</span>
+          <span>{{ forumMeta.category.name }}</span>
+        </template>
+        <span>&#8250;</span>
+        <span :class="isDark ? 'text-white' : 'text-gray-900'" class="font-medium">{{ forumMeta?.name || route.params.slug }}</span>
+      </nav>
+
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <h1 class="text-2xl font-bold">{{ forumMeta?.name || route.params.slug }}</h1>
+        <router-link
+          to="#"
+          class="px-5 py-2.5 bg-purple-accent hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+        >
+          + New Thread
+        </router-link>
+      </div>
+
+      <!-- Thread list -->
+      <div
+        class="rounded-xl overflow-hidden transition-colors duration-300"
+        :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+      >
+        <!-- Table header -->
+        <div
+          class="hidden sm:grid grid-cols-[1fr_100px_100px_120px] gap-4 px-5 py-3 text-xs font-semibold uppercase tracking-wider"
+          :class="isDark ? 'bg-gray-800/50 text-gray-400 border-b border-gray-800' : 'bg-gray-50 text-gray-500 border-b border-gray-200'"
+        >
+          <span>Thread</span>
+          <span class="text-center">Replies</span>
+          <span class="text-center">Views</span>
+          <span class="text-right">Last Reply</span>
+        </div>
+
+        <!-- Empty state -->
+        <div v-if="!threads.length" class="p-8 text-center" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+          No threads yet. Be the first to start a discussion!
+        </div>
+
+        <!-- Thread rows -->
+        <router-link
+          v-for="(thread, idx) in threads"
+          :key="thread.id"
+          :to="`/thread/${thread.id}`"
+          class="block sm:grid grid-cols-[1fr_100px_100px_120px] gap-4 items-center px-5 py-4 transition-colors duration-150"
+          :class="[
+            isDark ? 'hover:bg-gray-800/60' : 'hover:bg-gray-50',
+            idx < threads.length - 1 ? (isDark ? 'border-b border-gray-800/50' : 'border-b border-gray-100') : '',
+          ]"
+        >
+          <!-- Title + author -->
+          <div class="flex items-center gap-3 min-w-0">
+            <UserAvatar :name="thread.author?.username" :color="thread.author?.avatar_color || 'bg-purple-500'" :online="thread.author?.is_online || false" size="sm" />
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span
+                  v-for="tag in (thread.tags || [])"
+                  :key="tag"
+                  :class="tagClass(tag)"
+                  class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                >
+                  {{ tag }}
+                </span>
+                <span v-if="thread.is_pinned" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-accent/15 text-purple-accent">Pinned</span>
+                <span class="font-medium truncate group-hover:text-purple-accent">{{ thread.title }}</span>
+              </div>
+              <div class="text-sm mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                {{ thread.author?.username }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Replies -->
+          <div class="hidden sm:block text-center font-medium text-sm"
+               :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+            {{ thread.replies_count ?? 0 }}
+          </div>
+
+          <!-- Views -->
+          <div class="hidden sm:block text-center text-sm"
+               :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+            {{ (thread.views ?? 0).toLocaleString() }}
+          </div>
+
+          <!-- Last reply -->
+          <div class="hidden sm:block text-right text-sm"
+               :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+            {{ thread.last_reply_at || thread.time_ago }}
+          </div>
+        </router-link>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="pagination && pagination.last_page > 1" class="flex items-center justify-center gap-2 mt-6">
+        <button
+          v-if="currentPage > 1"
+          @click="loadThreads(currentPage - 1)"
+          class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          :class="isDark ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-500 hover:bg-gray-100'"
+        >
+          &#8592; Prev
+        </button>
+        <button
+          v-for="page in pagination.last_page"
+          :key="page"
+          @click="loadThreads(page)"
+          class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          :class="currentPage === page
+            ? 'bg-purple-accent text-white'
+            : isDark ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-500 hover:bg-gray-100'"
+        >
+          {{ page }}
+        </button>
+        <button
+          v-if="currentPage < pagination.last_page"
+          @click="loadThreads(currentPage + 1)"
+          class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          :class="isDark ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-500 hover:bg-gray-100'"
+        >
+          Next &#8594;
+        </button>
+      </div>
+    </template>
+  </div>
+</template>
