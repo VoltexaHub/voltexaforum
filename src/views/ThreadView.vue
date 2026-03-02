@@ -1,15 +1,16 @@
 <script setup>
 import { inject, ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
-import { getThread, getThreadPosts, createPost, updatePost, updateThread } from '../services/api'
+import { getThread, getThreadPosts, createPost, updatePost, updateThread, pinThread, lockThread, solveThread, adminDeletePost, deleteThread, moveThread } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
 import MarkdownEditor from '../components/MarkdownEditor.vue'
 import MarkdownRenderer from '../components/MarkdownRenderer.vue'
 
 const isDark = inject('isDark')
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const forumStore = useForumStore()
 
@@ -35,6 +36,10 @@ const showMentionDropdown = ref(false)
 const mentionFilter = ref('')
 const mentionStartIndex = ref(-1)
 
+// Moderation state
+const showMoveDropdown = ref(false)
+const modActionLoading = ref(null)
+
 const participants = computed(() => {
   const names = new Set()
   for (const post of posts.value) {
@@ -51,7 +56,7 @@ const filteredParticipants = computed(() => {
 
 function canEdit(post) {
   if (!authStore.isLoggedIn) return false
-  return authStore.user?.id === post.user_id || authStore.isAdmin
+  return authStore.user?.id === post.user_id || authStore.isModerator
 }
 
 function isFirstPost(post) {
@@ -141,11 +146,70 @@ function handleReplyKeydown(e) {
   }
 }
 
+// Moderation actions
+async function togglePin() {
+  if (!thread.value || modActionLoading.value) return
+  modActionLoading.value = 'pin'
+  try {
+    const res = await pinThread(thread.value.id)
+    thread.value.is_pinned = res.data.data.is_pinned
+  } catch {} finally { modActionLoading.value = null }
+}
+
+async function toggleLock() {
+  if (!thread.value || modActionLoading.value) return
+  modActionLoading.value = 'lock'
+  try {
+    const res = await lockThread(thread.value.id)
+    thread.value.is_locked = res.data.data.is_locked
+  } catch {} finally { modActionLoading.value = null }
+}
+
+async function handleDeleteThread() {
+  if (!thread.value) return
+  if (!confirm('Are you sure you want to delete this entire thread? This cannot be undone.')) return
+  modActionLoading.value = 'delete'
+  try {
+    await deleteThread(thread.value.id)
+    router.push(thread.value.forum ? `/forum/${thread.value.forum.slug}` : '/')
+  } catch {} finally { modActionLoading.value = null }
+}
+
+async function handleMoveThread(forumId) {
+  if (!thread.value || !forumId) return
+  modActionLoading.value = 'move'
+  try {
+    const res = await moveThread(thread.value.id, forumId)
+    thread.value.forum = res.data.data.forum
+    thread.value.forum_id = forumId
+    showMoveDropdown.value = false
+  } catch {} finally { modActionLoading.value = null }
+}
+
+async function handleDeletePost(post) {
+  if (isFirstPost(post)) {
+    if (!confirm('Delete this post and the entire thread?')) return
+    modActionLoading.value = 'delete-post-' + post.id
+    try {
+      await deleteThread(thread.value.id)
+      router.push(thread.value.forum ? `/forum/${thread.value.forum.slug}` : '/')
+    } catch {} finally { modActionLoading.value = null }
+  } else {
+    if (!confirm('Delete this post?')) return
+    modActionLoading.value = 'delete-post-' + post.id
+    try {
+      await adminDeletePost(post.id)
+      posts.value = posts.value.filter(p => p.id !== post.id)
+    } catch {} finally { modActionLoading.value = null }
+  }
+}
+
 async function loadThread() {
   loading.value = true
   error.value = null
   try {
     await forumStore.fetchConfig()
+    if (authStore.isModerator) forumStore.fetchForums()
     const [threadRes, postsRes] = await Promise.all([
       getThread(route.params.id),
       getThreadPosts(route.params.id, 1),
@@ -235,7 +299,72 @@ onMounted(loadThread)
       </nav>
 
       <!-- Thread title -->
-      <h1 class="text-2xl font-bold mb-6">{{ thread.title }}</h1>
+      <div class="flex items-center gap-3 mb-2 flex-wrap">
+        <h1 class="text-2xl font-bold">{{ thread.title }}</h1>
+        <span v-if="thread.is_pinned" class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">
+          <i class="fa-solid fa-thumbtack text-[10px]"></i> PINNED
+        </span>
+        <span v-if="thread.is_locked" class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30">
+          <i class="fa-solid fa-lock text-[10px]"></i> LOCKED
+        </span>
+      </div>
+
+      <!-- Mod toolbar -->
+      <div v-if="authStore.isModerator" class="flex items-center gap-2 mb-6 flex-wrap">
+        <span class="text-xs font-semibold uppercase tracking-wide mr-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+          <i class="fa-solid fa-shield-halved"></i> Mod
+        </span>
+        <button
+          @click="togglePin"
+          :disabled="modActionLoading === 'pin'"
+          class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full transition-colors bg-yellow-500/15 text-yellow-400 hover:bg-yellow-500/25"
+        >
+          <i class="fa-solid fa-thumbtack"></i>
+          {{ thread.is_pinned ? 'Unpin' : 'Pin' }}
+        </button>
+        <button
+          @click="toggleLock"
+          :disabled="modActionLoading === 'lock'"
+          class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full transition-colors bg-blue-500/15 text-blue-400 hover:bg-blue-500/25"
+        >
+          <i :class="thread.is_locked ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock'"></i>
+          {{ thread.is_locked ? 'Unlock' : 'Lock' }}
+        </button>
+        <button
+          @click="handleDeleteThread"
+          :disabled="modActionLoading === 'delete'"
+          class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full transition-colors bg-red-500/15 text-red-400 hover:bg-red-500/25"
+        >
+          <i class="fa-solid fa-trash"></i>
+          Delete
+        </button>
+        <div v-if="authStore.isAdmin" class="relative">
+          <button
+            @click="showMoveDropdown = !showMoveDropdown"
+            :disabled="modActionLoading === 'move'"
+            class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full transition-colors bg-gray-500/15 text-gray-400 hover:bg-gray-500/25"
+          >
+            <i class="fa-solid fa-arrow-right"></i>
+            Move
+          </button>
+          <div
+            v-if="showMoveDropdown"
+            class="absolute top-full left-0 mt-1 z-50 w-56 rounded-lg border shadow-lg py-1 max-h-64 overflow-y-auto"
+            :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+          >
+            <button
+              v-for="forum in forumStore.forums.filter(f => f.id !== thread.forum_id)"
+              :key="forum.id"
+              @click="handleMoveThread(forum.id)"
+              class="w-full text-left px-3 py-2 text-sm transition-colors"
+              :class="isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'"
+            >
+              {{ forum.name }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div v-else class="mb-6"></div>
 
       <!-- Posts -->
       <div class="space-y-4">
@@ -328,15 +457,26 @@ onMounted(loadThread)
                     {{ formatEditedTime(post.edited_at) }}
                   </span>
                 </div>
-                <button
-                  v-if="canEdit(post)"
-                  @click="startEditing(post)"
-                  class="text-xs px-2 py-1 rounded transition-colors"
-                  :class="isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'"
-                  title="Edit"
-                >
-                  <i class="fa-solid fa-pen"></i>
-                </button>
+                <div class="flex items-center gap-1">
+                  <button
+                    v-if="canEdit(post)"
+                    @click="startEditing(post)"
+                    class="text-xs px-2 py-1 rounded transition-colors"
+                    :class="isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'"
+                    title="Edit"
+                  >
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button
+                    v-if="authStore.isModerator"
+                    @click="handleDeletePost(post)"
+                    :disabled="modActionLoading === 'delete-post-' + post.id"
+                    class="text-xs px-2 py-1 rounded transition-colors text-red-400 hover:bg-red-500/15"
+                    :title="isFirstPost(post) ? 'Delete thread' : 'Delete post'"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
               </div>
 
               <!-- Editing mode -->
@@ -402,7 +542,12 @@ onMounted(loadThread)
         class="rounded-xl mt-6 p-5 transition-colors duration-300"
         :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
       >
-        <template v-if="authStore.isLoggedIn">
+        <template v-if="thread.is_locked && !authStore.isModerator">
+          <p class="text-center py-4" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+            <i class="fa-solid fa-lock mr-1"></i> This thread is locked. No new replies can be posted.
+          </p>
+        </template>
+        <template v-else-if="authStore.isLoggedIn">
           <h3 class="font-semibold mb-3">Reply to this thread</h3>
           <div
             v-if="replyError"

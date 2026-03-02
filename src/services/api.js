@@ -129,6 +129,8 @@ export const pinThread = (id) => api.put('/admin/threads/' + id + '/pin')
 export const lockThread = (id) => api.put('/admin/threads/' + id + '/lock')
 export const solveThread = (id) => api.put('/admin/threads/' + id + '/solve')
 export const adminDeletePost = (id) => api.delete('/admin/posts/' + id)
+export const deleteThread = (id) => api.delete('/admin/threads/' + id)
+export const moveThread = (id, forumId) => api.put('/admin/threads/' + id + '/move', { forum_id: forumId })
 
 // Admin - Store
 export const getAdminStoreItems = (params) => api.get('/admin/store/items', { params })
