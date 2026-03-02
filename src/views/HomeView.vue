@@ -1,11 +1,13 @@
 <script setup>
 import { ref, computed, inject, onMounted } from 'vue'
 import { useForumStore } from '../stores/forum'
+import { usePresenceStore } from '../stores/presence'
 import { getForums as fetchForumsApi } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
 
 const isDark = inject('isDark')
 const forumStore = useForumStore()
+const presenceStore = usePresenceStore()
 
 const selectedGame = ref('all')
 const games = ref([])
@@ -198,6 +200,45 @@ const filteredGames = computed(() => {
           <p class="text-lg font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">No forums found.</p>
         </div>
       </main>
+    </div>
+
+    <!-- Online Users Widget -->
+    <div
+      v-if="!loading && !error && presenceStore.onlineUsers.length"
+      class="mt-6 rounded-xl p-4 transition-colors duration-300"
+      :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+    >
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+          <span class="text-sm font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">
+            {{ presenceStore.onlineUsers.length }} {{ presenceStore.onlineUsers.length === 1 ? 'member' : 'members' }} online
+          </span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <router-link
+          v-for="user in presenceStore.onlineUsers.slice(0, 8)"
+          :key="user.id"
+          :to="`/profile/${user.username}`"
+          :title="user.username"
+        >
+          <UserAvatar
+            :name="user.username"
+            :color="user.avatar_color || 'bg-purple-500'"
+            :avatar-url="user.avatar_url"
+            :online="true"
+            size="sm"
+          />
+        </router-link>
+        <span
+          v-if="presenceStore.onlineUsers.length > 8"
+          class="text-xs font-medium px-2 py-1 rounded-full"
+          :class="isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'"
+        >
+          +{{ presenceStore.onlineUsers.length - 8 }} more
+        </span>
+      </div>
     </div>
   </div>
 </template>

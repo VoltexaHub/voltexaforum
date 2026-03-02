@@ -7,6 +7,7 @@ import router from './router'
 import { useAuthStore } from './stores/auth'
 import { useNotificationsStore } from './stores/notifications'
 import { useMessagesStore } from './stores/messages'
+import { usePresenceStore } from './stores/presence'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -26,10 +27,12 @@ const init = async () => {
   if (authStore.isLoggedIn) {
     const notifStore = useNotificationsStore()
     const messagesStore = useMessagesStore()
+    const presenceStore = usePresenceStore()
 
     // Fetch initial data
     notifStore.fetchNotifications()
     messagesStore.fetchUnreadCount()
+    presenceStore.fetchOnlineUsers()
 
     // Setup Echo for real-time
     try {
@@ -48,6 +51,9 @@ const init = async () => {
         })
 
       echo.join('online')
+        .here((users) => presenceStore.setOnlineUsers(users))
+        .joining((user) => presenceStore.addUser(user))
+        .leaving((user) => presenceStore.removeUser(user))
     } catch {
       // Echo not available — websocket server may not be running
     }

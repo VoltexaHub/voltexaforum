@@ -49,6 +49,11 @@ export const createThread = (data) => api.post('/threads', data)
 export const createPost = (threadId, data) => api.post('/threads/' + threadId + '/posts', data)
 export const reactToPost = (postId, type) => api.post('/posts/' + postId + '/react', { type })
 export const deletePost = (postId) => api.delete('/posts/' + postId)
+export const updatePost = (id, data) => api.put('/posts/' + id, data)
+export const updateThread = (id, data) => api.put('/threads/' + id, data)
+
+// Search
+export const search = (query, type = 'all', page = 1) => api.get('/search', { params: { q: query, type, page } })
 
 // User
 export const uploadAvatar = (formData) => api.post('/user/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
@@ -83,6 +88,9 @@ export const startConversation = (userId) => api.post('/conversations', { user_i
 export const getConversation = (id) => api.get('/conversations/' + id)
 export const sendMessage = (id, body) => api.post('/conversations/' + id + '/messages', { body })
 export const getDMUnreadCount = () => api.get('/conversations/unread-count')
+
+// Online Users
+export const getOnlineUsers = () => api.get('/users/online')
 
 // Achievements
 export const getAchievements = () => api.get('/achievements')

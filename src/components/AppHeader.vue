@@ -18,6 +18,18 @@ const forumStore = useForumStore()
 const forumName = computed(() => forumStore.config?.forum_name || 'My Forum')
 
 const mobileOpen = ref(false)
+const searchQuery = ref('')
+
+function handleSearch() {
+  if (searchQuery.value.trim()) {
+    router.push({ path: '/search', query: { q: searchQuery.value.trim() } })
+    searchQuery.value = ''
+  }
+}
+
+function goToSearch() {
+  router.push('/search')
+}
 const avatarDropdownOpen = ref(false)
 const notifDropdownOpen = ref(false)
 
@@ -77,6 +89,21 @@ async function handleLogout() {
             {{ link.label }}
           </router-link>
         </nav>
+
+        <!-- Search bar (desktop) -->
+        <form @submit.prevent="handleSearch" class="hidden md:flex items-center flex-1 max-w-xs mx-4">
+          <div class="relative w-full">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs"
+               :class="isDark ? 'text-gray-500' : 'text-gray-400'" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search..."
+              class="w-full pl-9 pr-3 py-1.5 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-purple-accent"
+              :class="isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400'"
+            />
+          </div>
+        </form>
 
         <!-- Right side -->
         <div class="hidden md:flex items-center gap-2">
@@ -284,7 +311,17 @@ async function handleLogout() {
           </template>
         </div>
 
-        <!-- Mobile hamburger -->
+        <!-- Mobile search + hamburger -->
+        <div class="flex md:hidden items-center gap-1">
+          <button
+            @click="goToSearch"
+            class="p-2 rounded-lg"
+            :class="isDark ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-600'"
+          >
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </div>
+
         <button
           class="md:hidden p-2 rounded-lg"
           :class="isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'"

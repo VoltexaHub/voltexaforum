@@ -3,6 +3,7 @@ import { inject, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForumStore } from '../stores/forum'
 import { createThread } from '../services/api'
+import MarkdownEditor from '../components/MarkdownEditor.vue'
 
 const isDark = inject('isDark')
 const route = useRoute()
@@ -130,16 +131,10 @@ async function handleSubmit() {
           <label class="block text-sm font-medium mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
             Content <span class="text-red-400">*</span>
           </label>
-          <textarea
+          <MarkdownEditor
             v-model="body"
-            rows="12"
-            required
+            :rows="12"
             placeholder="Write your thread content..."
-            class="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-purple-accent resize-y"
-            :class="[
-              isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400',
-              errors.body ? 'border-red-500 focus:ring-red-500' : '',
-            ]"
           />
           <p v-if="errors.body" class="text-red-400 text-xs mt-1">{{ errors.body }}</p>
         </div>

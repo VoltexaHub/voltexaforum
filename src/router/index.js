@@ -12,6 +12,7 @@ import RegisterView from '../views/RegisterView.vue'
 import ForgotPasswordView from '../views/ForgotPasswordView.vue'
 import ResetPasswordView from '../views/ResetPasswordView.vue'
 import NewThreadView from '../views/NewThreadView.vue'
+import SearchView from '../views/SearchView.vue'
 import NotificationsView from '../views/NotificationsView.vue'
 import MessagesView from '../views/MessagesView.vue'
 import { useAuthStore } from '../stores/auth'
@@ -29,6 +30,7 @@ const routes = [
   { path: '/notifications', name: 'Notifications', component: NotificationsView, meta: { requiresAuth: true } },
   { path: '/messages', name: 'Messages', component: MessagesView, meta: { requiresAuth: true } },
   { path: '/messages/:id', name: 'Conversation', component: MessagesView, meta: { requiresAuth: true } },
+  { path: '/search', name: 'Search', component: SearchView },
   { path: '/forum/:slug/new-thread', name: 'NewThread', component: NewThreadView, meta: { requiresAuth: true } },
   { path: '/login', name: 'Login', component: LoginView },
   { path: '/register', name: 'Register', component: RegisterView },

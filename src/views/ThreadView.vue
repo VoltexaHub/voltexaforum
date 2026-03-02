@@ -3,9 +3,10 @@ import { inject, ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
-import { getThread, getThreadPosts, createPost } from '../services/api'
-import { formatPostBody } from '../composables/useMentions'
+import { getThread, getThreadPosts, createPost, updatePost, updateThread } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
+import MarkdownEditor from '../components/MarkdownEditor.vue'
+import MarkdownRenderer from '../components/MarkdownRenderer.vue'
 
 const isDark = inject('isDark')
 const route = useRoute()
@@ -21,6 +22,12 @@ const submitting = ref(false)
 const replyError = ref(null)
 const pagination = ref(null)
 const currentPage = ref(1)
+
+// Editing state
+const editingPostId = ref(null)
+const editBody = ref('')
+const editTitle = ref('')
+const editSaving = ref(false)
 
 // Mention autocomplete state
 const replyTextarea = ref(null)
@@ -42,19 +49,72 @@ const filteredParticipants = computed(() => {
   return participants.value.filter(u => u.toLowerCase().includes(q)).slice(0, 8)
 })
 
+function canEdit(post) {
+  if (!authStore.isLoggedIn) return false
+  return authStore.user?.id === post.user_id || authStore.isAdmin
+}
+
+function isFirstPost(post) {
+  return posts.value.length > 0 && posts.value[0].id === post.id && currentPage.value === 1
+}
+
+function startEditing(post) {
+  editingPostId.value = post.id
+  editBody.value = post.body || ''
+  if (isFirstPost(post)) {
+    editTitle.value = thread.value?.title || ''
+  }
+}
+
+function cancelEditing() {
+  editingPostId.value = null
+  editBody.value = ''
+  editTitle.value = ''
+}
+
+async function saveEdit(post) {
+  editSaving.value = true
+  try {
+    if (isFirstPost(post)) {
+      await updateThread(thread.value.id, { title: editTitle.value, body: editBody.value })
+      thread.value.title = editTitle.value
+    }
+    const res = await updatePost(post.id, { body: editBody.value })
+    const updated = res.data.data || res.data
+    const idx = posts.value.findIndex(p => p.id === post.id)
+    if (idx !== -1) {
+      posts.value[idx] = { ...posts.value[idx], body: updated.body || editBody.value, edited_at: updated.edited_at || new Date().toISOString() }
+    }
+    cancelEditing()
+  } catch {
+    // keep editing open on failure
+  } finally {
+    editSaving.value = false
+  }
+}
+
+function formatEditedTime(editedAt) {
+  if (!editedAt) return ''
+  const diff = Math.floor((Date.now() - new Date(editedAt).getTime()) / 60000)
+  if (diff < 1) return 'Edited just now'
+  if (diff < 60) return `Edited ${diff} minute${diff === 1 ? '' : 's'} ago`
+  const hours = Math.floor(diff / 60)
+  if (hours < 24) return `Edited ${hours} hour${hours === 1 ? '' : 's'} ago`
+  const days = Math.floor(hours / 24)
+  return `Edited ${days} day${days === 1 ? '' : 's'} ago`
+}
+
 function handleReplyInput(e) {
   const el = e.target
   const val = el.value
   const cursor = el.selectionStart
 
-  // Find the @ symbol before cursor
   const textBeforeCursor = val.substring(0, cursor)
   const atIndex = textBeforeCursor.lastIndexOf('@')
 
   if (atIndex >= 0) {
     const charBefore = atIndex > 0 ? val[atIndex - 1] : ' '
     const textAfterAt = textBeforeCursor.substring(atIndex + 1)
-    // Only show if @ is at start or preceded by space, and no space after @
     if ((charBefore === ' ' || charBefore === '\n' || atIndex === 0) && !/\s/.test(textAfterAt)) {
       mentionStartIndex.value = atIndex
       mentionFilter.value = textAfterAt
@@ -72,16 +132,6 @@ function insertMention(username) {
   const after = val.substring(mentionStartIndex.value + 1 + mentionFilter.value.length)
   replyText.value = before + '@' + username + ' ' + after
   showMentionDropdown.value = false
-
-  // Re-focus textarea
-  const el = replyTextarea.value
-  if (el) {
-    const newCursor = mentionStartIndex.value + username.length + 2
-    requestAnimationFrame(() => {
-      el.focus()
-      el.setSelectionRange(newCursor, newCursor)
-    })
-  }
 }
 
 function handleReplyKeydown(e) {
@@ -257,7 +307,7 @@ onMounted(loadThread)
                     :key="award.id"
                   >
                     <img v-if="award.icon_url" :src="award.icon_url" class="w-5 h-5 object-contain cursor-default" :title="award.name" />
-                    <span v-else class="cursor-default" :title="award.name">{{ award.icon || '⭐' }}</span>
+                    <span v-else class="cursor-default" :title="award.name">{{ award.icon || '' }}</span>
                   </template>
                 </div>
               </div>
@@ -265,22 +315,68 @@ onMounted(loadThread)
 
             <!-- Post content -->
             <div class="flex-1 p-5">
-              <div class="text-xs mb-4" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                {{ post.created_at }}
-              </div>
-              <div
-                class="prose max-w-none text-sm leading-relaxed"
-                :class="isDark ? 'text-gray-300' : 'text-gray-700'"
-              >
-                <div v-for="(paragraph, pIdx) in (post.body || '').split('\n\n')" :key="pIdx" class="mb-3">
-                  <pre
-                    v-if="paragraph.startsWith('```')"
-                    class="rounded-lg p-4 text-sm overflow-x-auto font-mono"
-                    :class="isDark ? 'bg-gray-950 text-gray-300' : 'bg-gray-100 text-gray-800'"
-                  >{{ paragraph.replace(/```\w*/g, '').trim() }}</pre>
-                  <p v-else class="whitespace-pre-line" v-html="formatPostBody(paragraph, authStore.username)"></p>
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <span class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                    {{ post.created_at }}
+                  </span>
+                  <span
+                    v-if="post.edited_at"
+                    class="text-xs italic"
+                    :class="isDark ? 'text-gray-600' : 'text-gray-400'"
+                  >
+                    {{ formatEditedTime(post.edited_at) }}
+                  </span>
                 </div>
+                <button
+                  v-if="canEdit(post)"
+                  @click="startEditing(post)"
+                  class="text-xs px-2 py-1 rounded transition-colors"
+                  :class="isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'"
+                  title="Edit"
+                >
+                  <i class="fa-solid fa-pen"></i>
+                </button>
               </div>
+
+              <!-- Editing mode -->
+              <template v-if="editingPostId === post.id">
+                <div v-if="isFirstPost(post)" class="mb-3">
+                  <label class="block text-xs font-medium mb-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Thread Title</label>
+                  <input
+                    v-model="editTitle"
+                    type="text"
+                    class="w-full px-3 py-2 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-purple-accent"
+                    :class="isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'"
+                  />
+                </div>
+                <MarkdownEditor
+                  v-model="editBody"
+                  placeholder="Edit your post..."
+                  :rows="6"
+                />
+                <div class="flex items-center gap-2 mt-3">
+                  <button
+                    @click="saveEdit(post)"
+                    :disabled="editSaving"
+                    class="px-4 py-2 bg-purple-accent hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  >
+                    {{ editSaving ? 'Saving...' : 'Save' }}
+                  </button>
+                  <button
+                    @click="cancelEditing"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </template>
+
+              <!-- Display mode -->
+              <template v-else>
+                <MarkdownRenderer :content="post.body" />
+              </template>
             </div>
           </div>
         </div>
@@ -314,34 +410,11 @@ onMounted(loadThread)
           >
             {{ replyError }}
           </div>
-          <div class="relative">
-            <textarea
-              ref="replyTextarea"
-              v-model="replyText"
-              rows="5"
-              placeholder="Write your reply... Use @ to mention users"
-              @input="handleReplyInput"
-              @keydown="handleReplyKeydown"
-              class="w-full rounded-lg px-4 py-3 text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-accent resize-y"
-              :class="isDark ? 'bg-gray-800 text-white border border-gray-700 placeholder-gray-500' : 'bg-gray-50 text-gray-900 border border-gray-200 placeholder-gray-400'"
-            />
-            <!-- Mention autocomplete dropdown -->
-            <div
-              v-if="showMentionDropdown && filteredParticipants.length"
-              class="absolute bottom-full mb-1 left-0 w-60 rounded-lg border shadow-lg overflow-hidden z-10"
-              :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-            >
-              <button
-                v-for="user in filteredParticipants"
-                :key="user"
-                @mousedown.prevent="insertMention(user)"
-                class="w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2"
-                :class="isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-50 text-gray-700'"
-              >
-                <span class="text-purple-accent font-medium">@{{ user }}</span>
-              </button>
-            </div>
-          </div>
+          <MarkdownEditor
+            v-model="replyText"
+            placeholder="Write your reply... Use @ to mention users"
+            :rows="5"
+          />
           <div class="flex justify-end mt-3">
             <button
               @click="submitReply"
