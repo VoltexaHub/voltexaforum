@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getForumConfig, getGames, getForums } from '../services/api'
+import { getForumConfig, getForums } from '../services/api'
 
 const CACHE_KEY = 'voltexahub_forum_config'
 
@@ -13,7 +13,6 @@ function loadCachedConfig() {
 export const useForumStore = defineStore('forum', {
   state: () => ({
     config: loadCachedConfig(), // load from cache instantly — no flash
-    games: [],
     categories: [],
     forums: [],
     loading: false,
@@ -30,15 +29,6 @@ export const useForumStore = defineStore('forum', {
         localStorage.setItem(CACHE_KEY, JSON.stringify(this.config))
       } catch {
         // silently fail — cached value still shown
-      }
-    },
-    async fetchGames() {
-      if (this.games.length) return
-      try {
-        const res = await getGames()
-        this.games = res.data.data
-      } catch {
-        this.games = []
       }
     },
     async fetchForums() {

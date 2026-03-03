@@ -87,13 +87,15 @@ function tagClass(tag) {
       <nav class="flex items-center gap-2 text-sm mb-6 flex-wrap"
            :class="isDark ? 'text-gray-400' : 'text-gray-500'">
         <router-link to="/" class="hover:text-purple-accent transition-colors">Home</router-link>
-        <template v-if="forumMeta?.game && forumStore.isMultiGame">
-          <span>&#8250;</span>
-          <span>{{ forumMeta.game.name }}</span>
-        </template>
         <template v-if="forumMeta?.category">
           <span>&#8250;</span>
           <span>{{ forumMeta.category.name }}</span>
+        </template>
+        <template v-if="forumMeta?.parent_forum">
+          <span>&#8250;</span>
+          <router-link :to="`/forum/${forumMeta.parent_forum.slug}`" class="hover:text-purple-accent transition-colors">
+            {{ forumMeta.parent_forum.name }}
+          </router-link>
         </template>
         <span>&#8250;</span>
         <span :class="isDark ? 'text-white' : 'text-gray-900'" class="font-medium">{{ forumMeta?.name || route.params.slug }}</span>
@@ -109,6 +111,46 @@ function tagClass(tag) {
         >
           <i class="fa-solid fa-pen-to-square"></i> New Thread
         </router-link>
+      </div>
+
+      <!-- Sub Forums section -->
+      <div
+        v-if="forumMeta?.subforums?.length"
+        class="rounded-xl overflow-hidden transition-colors duration-300 mb-6"
+        :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+      >
+        <div
+          class="px-5 py-3 border-b"
+          :class="isDark ? 'bg-gray-800/50 border-gray-800' : 'bg-gray-50 border-gray-200'"
+        >
+          <h3 class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+            <i class="fa-solid fa-folder-tree"></i> Sub Forums
+          </h3>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" :class="isDark ? 'bg-gray-800/30' : 'bg-gray-100'">
+          <router-link
+            v-for="sub in forumMeta.subforums"
+            :key="sub.id"
+            :to="`/forum/${sub.slug}`"
+            class="flex items-center gap-3 p-4 transition-colors duration-150"
+            :class="isDark ? 'bg-gray-900 hover:bg-gray-800/60' : 'bg-white hover:bg-gray-50'"
+          >
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" :class="isDark ? 'bg-gray-800' : 'bg-gray-100'">
+              <i :class="[sub.icon || 'fa-solid fa-comment', 'text-purple-accent text-sm']"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-medium text-sm hover:text-purple-accent transition-colors" :class="isDark ? 'text-white' : 'text-gray-900'">
+                {{ sub.name }}
+              </div>
+              <div v-if="sub.description" class="text-xs truncate" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                {{ sub.description }}
+              </div>
+              <div class="text-[11px] mt-0.5" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
+                {{ (sub.thread_count ?? sub.threads_count ?? 0).toLocaleString() }} threads
+              </div>
+            </div>
+          </router-link>
+        </div>
       </div>
 
       <!-- Thread list -->

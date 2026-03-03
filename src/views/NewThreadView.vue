@@ -1,8 +1,8 @@
 <script setup>
-import { inject, ref, computed } from 'vue'
+import { inject, ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForumStore } from '../stores/forum'
-import { createThread } from '../services/api'
+import { createThread, getForumThreads } from '../services/api'
 import MarkdownEditor from '../components/MarkdownEditor.vue'
 
 const isDark = inject('isDark')
@@ -11,6 +11,7 @@ const router = useRouter()
 const forumStore = useForumStore()
 
 const slug = computed(() => route.params.slug)
+const forumMeta = ref(null)
 
 const title = ref('')
 const body = ref('')
@@ -19,6 +20,13 @@ const tags = ref([])
 const loading = ref(false)
 const error = ref(null)
 const errors = ref({})
+
+onMounted(async () => {
+  try {
+    const res = await getForumThreads(slug.value, 1)
+    forumMeta.value = res.data.forum || null
+  } catch {}
+})
 
 function addTag() {
   const raw = tagInput.value.trim()
@@ -86,8 +94,18 @@ async function handleSubmit() {
     <nav class="flex items-center gap-2 text-sm mb-6 flex-wrap"
          :class="isDark ? 'text-gray-400' : 'text-gray-500'">
       <router-link to="/" class="hover:text-purple-accent transition-colors">Home</router-link>
+      <template v-if="forumMeta?.category">
+        <span>&#8250;</span>
+        <span>{{ forumMeta.category.name }}</span>
+      </template>
+      <template v-if="forumMeta?.parent_forum">
+        <span>&#8250;</span>
+        <router-link :to="`/forum/${forumMeta.parent_forum.slug}`" class="hover:text-purple-accent transition-colors">
+          {{ forumMeta.parent_forum.name }}
+        </router-link>
+      </template>
       <span>&#8250;</span>
-      <router-link :to="`/forum/${slug}`" class="hover:text-purple-accent transition-colors">{{ slug }}</router-link>
+      <router-link :to="`/forum/${slug}`" class="hover:text-purple-accent transition-colors">{{ forumMeta?.name || slug }}</router-link>
       <span>&#8250;</span>
       <span :class="isDark ? 'text-white' : 'text-gray-900'" class="font-medium">New Thread</span>
     </nav>

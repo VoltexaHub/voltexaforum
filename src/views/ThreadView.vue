@@ -375,9 +375,15 @@ onMounted(loadThread)
       <nav class="flex items-center gap-2 text-sm mb-6 flex-wrap"
            :class="isDark ? 'text-gray-400' : 'text-gray-500'">
         <router-link to="/" class="hover:text-purple-accent transition-colors">Home</router-link>
-        <template v-if="thread.forum?.game && forumStore.isMultiGame">
+        <template v-if="thread.forum?.category">
           <span>&#8250;</span>
-          <span>{{ thread.forum.game.name }}</span>
+          <span>{{ thread.forum.category.name }}</span>
+        </template>
+        <template v-if="thread.forum?.parent_forum">
+          <span>&#8250;</span>
+          <router-link :to="`/forum/${thread.forum.parent_forum.slug}`" class="hover:text-purple-accent transition-colors">
+            {{ thread.forum.parent_forum.name }}
+          </router-link>
         </template>
         <template v-if="thread.forum">
           <span>&#8250;</span>

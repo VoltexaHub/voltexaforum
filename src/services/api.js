@@ -39,7 +39,6 @@ export const resetPassword = (data) => api.post('/auth/reset-password', data)
 
 // Forum
 export const getForumConfig = () => api.get('/forum/config')
-export const getGames = () => api.get('/games')
 export const getCategories = () => api.get('/categories')
 export const getForums = () => api.get('/forums')
 export const getForumThreads = (slug, page = 1) => api.get('/forums/' + slug + '/threads', { params: { page } })
@@ -113,16 +112,12 @@ export const revokeAward = (id, awardId) => api.delete('/admin/users/' + id + '/
 
 // Admin - Forums
 export const getAdminForumTree = () => api.get('/admin/forums')
-export const createAdminGame = (data) => api.post('/admin/games', data)
-export const updateAdminGame = (id, data) => api.put('/admin/games/' + id, data)
-export const deleteAdminGame = (id) => api.delete('/admin/games/' + id)
 export const createAdminCategory = (data) => api.post('/admin/categories', data)
 export const updateAdminCategory = (id, data) => api.put('/admin/categories/' + id, data)
 export const deleteAdminCategory = (id) => api.delete('/admin/categories/' + id)
 export const createAdminForum = (data) => api.post('/admin/forums', data)
 export const updateAdminForum = (id, data) => api.put('/admin/forums/' + id, data)
 export const deleteAdminForum = (id) => api.delete('/admin/forums/' + id)
-export const reorderGames = (items) => api.post('/admin/games/reorder', { items })
 export const reorderCategories = (items) => api.post('/admin/categories/reorder', { items })
 export const reorderForums = (items) => api.post('/admin/forums/reorder', { items })
 
