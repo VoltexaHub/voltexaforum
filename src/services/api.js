@@ -174,6 +174,10 @@ export const deleteAnnouncement = (id) => api.delete(`/admin/announcements/${id}
 // Admin - Config
 export const getAdminConfig = () => api.get('/admin/config')
 export const updateAdminConfig = (data) => api.put('/admin/config', data)
+
+// Admin - Logo
+export const uploadLogo = (formData) => api.post('/admin/logo', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const removeLogo = () => api.delete('/admin/logo')
 export const getMembers = (params) => api.get('/members', { params })
 export const getStaff = () => api.get('/staff')
 export const getForumPermissions = (forumId) => api.get(`/admin/forums/${forumId}/permissions`)

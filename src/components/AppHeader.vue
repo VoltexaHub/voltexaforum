@@ -16,6 +16,7 @@ const notifStore = useNotificationsStore()
 const messagesStore = useMessagesStore()
 const forumStore = useForumStore()
 const forumName = computed(() => forumStore.config?.forum_name || 'My Forum')
+const config = computed(() => forumStore.config || {})
 
 const mobileOpen = ref(false)
 const searchQuery = ref('')
@@ -73,8 +74,24 @@ async function handleLogout() {
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <router-link to="/" class="flex items-center gap-2 font-bold text-xl shrink-0">
-          <i class="fa-solid fa-bolt text-2xl text-violet-400"></i>
-          <span>{{ forumName }}</span>
+          <!-- Custom image -->
+          <img
+            v-if="config.logo_type === 'image' && config.logo_image"
+            :src="config.logo_image"
+            alt="Logo"
+            class="h-8 w-auto object-contain"
+          />
+          <template v-else>
+            <!-- Icon -->
+            <i
+              v-if="config.logo_type !== 'text_only'"
+              :class="config.logo_icon || 'fa-solid fa-bolt'"
+              class="text-2xl"
+              :style="{ color: config.logo_icon_color || '#7c3aed' }"
+            ></i>
+            <!-- Text -->
+            <span v-if="config.logo_type !== 'icon_only'">{{ forumName }}</span>
+          </template>
         </router-link>
 
         <!-- Desktop Nav -->
