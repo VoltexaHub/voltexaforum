@@ -119,6 +119,7 @@ function isActive(path) {
           <UserAvatar
             :name="authStore.username"
             :color="authStore.avatarColor"
+            :avatar-url="authStore.avatarUrl"
             :online="true"
             size="sm"
           />

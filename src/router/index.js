@@ -31,6 +31,8 @@ const routes = [
   { path: '/notifications', name: 'Notifications', component: NotificationsView, meta: { requiresAuth: true } },
   { path: '/messages', name: 'Messages', component: MessagesView, meta: { requiresAuth: true } },
   { path: '/messages/:id', name: 'Conversation', component: MessagesView, meta: { requiresAuth: true } },
+  { path: '/members', name: 'Members', component: () => import('../views/MembersView.vue') },
+  { path: '/staff', name: 'Staff', component: () => import('../views/StaffView.vue') },
   { path: '/search', name: 'Search', component: SearchView },
   { path: '/forum/:slug/new-thread', name: 'NewThread', component: NewThreadView, meta: { requiresAuth: true } },
   { path: '/login', name: 'Login', component: LoginView },

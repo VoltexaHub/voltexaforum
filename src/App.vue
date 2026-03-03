@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useTheme } from './composables/useTheme'
 import { useForumStore } from './stores/forum'
 import AppHeader from './components/AppHeader.vue'
+import AppFooter from './components/AppFooter.vue'
 import AppToast from './components/AppToast.vue'
 
 const route = useRoute()
@@ -37,6 +38,7 @@ watch(() => forumStore.config?.accent_color, (color) => {
   >
     <AppHeader />
     <RouterView />
+    <AppFooter />
   </div>
   <AppToast />
 </template>
