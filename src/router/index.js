@@ -50,6 +50,7 @@ const routes = [
       { path: 'users/:id', name: 'AdminUserEdit', component: () => import('../views/admin/AdminUserEdit.vue'), meta: { title: 'Edit User' } },
       { path: 'forums', name: 'AdminForums', component: () => import('../views/admin/AdminForums.vue'), meta: { title: 'Forums' } },
       { path: 'forums/create', name: 'AdminForumCreate', component: () => import('../views/admin/AdminForums.vue'), meta: { title: 'Create Forum' } },
+      { path: 'forums/:id/permissions', name: 'AdminForumPermissions', component: () => import('../views/admin/AdminForumPermissions.vue'), meta: { title: 'Forum Permissions' } },
       { path: 'moderation', name: 'AdminModeration', component: () => import('../views/admin/AdminModeration.vue'), meta: { title: 'Moderation' } },
       { path: 'store', redirect: '/admin/store/items' },
       { path: 'store/items', name: 'AdminStoreItems', component: () => import('../views/admin/AdminStoreItems.vue'), meta: { title: 'Store Items' } },

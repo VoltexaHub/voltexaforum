@@ -419,6 +419,9 @@ onMounted(fetchTree)
                             >{{ forum.is_active !== false ? 'Active' : 'Inactive' }}</span>
                           </div>
                           <div class="flex items-center gap-2">
+                            <button @click="$router.push(`/admin/forums/${forum.id}/permissions`)" class="p-1 rounded hover:bg-violet-500/20 text-gray-500 hover:text-violet-400 transition-colors" title="Permissions">
+                              <i class="fa-solid fa-shield-halved text-xs"></i>
+                            </button>
                             <button @click="openEditModal('forum', forum)" class="p-1 rounded hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 transition-colors" title="Edit">
                               <i class="fa-solid fa-pen-to-square text-xs"></i>
                             </button>

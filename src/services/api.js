@@ -165,4 +165,6 @@ export const deleteAdminGroup = (id) => api.delete('/admin/groups/' + id)
 // Admin - Config
 export const getAdminConfig = () => api.get('/admin/config')
 export const updateAdminConfig = (data) => api.put('/admin/config', data)
+export const getForumPermissions = (forumId) => api.get(`/admin/forums/${forumId}/permissions`)
+export const updateForumPermissions = (forumId, data) => api.put(`/admin/forums/${forumId}/permissions`, data)
 export const testAdminEmail = () => api.post('/admin/config/test-email')
