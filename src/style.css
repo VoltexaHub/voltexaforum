@@ -6,6 +6,7 @@
 
 html {
   scrollbar-gutter: stable;
+  scrollbar-color: #374151 #030712;
 }
 
 :root {
