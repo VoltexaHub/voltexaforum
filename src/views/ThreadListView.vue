@@ -190,7 +190,8 @@ function tagClass(tag) {
                :class="isDark ? 'text-gray-500' : 'text-gray-400'">
             {{ thread.last_reply_at || thread.time_ago }}
           </div>
-        </router-link>
+          </router-link>
+        </template>
       </div>
 
       <!-- Pagination -->
