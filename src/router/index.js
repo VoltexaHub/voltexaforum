@@ -109,9 +109,11 @@ router.beforeEach((to) => {
   }
 
   if (to.meta.requiresAdmin || to.path.startsWith('/admin')) {
-    if (!authStore.isAdmin) {
-      return '/'
-    }
+    // If we have a token but haven't finished initializing, let it through —
+    // fetchUser is still in flight or had a transient error. The page will
+    // handle unauthorized state once the user loads.
+    if (!authStore.token) return '/'
+    if (authStore.initialized && !authStore.isAdmin) return '/'
   }
 
   // Redirect logged-in users away from guest-only pages

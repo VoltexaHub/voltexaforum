@@ -7,6 +7,7 @@ export const useAuthStore = defineStore('auth', {
     token: localStorage.getItem('voltexahub_token') || null,
     loading: false,
     error: null,
+    initialized: false,
   }),
   getters: {
     isLoggedIn: (state) => !!state.token && !!state.user,
@@ -64,9 +65,14 @@ export const useAuthStore = defineStore('auth', {
       try {
         const res = await getUser()
         this.user = res.data.data
-      } catch {
-        this.token = null
-        localStorage.removeItem('voltexahub_token')
+      } catch (e) {
+        // Only clear token on explicit 401 — not network errors or 500s
+        if (e.response?.status === 401) {
+          this.token = null
+          localStorage.removeItem('voltexahub_token')
+        }
+      } finally {
+        this.initialized = true
       }
     },
   },
