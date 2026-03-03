@@ -231,11 +231,11 @@ async function loadThread() {
       getThread(route.params.id),
       getThreadPosts(route.params.id, 1),
     ])
-    thread.value = threadRes.data.data
-    const threadLikes = thread.value.likes || []
-    likesCount.value = thread.value.likes_count ?? threadLikes.length
-    likers.value = threadLikes
-    liked.value = authStore.user?.id ? threadLikes.some(l => (l.id || l.user_id) === authStore.user.id) : false
+    const threadData = threadRes.data.data
+    thread.value = threadData
+    likers.value = threadData.likers || []
+    liked.value = threadData.is_liked_by_me ?? false
+    likesCount.value = threadData.likes_count ?? 0
     posts.value = postsRes.data.data
     pagination.value = postsRes.data.meta || null
   } catch (e) {
@@ -343,27 +343,15 @@ onMounted(loadThread)
           <i :class="liked ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
           {{ likesCount }}
         </button>
-        <div v-if="likers.length" class="flex items-center gap-1">
-          <router-link
-            v-for="liker in likers.slice(0, 8)"
-            :key="liker.id || liker.user_id"
-            :to="`/profile/${liker.username}`"
-            :title="liker.username"
-          >
-            <UserAvatar
-              :name="liker.username"
-              :color="liker.avatar_color || 'bg-purple-500'"
-              :avatar-url="liker.avatar_url"
-              size="sm"
-            />
-          </router-link>
-          <span
-            v-if="likers.length > 8"
-            class="text-xs font-medium ml-1"
-            :class="isDark ? 'text-gray-500' : 'text-gray-400'"
-          >
-            +{{ likers.length - 8 }} more
+        <div v-if="likers.length" class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+          <i class="fa-solid fa-heart text-red-400 text-xs mr-1"></i>
+          <span v-if="likers.length <= 3">
+            {{ likers.map(l => l.username).join(", ") }}
           </span>
+          <span v-else>
+            {{ likers.slice(0, 2).map(l => l.username).join(", ") }} and {{ likers.length - 2 }} others
+          </span>
+          liked this
         </div>
       </div>
 
