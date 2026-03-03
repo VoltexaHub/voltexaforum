@@ -102,39 +102,40 @@ onMounted(async () => {
                     </div>
                   </div>
 
-                  <!-- Stats -->
-                  <div class="hidden sm:flex items-center gap-8 shrink-0 text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                    <div class="text-center w-16">
-                      <div class="font-semibold" :class="isDark ? 'text-gray-200' : 'text-gray-700'">
-                        {{ (forum.thread_count ?? forum.threads_count ?? 0).toLocaleString() }}
-                      </div>
-                      <div class="text-xs">Threads</div>
+                  <!-- Stats: stacked icon rows -->
+                  <div class="hidden sm:flex flex-col gap-1 shrink-0 text-xs w-16" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                    <div class="flex items-center gap-1.5">
+                      <i class="fa-regular fa-comment w-3 text-center"></i>
+                      <span :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ (forum.thread_count ?? forum.threads_count ?? 0).toLocaleString() }}</span>
                     </div>
-                    <div class="text-center w-16">
-                      <div class="font-semibold" :class="isDark ? 'text-gray-200' : 'text-gray-700'">
-                        {{ (forum.post_count ?? forum.posts_count ?? 0).toLocaleString() }}
-                      </div>
-                      <div class="text-xs">Posts</div>
+                    <div class="flex items-center gap-1.5">
+                      <i class="fa-regular fa-message w-3 text-center"></i>
+                      <span :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ (forum.post_count ?? forum.posts_count ?? 0).toLocaleString() }}</span>
                     </div>
                   </div>
 
+                  <!-- Subtle divider -->
+                  <div class="hidden md:block self-stretch w-px mx-1 shrink-0" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'"></div>
+
                   <!-- Last post -->
-                  <div v-if="forum.last_post_user" class="hidden md:flex items-center gap-3 shrink-0 w-52">
-                    <UserAvatar
-                      :name="forum.last_post_user.username"
-                      :color="forum.last_post_user.avatar_color || 'bg-purple-500'"
-                      :avatar-url="forum.last_post_user.avatar_url"
-                      :online="false"
-                      size="sm"
-                    />
-                    <div class="min-w-0">
-                      <div class="text-sm font-medium truncate">
-                        <span :style="forum.last_post_user.group_color ? { color: forum.last_post_user.group_color } : {}" :class="!forum.last_post_user.group_color ? (isDark ? 'text-gray-300' : 'text-gray-700') : ''">{{ forum.last_post_user.username }}</span>
+                  <div class="hidden md:flex items-center gap-2.5 shrink-0 w-40">
+                    <template v-if="forum.last_post_user">
+                      <UserAvatar
+                        :name="forum.last_post_user.username"
+                        :color="forum.last_post_user.avatar_color || 'bg-purple-500'"
+                        :avatar-url="forum.last_post_user.avatar_url"
+                        :online="false"
+                        size="sm"
+                      />
+                      <div class="min-w-0">
+                        <div class="text-xs font-medium truncate">
+                          <span :style="forum.last_post_user.group_color ? { color: forum.last_post_user.group_color } : {}" :class="!forum.last_post_user.group_color ? (isDark ? 'text-gray-300' : 'text-gray-600') : ''">{{ forum.last_post_user.username }}</span>
+                        </div>
+                        <div class="text-[11px]" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
+                          {{ forum.last_post_at ? formatRelative(forum.last_post_at) : '' }}
+                        </div>
                       </div>
-                      <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                        {{ forum.last_post_at ? formatRelative(forum.last_post_at) : 'Latest post' }}
-                      </div>
-                    </div>
+                    </template>
                   </div>
                 </router-link>
               </div>
