@@ -414,10 +414,7 @@ onMounted(loadThread)
             <i :class="liked ? 'fa-solid fa-heart text-[11px]' : 'fa-regular fa-heart text-[11px]'"></i>
             <span>{{ likesCount || 'Like' }}</span>
           </button>
-          <div v-if="likers.length" class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-            <span v-if="likers.length <= 3">{{ likers.map(l => l.username).join(", ") }}</span>
-            <span v-else>{{ likers.slice(0, 2).map(l => l.username).join(", ") }} +{{ likers.length - 2 }}</span>
-          </div>
+
           <!-- Subscribe -->
           <button
             v-if="authStore.isLoggedIn"
