@@ -196,6 +196,21 @@ function tagClass(tag) {
         >
           <!-- Title + author -->
           <div class="flex items-center gap-3 min-w-0">
+
+            <!-- Left icon cluster: likes (unpinned) OR pin/lock icons (pinned) -->
+            <div class="hidden sm:flex flex-col items-center justify-center gap-0.5 w-7 shrink-0">
+              <template v-if="thread.is_pinned">
+                <i class="fa-solid fa-thumbtack text-[11px] text-violet-400"></i>
+                <i v-if="thread.is_locked" class="fa-solid fa-lock text-[11px] text-gray-500 mt-0.5"></i>
+              </template>
+              <template v-else>
+                <span class="text-[10px] font-semibold leading-none" :class="thread.likes_count > 0 ? (isDark ? 'text-gray-400' : 'text-gray-500') : (isDark ? 'text-gray-700' : 'text-gray-300')">
+                  {{ thread.likes_count || 0 }}
+                </span>
+                <i class="fa-regular fa-heart text-[11px]" :class="thread.likes_count > 0 ? 'text-pink-400' : (isDark ? 'text-gray-700' : 'text-gray-300')"></i>
+              </template>
+            </div>
+
             <UserAvatar :name="thread.author?.username" :color="thread.author?.avatar_color || 'bg-purple-500'" :avatar-url="thread.author?.avatar_url" :online="thread.author?.is_online || false" size="sm" />
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
@@ -207,7 +222,6 @@ function tagClass(tag) {
                 >
                   {{ tag }}
                 </span>
-                <span v-if="thread.is_pinned" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-accent/15 text-purple-accent">Pinned</span>
                 <span class="font-medium truncate group-hover:text-purple-accent">{{ thread.title }}</span>
               </div>
               <div class="text-sm mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
