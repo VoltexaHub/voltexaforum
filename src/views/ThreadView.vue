@@ -106,7 +106,7 @@ async function saveEdit(post) {
     const updated = res.data.data || res.data
     const idx = posts.value.findIndex(p => p.id === post.id)
     if (idx !== -1) {
-      posts.value[idx] = { ...posts.value[idx], body: updated.body || editBody.value, edited_at: updated.edited_at || new Date().toISOString() }
+      posts.value[idx] = { ...posts.value[idx], body: updated.body || editBody.value, rendered_content: updated.rendered_content || null, edited_at: updated.edited_at || new Date().toISOString() }
     }
     cancelEditing()
   } catch {

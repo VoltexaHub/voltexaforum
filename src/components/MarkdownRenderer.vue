@@ -47,7 +47,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="container"
-    class="markdown-content prose max-w-none text-sm leading-relaxed"
+    class="markdown-content max-w-none text-sm leading-relaxed"
     :class="isDark ? 'text-gray-300' : 'text-gray-700'"
     v-html="rendered"
   />
