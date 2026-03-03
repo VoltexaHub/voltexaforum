@@ -13,7 +13,7 @@ const year = new Date().getFullYear()
     class="mt-12 border-t transition-colors duration-300"
     :class="isDark ? 'bg-gray-950 border-gray-800' : 'bg-gray-50 border-gray-200'"
   >
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-10">
 
         <!-- Brand -->
