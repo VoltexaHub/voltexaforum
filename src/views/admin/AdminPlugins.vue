@@ -30,19 +30,24 @@ async function fetchPlugins() {
 
 async function doInstall(slug) {
   try {
-    await installPlugin(slug)
+    const { data } = await installPlugin(slug)
+    const idx = plugins.value.findIndex(p => p.slug === slug)
+    if (idx !== -1) plugins.value[idx] = { ...plugins.value[idx], ...data.data, installed: true }
     toast.success('Plugin installed.')
-    await fetchPlugins()
   } catch {
     toast.error('Failed to install plugin.')
   }
 }
 
 async function doToggle(slug) {
+  const plugin = plugins.value.find(p => p.slug === slug)
+  if (!plugin) return
+  const prev = plugin.enabled
+  plugin.enabled = !prev
   try {
     await togglePlugin(slug)
-    await fetchPlugins()
   } catch {
+    plugin.enabled = prev
     toast.error('Failed to toggle plugin.')
   }
 }
@@ -51,8 +56,9 @@ async function doUninstall(slug) {
   if (!confirm('Are you sure you want to uninstall this plugin?')) return
   try {
     await uninstallPlugin(slug)
+    const idx = plugins.value.findIndex(p => p.slug === slug)
+    if (idx !== -1) plugins.value[idx] = { ...plugins.value[idx], installed: false, enabled: false }
     toast.success('Plugin uninstalled.')
-    await fetchPlugins()
   } catch {
     toast.error('Failed to uninstall plugin.')
   }

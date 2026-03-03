@@ -64,14 +64,17 @@ async function save() {
   }
   try {
     if (editing.value) {
-      await updateAnnouncement(editing.value, form.value)
+      const { data } = await updateAnnouncement(editing.value, form.value)
+      const updated = data.data
+      const idx = announcements.value.findIndex(a => a.id === editing.value)
+      if (idx !== -1) announcements.value[idx] = updated
       toast.success('Announcement updated.')
     } else {
-      await createAnnouncement(form.value)
+      const { data } = await createAnnouncement(form.value)
+      announcements.value.push(data.data)
       toast.success('Announcement created.')
     }
     closeModal()
-    await fetchAnnouncements()
   } catch {
     toast.error('Failed to save announcement.')
   }
@@ -81,18 +84,20 @@ async function doDelete(id) {
   if (!confirm('Delete this announcement?')) return
   try {
     await deleteAnnouncement(id)
+    announcements.value = announcements.value.filter(a => a.id !== id)
     toast.success('Announcement deleted.')
-    await fetchAnnouncements()
   } catch {
     toast.error('Failed to delete announcement.')
   }
 }
 
 async function quickToggle(a) {
+  const prev = a.is_active
+  a.is_active = !prev
   try {
-    await updateAnnouncement(a.id, { is_active: !a.is_active })
-    await fetchAnnouncements()
+    await updateAnnouncement(a.id, { is_active: a.is_active })
   } catch {
+    a.is_active = prev
     toast.error('Failed to toggle announcement.')
   }
 }
