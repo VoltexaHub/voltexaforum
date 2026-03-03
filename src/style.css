@@ -13,6 +13,24 @@ html:has(.light) {
   scrollbar-color: #d1d5db #f9fafb;
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #030712;
+}
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
+html:has(.light) ::-webkit-scrollbar-track {
+  background: #f9fafb;
+}
+html:has(.light) ::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+}
+
 :root {
   --bg-page: #030712;
   --bg-section: #111827;
