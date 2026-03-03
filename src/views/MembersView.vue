@@ -3,7 +3,6 @@ import { ref, inject, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMembers } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
-import { formatJoinDate } from '../utils/date'
 import { useForumStore } from '../stores/forum'
 
 const isDark = inject('isDark', ref(true))
@@ -50,7 +49,6 @@ function onSearch() {
 }
 
 watch(sort, () => { page.value = 1; load() })
-
 onMounted(load)
 </script>
 
@@ -70,7 +68,7 @@ onMounted(load)
       <!-- Controls -->
       <div class="flex items-center gap-3 flex-wrap">
         <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
           <input
             v-model="search"
             @input="onSearch"
@@ -90,42 +88,57 @@ onMounted(load)
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-      <div v-for="i in 24" :key="i" class="rounded-xl p-4 animate-pulse h-32" :class="isDark ? 'bg-gray-800' : 'bg-white shadow-sm'"></div>
+    <!-- Loading skeleton -->
+    <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div
+        v-for="i in 24" :key="i"
+        class="flex items-center gap-3 p-4 rounded-xl animate-pulse"
+        :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+      >
+        <div class="w-10 h-10 rounded-full shrink-0" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'"></div>
+        <div class="flex-1 space-y-2">
+          <div class="h-3.5 rounded w-2/3" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'"></div>
+          <div class="h-3 rounded w-1/3" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- Grid -->
-    <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+    <!-- Member cards -->
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       <button
         v-for="member in members"
         :key="member.id"
         @click="router.push(`/profile/${member.username}`)"
-        class="rounded-xl p-4 text-center transition-all duration-150 hover:scale-105 hover:shadow-lg group"
+        class="flex items-center gap-3 p-4 rounded-xl text-left transition-colors group"
         :class="isDark ? 'bg-gray-900 hover:bg-gray-800' : 'bg-white shadow-sm hover:shadow-md'"
       >
-        <div class="relative inline-block mb-2">
+        <!-- Avatar -->
+        <div class="shrink-0">
           <UserAvatar
             :name="member.username"
             :color="member.avatar_color || 'bg-purple-500'"
             :avatar-url="member.avatar_url"
             :online="member.is_online"
-            size="lg"
+            size="md"
           />
         </div>
-        <div
-          class="text-sm font-semibold truncate group-hover:text-purple-accent transition-colors"
-          :class="isDark ? 'text-gray-100' : 'text-gray-900'"
-          :style="member.primary_role ? { color: groupColor(member.primary_role) } : {}"
-        >
-          {{ member.username }}
-        </div>
-        <div v-if="member.primary_role" class="text-[10px] mt-0.5 font-medium" :style="{ color: groupColor(member.primary_role) + 'cc' }">
-          {{ groupLabel(member.primary_role) }}
-        </div>
-        <div class="text-[11px] mt-1.5 flex justify-center gap-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-          <span><i class="fa-solid fa-pen-to-square mr-0.5"></i>{{ member.post_count }}</span>
-          <span><i class="fa-solid fa-coins mr-0.5"></i>{{ member.credits }}</span>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <div
+            class="text-sm font-semibold truncate leading-tight group-hover:text-purple-accent transition-colors"
+            :class="isDark ? 'text-gray-100' : 'text-gray-900'"
+            :style="member.primary_role ? { color: groupColor(member.primary_role) } : {}"
+          >
+            {{ member.username }}
+          </div>
+          <div
+            class="text-xs truncate mt-0.5 leading-tight"
+            :class="isDark ? 'text-gray-500' : 'text-gray-400'"
+            :style="member.primary_role ? { color: groupColor(member.primary_role) + '99' } : {}"
+          >
+            {{ member.custom_title || groupLabel(member.primary_role) || 'Member' }}
+          </div>
         </div>
       </button>
     </div>
@@ -137,7 +150,7 @@ onMounted(load)
     </div>
 
     <!-- Pagination -->
-    <div v-if="meta.last_page > 1" class="flex items-center justify-center gap-2 mt-8">
+    <div v-if="meta.last_page > 1" class="flex items-center justify-center gap-2 mt-8 flex-wrap">
       <button
         v-for="p in meta.last_page"
         :key="p"
