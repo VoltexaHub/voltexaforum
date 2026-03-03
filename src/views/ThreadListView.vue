@@ -55,7 +55,7 @@ function tagClass(tag) {
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
     <!-- Loading -->
     <div v-if="loading" class="space-y-4">
       <div class="h-6 rounded w-1/3 animate-pulse" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'" />
@@ -103,7 +103,10 @@ function tagClass(tag) {
 
       <!-- Header -->
       <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
-        <h1 class="text-2xl font-bold">{{ forumMeta?.name || route.params.slug }}</h1>
+        <div>
+          <h1 class="text-2xl font-bold">{{ forumMeta?.name || route.params.slug }}</h1>
+          <p v-if="forumMeta?.description" class="text-sm mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ forumMeta.description }}</p>
+        </div>
         <router-link
           v-if="authStore.isLoggedIn"
           :to="`/forum/${route.params.slug}/new-thread`"

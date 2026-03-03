@@ -55,7 +55,7 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
       <div>

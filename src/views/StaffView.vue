@@ -33,7 +33,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-2xl font-bold mb-1" :class="isDark ? 'text-white' : 'text-gray-900'">
