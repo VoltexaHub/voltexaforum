@@ -9,6 +9,10 @@ html {
   scrollbar-color: #374151 #030712;
 }
 
+html:has(.light) {
+  scrollbar-color: #d1d5db #f9fafb;
+}
+
 :root {
   --bg-page: #030712;
   --bg-section: #111827;
