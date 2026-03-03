@@ -111,7 +111,7 @@ export const grantAward = (id, data) => api.post('/admin/users/' + id + '/awards
 export const revokeAward = (id, awardId) => api.delete('/admin/users/' + id + '/awards/' + awardId)
 
 // Admin - Forums
-export const getAdminForumTree = () => api.get('/admin/forums')
+export const getAdminForumTree = () => api.get('/admin/forums/tree')
 export const createAdminCategory = (data) => api.post('/admin/categories', data)
 export const updateAdminCategory = (id, data) => api.put('/admin/categories/' + id, data)
 export const deleteAdminCategory = (id) => api.delete('/admin/categories/' + id)
