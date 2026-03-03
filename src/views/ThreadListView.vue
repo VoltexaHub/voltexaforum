@@ -169,7 +169,7 @@ function tagClass(tag) {
                 <span class="font-medium truncate group-hover:text-purple-accent">{{ thread.title }}</span>
               </div>
               <div class="text-sm mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                {{ thread.author?.username }}
+                <span :style="thread.author?.group_color ? { color: thread.author.group_color } : {}">{{ thread.author?.username }}</span>
               </div>
             </div>
           </div>

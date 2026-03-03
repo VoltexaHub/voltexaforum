@@ -104,8 +104,8 @@ watch(() => route.params.username, () => {
               />
             </div>
             <div class="text-center sm:text-left flex-1 pb-1">
-              <h1 class="text-2xl font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">
-                {{ profile.username }}
+              <h1 class="text-2xl font-bold">
+                <span :style="profile.primary_role?.color ? { color: profile.primary_role.color } : {}" :class="!profile.primary_role?.color ? (isDark ? 'text-white' : 'text-gray-900') : ''">{{ profile.username }}</span>
               </h1>
               <div class="flex items-center justify-center sm:justify-start gap-2 mt-1.5">
                 <span

@@ -70,6 +70,10 @@ async function saveSettings() {
   try {
     await updateAdminUser(userId.value, { role: form.value.role, user_title: form.value.userTitle })
     toast.show('User settings saved')
+    // Refresh so role badge updates immediately
+    const res = await getAdminUser(userId.value)
+    user.value = res.data.data || res.data
+    if (user.value.role) form.value.role = user.value.role
   } catch (e) {
     toast.show(e.response?.data?.message || 'Failed to save', 'error')
   } finally {

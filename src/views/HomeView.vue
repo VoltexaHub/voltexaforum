@@ -174,8 +174,8 @@ const filteredGames = computed(() => {
                         size="sm"
                       />
                       <div class="min-w-0">
-                        <div class="text-sm font-medium truncate" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-                          {{ forum.last_post_user.username }}
+                        <div class="text-sm font-medium truncate">
+                          <span :style="forum.last_post_user.group_color ? { color: forum.last_post_user.group_color } : {}" :class="!forum.last_post_user.group_color ? (isDark ? 'text-gray-300' : 'text-gray-700') : ''">{{ forum.last_post_user.username }}</span>
                         </div>
                         <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
                           {{ forum.last_post_at ? formatRelative(forum.last_post_at) : 'Latest post' }}
