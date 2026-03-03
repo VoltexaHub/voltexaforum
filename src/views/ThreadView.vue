@@ -419,73 +419,80 @@ onMounted(loadThread)
           :key="post.id"
           class="rounded-xl overflow-hidden transition-colors duration-300"
           :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-          :style="{ borderLeft: `3px solid ${post.author?.group_color || '#6b7280'}` }"
         >
           <div class="flex flex-col sm:flex-row">
             <!-- Author sidebar -->
             <div
-              class="sm:w-52 shrink-0 p-4 flex sm:flex-col items-center sm:items-center gap-4 sm:gap-2 text-center border-b sm:border-b-0 sm:border-r"
-              :class="isDark ? 'bg-gray-800/40 border-gray-800' : 'bg-gray-50 border-gray-100'"
+              class="sm:w-48 shrink-0 flex sm:flex-col items-center gap-3 sm:gap-0 p-4 border-b sm:border-b-0 sm:border-r"
+              :class="isDark ? 'border-gray-800' : 'border-gray-100'"
+              :style="{ borderTopColor: post.author?.group_color || undefined, borderTopWidth: '3px', borderTopStyle: 'solid' }"
             >
-              <UserAvatar
-                :name="post.author?.username"
-                :color="post.author?.avatar_color || 'bg-purple-500'"
-                :avatar-url="post.author?.avatar_url"
-                :online="post.author?.is_online || false"
-                size="lg"
-              />
-              <router-link
-                :to="`/profile/${post.author?.username}`"
-                class="font-bold text-sm hover:underline"
-                :style="{ color: post.author?.group_color || (isDark ? '#e5e7eb' : '#1f2937') }"
-              >
-                {{ post.author?.username }}
-              </router-link>
-
-              <div
-                v-if="post.author?.group_label"
-                class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
-                :style="{
-                  backgroundColor: (post.author?.group_color || '#6b7280') + '20',
-                  color: post.author?.group_color || '#6b7280',
-                  border: `1px solid ${post.author?.group_color || '#6b7280'}40`,
-                }"
-              >
-                {{ post.author?.group_label }}
+              <!-- Avatar -->
+              <div class="shrink-0 sm:mt-1 sm:mb-3 sm:self-center">
+                <UserAvatar
+                  :name="post.author?.username"
+                  :color="post.author?.avatar_color || 'bg-purple-500'"
+                  :avatar-url="post.author?.avatar_url"
+                  :online="post.author?.is_online || false"
+                  size="lg"
+                />
               </div>
 
-              <div
-                class="w-full my-1 border-t"
-                :class="isDark ? 'border-gray-700' : 'border-gray-200'"
-              />
+              <!-- Name + badge -->
+              <div class="flex-1 sm:flex-none sm:w-full sm:text-center">
+                <router-link
+                  :to="`/profile/${post.author?.username}`"
+                  class="font-bold text-sm hover:underline block truncate"
+                  :style="{ color: post.author?.group_color || undefined }"
+                  :class="!post.author?.group_color ? (isDark ? 'text-gray-100' : 'text-gray-900') : ''"
+                >
+                  {{ post.author?.username }}
+                </router-link>
+                <div
+                  v-if="post.author?.group_label"
+                  class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1"
+                  :style="{
+                    backgroundColor: (post.author?.group_color || '#6b7280') + '22',
+                    color: post.author?.group_color || '#6b7280',
+                  }"
+                >
+                  {{ post.author?.group_label }}
+                </div>
+              </div>
 
-              <div class="w-full space-y-1.5 text-left">
-                <div class="flex items-center gap-2 text-xs" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  <i class="fa-solid fa-calendar-days w-3.5 text-center shrink-0" />
+              <!-- Divider -->
+              <div class="hidden sm:block w-full border-t my-3" :class="isDark ? 'border-gray-700/60' : 'border-gray-100'" />
+
+              <!-- Stats -->
+              <div class="hidden sm:flex flex-col w-full gap-1.5">
+                <div class="flex items-center gap-1.5 text-[11px]" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                  <i class="fa-solid fa-calendar-days w-3 text-center opacity-70" />
                   <span class="truncate">{{ formatJoinDate(post.author?.created_at) }}</span>
                 </div>
-                <div class="flex items-center gap-2 text-xs" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  <i class="fa-solid fa-pen-to-square w-3.5 text-center shrink-0" />
-                  <span>Posts</span>
-                  <span class="ml-auto font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ post.author?.post_count ?? 0 }}</span>
+                <div class="flex items-center justify-between text-[11px]" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                  <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen-to-square w-3 text-center opacity-70" />
+                    Posts
+                  </span>
+                  <span class="font-semibold" :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ (post.author?.post_count ?? 0).toLocaleString() }}</span>
                 </div>
-                <div class="flex items-center gap-2 text-xs" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  <i class="fa-solid fa-coins w-3.5 text-center shrink-0" />
-                  <span>Credits</span>
-                  <span class="ml-auto font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ post.author?.credits ?? 0 }}</span>
+                <div class="flex items-center justify-between text-[11px]" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                  <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-coins w-3 text-center opacity-70" />
+                    Credits
+                  </span>
+                  <span class="font-semibold text-purple-accent">{{ (post.author?.credits ?? 0).toLocaleString() }}</span>
                 </div>
               </div>
 
+              <!-- Awards -->
               <div
                 v-if="post.author?.awards?.length"
-                class="flex items-center justify-center gap-1 mt-1"
+                class="hidden sm:flex flex-wrap justify-center gap-1 mt-2 pt-2 border-t w-full"
+                :class="isDark ? 'border-gray-700/60' : 'border-gray-100'"
               >
-                <template
-                  v-for="award in post.author.awards.slice(0, 4)"
-                  :key="award.id"
-                >
-                  <img v-if="award.icon_url" :src="award.icon_url" class="w-5 h-5 object-contain cursor-default" :title="award.name" />
-                  <span v-else class="cursor-default" :title="award.name">{{ award.icon || '' }}</span>
+                <template v-for="award in post.author.awards.slice(0, 6)" :key="award.id">
+                  <img v-if="award.icon_url" :src="award.icon_url" class="w-5 h-5 object-contain" :title="award.name" />
                 </template>
               </div>
             </div>
