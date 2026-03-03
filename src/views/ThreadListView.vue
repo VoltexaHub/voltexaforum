@@ -132,19 +132,28 @@ function tagClass(tag) {
         </div>
 
         <!-- Thread rows -->
-        <router-link
-          v-for="(thread, idx) in threads"
-          :key="thread.id"
+        <template v-for="(thread, idx) in threads" :key="thread.id">
+          <!-- Divider between pinned and regular threads -->
+          <div
+            v-if="idx > 0 && !thread.is_pinned && threads[idx - 1].is_pinned"
+            class="flex items-center gap-3 px-5 py-2"
+            :class="isDark ? 'bg-gray-900/60 border-y border-gray-800' : 'bg-gray-50 border-y border-gray-200'"
+          >
+            <i class="fa-solid fa-list text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'"></i>
+            <span class="text-xs font-semibold uppercase tracking-wider" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Regular Threads</span>
+          </div>
+          <router-link
           :to="`/thread/${thread.id}`"
           class="block sm:grid grid-cols-[1fr_100px_100px_120px] gap-4 items-center px-5 py-4 transition-colors duration-150"
           :class="[
             isDark ? 'hover:bg-gray-800/60' : 'hover:bg-gray-50',
             idx < threads.length - 1 ? (isDark ? 'border-b border-gray-800/50' : 'border-b border-gray-100') : '',
+            thread.is_pinned ? (isDark ? 'bg-purple-900/10' : 'bg-purple-50/50') : '',
           ]"
         >
           <!-- Title + author -->
           <div class="flex items-center gap-3 min-w-0">
-            <UserAvatar :name="thread.author?.username" :color="thread.author?.avatar_color || 'bg-purple-500'" :online="thread.author?.is_online || false" size="sm" />
+            <UserAvatar :name="thread.author?.username" :color="thread.author?.avatar_color || 'bg-purple-500'" :avatar-url="thread.author?.avatar_url" :online="thread.author?.is_online || false" size="sm" />
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 <span

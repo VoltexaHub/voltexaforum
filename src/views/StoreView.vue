@@ -13,14 +13,8 @@ const purchaseMessage = ref(null)
 const purchaseError = ref(null)
 const purchasingId = ref(null)
 
-const paymentFilter = ref('all')
 const categoryFilter = ref('all')
 
-const paymentTabs = [
-  { id: 'all', label: 'All' },
-  { id: 'money', label: 'Buy with $' },
-  { id: 'credits', label: 'Buy with &#9889; Credits' },
-]
 
 const categoryTabs = computed(() => {
   const cats = new Set(items.value.map(i => i.category))
@@ -48,8 +42,7 @@ onMounted(fetchStore)
 
 const filteredItems = computed(() => {
   return items.value.filter(item => {
-    if (paymentFilter.value === 'money' && !item.money_price) return false
-    if (paymentFilter.value === 'credits' && !item.credit_price) return false
+    if (false) return false // payment filter removed
     if (categoryFilter.value !== 'all' && item.category !== categoryFilter.value) return false
     return true
   })
@@ -161,21 +154,6 @@ async function handlePurchase(item) {
             </button>
           </div>
         </div>
-      </div>
-
-      <!-- Payment type toggle pills -->
-      <div class="flex gap-2 mb-4 overflow-x-auto">
-        <button
-          v-for="tab in paymentTabs"
-          :key="tab.id"
-          @click="paymentFilter = tab.id"
-          class="px-4 py-2 rounded-full font-medium text-sm transition-colors whitespace-nowrap"
-          :class="paymentFilter === tab.id
-            ? 'bg-purple-accent text-white'
-            : isDark ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
-        >
-          <span v-html="tab.label" />
-        </button>
       </div>
 
       <!-- Category tabs -->

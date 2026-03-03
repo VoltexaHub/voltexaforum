@@ -167,6 +167,7 @@ const filteredGames = computed(() => {
                       <UserAvatar
                         :name="forum.last_post_user.username"
                         :color="forum.last_post_user.avatar_color || 'bg-purple-500'"
+                        :avatar-url="forum.last_post_user.avatar_url"
                         :online="false"
                         size="sm"
                       />

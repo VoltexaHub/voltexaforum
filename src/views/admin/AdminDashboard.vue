@@ -21,6 +21,7 @@ function buildStatCards(s) {
     { label: 'Total Users', value: Number(s.user_count).toLocaleString(), icon: 'fa-solid fa-users' },
     { label: 'Total Posts', value: Number(s.post_count).toLocaleString(), icon: 'fa-solid fa-pen-to-square' },
     { label: 'Total Threads', value: Number(s.thread_count).toLocaleString(), icon: 'fa-solid fa-comments' },
+    { label: 'Online Now', value: Number(s.online_count ?? 0).toLocaleString(), icon: 'fa-solid fa-circle text-green-500' },
     { label: 'Revenue This Month', value: '$' + Number(s.revenue_this_month).toFixed(2), icon: 'fa-solid fa-dollar-sign' },
   ]
 }
