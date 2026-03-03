@@ -58,6 +58,8 @@ export const search = (query, type = 'all', page = 1) => api.get('/search', { pa
 
 // User
 export const uploadAvatar = (formData) => api.post('/user/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const uploadPostbitBg = (formData) => api.post('/user/postbit-bg', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const removePostbitBg = () => api.delete('/user/postbit-bg')
 export const getUserProfile = (username) => api.get('/users/' + username + '/profile')
 export const updateProfile = (data) => api.put('/user/profile', data)
 export const updateAccount = (data) => api.put('/user/account', data)

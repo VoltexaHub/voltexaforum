@@ -331,7 +331,8 @@ watch(() => route.params.username, () => {
               class="flex items-center gap-3 p-3 rounded-lg border border-purple-accent/30 bg-purple-accent/5"
             >
               <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 bg-purple-accent/10 text-purple-accent">
-                <i :class="ach.icon || 'fa-solid fa-star'"></i>
+                <template v-if="ach.icon && !ach.icon.startsWith('fa-')">{{ ach.icon }}</template>
+                <i v-else :class="ach.icon || 'fa-solid fa-star'"></i>
               </div>
               <div class="min-w-0">
                 <div class="font-medium text-sm truncate">{{ ach.name }}</div>
@@ -406,7 +407,8 @@ watch(() => route.params.username, () => {
                   { 'grayscale': !ach.unlocked }
                 ]"
               >
-                <i :class="ach.icon || 'fa-solid fa-star'"></i>
+                <template v-if="ach.icon && !ach.icon.startsWith('fa-')">{{ ach.icon }}</template>
+                <i v-else :class="ach.icon || 'fa-solid fa-star'"></i>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">

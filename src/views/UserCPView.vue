@@ -11,6 +11,8 @@ import {
   getUserSessions,
   deleteSession,
   uploadAvatar,
+  uploadPostbitBg,
+  removePostbitBg,
 } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
 
@@ -75,6 +77,69 @@ async function handleAvatarUpload() {
   }
 }
 
+// Postbit Background
+const postbitBgFileInput = ref(null)
+const postbitBgPreview = ref(null)
+const postbitBgFile = ref(null)
+const postbitBgUploading = ref(false)
+const postbitBgRemoving = ref(false)
+const currentPostbitBg = ref(null)
+
+function handlePostbitBgSelect(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  if (file.size > 5 * 1024 * 1024) {
+    saveError.value = 'Postbit background must be under 5MB.'
+    return
+  }
+  postbitBgFile.value = file
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    postbitBgPreview.value = ev.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+async function handlePostbitBgUpload() {
+  if (!postbitBgFile.value) return
+  postbitBgUploading.value = true
+  clearMessages()
+  try {
+    const formData = new FormData()
+    formData.append('image', postbitBgFile.value)
+    const res = await uploadPostbitBg(formData)
+    const url = res.data.data?.postbit_bg
+    if (url) {
+      currentPostbitBg.value = url
+      authStore.user.postbit_bg = url
+    }
+    postbitBgPreview.value = null
+    postbitBgFile.value = null
+    saveMessage.value = 'Postbit background uploaded!'
+  } catch (e) {
+    saveError.value = e.response?.data?.message || 'Failed to upload postbit background.'
+  } finally {
+    postbitBgUploading.value = false
+  }
+}
+
+async function handlePostbitBgRemove() {
+  postbitBgRemoving.value = true
+  clearMessages()
+  try {
+    await removePostbitBg()
+    currentPostbitBg.value = null
+    authStore.user.postbit_bg = null
+    postbitBgPreview.value = null
+    postbitBgFile.value = null
+    saveMessage.value = 'Postbit background removed.'
+  } catch (e) {
+    saveError.value = e.response?.data?.message || 'Failed to remove postbit background.'
+  } finally {
+    postbitBgRemoving.value = false
+  }
+}
+
 // Profile
 const avatarColors = [
   'bg-purple-500', 'bg-blue-500', 'bg-emerald-500', 'bg-red-500',
@@ -127,6 +192,7 @@ onMounted(async () => {
     twitterHandle.value = user.twitter || ''
     website.value = user.website || ''
     email.value = user.email || ''
+    currentPostbitBg.value = user.postbit_bg || null
     notificationSettings.value = user.notification_settings || [
       { id: 'thread-replies', label: 'Thread replies', description: 'Notify when someone replies to your thread', enabled: true },
       { id: 'mentions', label: 'Mentions', description: 'Notify when someone @mentions you', enabled: true },
@@ -383,6 +449,70 @@ async function handleRemoveSession(id) {
                   </button>
                   <p v-else class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
                     Click avatar to change. JPG, PNG, GIF, WebP &mdash; max 2MB
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Postbit Background -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium mb-3" :class="isDark ? 'text-gray-300' : 'text-gray-700'">Postbit Background</label>
+              <div class="flex items-start gap-5">
+                <div
+                  class="w-32 h-20 rounded-lg overflow-hidden border flex items-center justify-center shrink-0"
+                  :class="isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-100'"
+                >
+                  <img
+                    v-if="postbitBgPreview"
+                    :src="postbitBgPreview"
+                    class="w-full h-full object-cover"
+                  />
+                  <img
+                    v-else-if="currentPostbitBg"
+                    :src="currentPostbitBg"
+                    class="w-full h-full object-cover"
+                  />
+                  <i v-else class="fa-solid fa-image text-xl" :class="isDark ? 'text-gray-600' : 'text-gray-400'"></i>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <input
+                    ref="postbitBgFileInput"
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    class="hidden"
+                    @change="handlePostbitBgSelect"
+                  />
+                  <button
+                    v-if="postbitBgFile"
+                    @click="handlePostbitBgUpload"
+                    :disabled="postbitBgUploading"
+                    class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-purple-accent hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <svg v-if="postbitBgUploading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    {{ postbitBgUploading ? 'Uploading...' : 'Upload' }}
+                  </button>
+                  <template v-else>
+                    <button
+                      @click="postbitBgFileInput?.click()"
+                      class="px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
+                      :class="isDark ? 'border-gray-700 text-gray-300 hover:bg-gray-800' : 'border-gray-200 text-gray-600 hover:bg-gray-50'"
+                    >
+                      <i class="fa-solid fa-upload mr-1.5"></i> Choose Image
+                    </button>
+                    <button
+                      v-if="currentPostbitBg"
+                      @click="handlePostbitBgRemove"
+                      :disabled="postbitBgRemoving"
+                      class="px-4 py-2 rounded-lg text-sm font-medium text-red-400 border border-red-400/30 hover:bg-red-400/10 transition-colors disabled:opacity-50"
+                    >
+                      {{ postbitBgRemoving ? 'Removing...' : 'Remove' }}
+                    </button>
+                  </template>
+                  <p class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                    GIF, PNG, JPG, WebP &mdash; max 5MB
                   </p>
                 </div>
               </div>

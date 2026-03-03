@@ -15,9 +15,6 @@ const loading = ref(true)
 const search = ref('')
 const sort = ref('joined')
 const page = ref(1)
-const letter = ref('')
-
-const alphabet = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')]
 
 const sortOptions = [
   { value: 'joined',   label: 'Newest' },
@@ -29,7 +26,7 @@ const sortOptions = [
 async function load() {
   loading.value = true
   try {
-    const res = await getMembers({ q: search.value, sort: sort.value, page: page.value, per_page: 24, letter: letter.value })
+    const res = await getMembers({ q: search.value, sort: sort.value, page: page.value, per_page: 24 })
     members.value = res.data.data.data || res.data.data
     meta.value = res.data.meta || {}
   } finally {
@@ -45,16 +42,9 @@ function groupLabel(role) {
   return forumStore.config?.[`group_label_${role}`] || (role ? role.charAt(0).toUpperCase() + role.slice(1) : '')
 }
 
-function setLetter(l) {
-  letter.value = letter.value === l ? '' : l
-  page.value = 1
-  load()
-}
-
 let searchTimer
 function onSearch() {
   clearTimeout(searchTimer)
-  letter.value = ''
   searchTimer = setTimeout(() => { page.value = 1; load() }, 350)
 }
 
@@ -96,19 +86,6 @@ onMounted(load)
           <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
       </div>
-    </div>
-
-    <!-- Alphabet filter -->
-    <div class="flex flex-wrap gap-1 mb-5">
-      <button
-        v-for="l in alphabet"
-        :key="l"
-        @click="setLetter(l)"
-        class="w-8 h-8 rounded-lg text-xs font-semibold transition-colors"
-        :class="letter === l
-          ? 'bg-purple-accent text-white'
-          : (isDark ? 'bg-gray-900 text-gray-400 hover:bg-gray-800 hover:text-white' : 'bg-white text-gray-500 hover:bg-gray-100 shadow-sm')"
-      >{{ l }}</button>
     </div>
 
     <!-- Loading skeleton -->
