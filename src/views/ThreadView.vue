@@ -423,50 +423,58 @@ onMounted(loadThread)
         </div>
       </div>
 
-      <!-- Subscribe button -->
-      <div v-if="authStore.isLoggedIn" class="flex items-center gap-2 mb-4">
+      <!-- Subscribe + Mod toolbar row -->
+      <div class="flex items-center justify-between mb-6 gap-3 flex-wrap">
+        <!-- Subscribe -->
         <button
+          v-if="authStore.isLoggedIn"
           @click="toggleSubscribe"
           :disabled="subLoading"
-          class="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
+          class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-colors"
           :class="subscribed
-            ? 'bg-violet-500/10 text-violet-400 hover:bg-violet-500/20'
-            : isDark ? 'bg-gray-800 text-gray-400 hover:text-violet-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-400 hover:text-violet-400 hover:bg-gray-200'"
+            ? 'border-violet-500/40 text-violet-400 bg-violet-500/10 hover:bg-violet-500/20'
+            : isDark ? 'border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600' : 'border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300'"
         >
-          <i :class="subscribed ? 'fa-solid fa-bell' : 'fa-regular fa-bell'"></i>
+          <i :class="subscribed ? 'fa-solid fa-bell text-[11px]' : 'fa-regular fa-bell text-[11px]'"></i>
           {{ subscribed ? 'Subscribed' : 'Subscribe' }}
         </button>
-      </div>
+        <div v-else />
 
-      <!-- Mod toolbar -->
-      <div v-if="authStore.isModerator" class="flex items-center gap-2 mb-6 flex-wrap">
-        <span class="text-xs font-semibold uppercase tracking-wide mr-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-          <i class="fa-solid fa-shield-halved"></i> Mod
-        </span>
-        <button
-          @click="togglePin"
-          :disabled="modActionLoading === 'pin'"
-          class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full transition-colors bg-yellow-500/15 text-yellow-400 hover:bg-yellow-500/25"
-        >
-          <i class="fa-solid fa-thumbtack"></i>
-          {{ thread.is_pinned ? 'Unpin' : 'Pin' }}
-        </button>
-        <button
-          @click="toggleLock"
-          :disabled="modActionLoading === 'lock'"
-          class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full transition-colors bg-blue-500/15 text-blue-400 hover:bg-blue-500/25"
-        >
-          <i :class="thread.is_locked ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock'"></i>
-          {{ thread.is_locked ? 'Unlock' : 'Lock' }}
-        </button>
-        <button
-          @click="handleDeleteThread"
-          :disabled="modActionLoading === 'delete'"
-          class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full transition-colors bg-red-500/15 text-red-400 hover:bg-red-500/25"
-        >
-          <i class="fa-solid fa-trash"></i>
-          Delete
-        </button>
+        <!-- Mod toolbar -->
+        <div v-if="authStore.isModerator" class="flex items-center gap-1 px-2 py-1 rounded-lg border" :class="isDark ? 'border-gray-800 bg-gray-900/50' : 'border-gray-200 bg-gray-50'">
+          <span class="text-[10px] font-semibold uppercase tracking-widest mr-1.5" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
+            <i class="fa-solid fa-shield-halved"></i>
+          </span>
+          <button
+            @click="togglePin"
+            :disabled="modActionLoading === 'pin'"
+            class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors"
+            :class="thread.is_pinned ? 'text-yellow-400 bg-yellow-500/10' : isDark ? 'text-gray-500 hover:text-yellow-400 hover:bg-yellow-500/10' : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50'"
+            :title="thread.is_pinned ? 'Unpin' : 'Pin'"
+          >
+            <i class="fa-solid fa-thumbtack text-[11px]"></i>
+            <span>{{ thread.is_pinned ? 'Unpin' : 'Pin' }}</span>
+          </button>
+          <button
+            @click="toggleLock"
+            :disabled="modActionLoading === 'lock'"
+            class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors"
+            :class="thread.is_locked ? 'text-blue-400 bg-blue-500/10' : isDark ? 'text-gray-500 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-400 hover:text-blue-500 hover:bg-blue-50'"
+            :title="thread.is_locked ? 'Unlock' : 'Lock'"
+          >
+            <i :class="['text-[11px]', thread.is_locked ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock']"></i>
+            <span>{{ thread.is_locked ? 'Unlock' : 'Lock' }}</span>
+          </button>
+          <button
+            @click="handleDeleteThread"
+            :disabled="modActionLoading === 'delete'"
+            class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors"
+            :class="isDark ? 'text-gray-500 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'"
+            title="Delete thread"
+          >
+            <i class="fa-solid fa-trash text-[11px]"></i>
+            <span>Delete</span>
+          </button>
         <div v-if="authStore.isAdmin" class="relative">
           <button
             @click="showMoveDropdown = !showMoveDropdown"
@@ -492,8 +500,8 @@ onMounted(loadThread)
             </button>
           </div>
         </div>
+        </div>
       </div>
-      <div v-else class="mb-6"></div>
 
       <!-- Posts -->
       <div class="space-y-4">
@@ -595,35 +603,7 @@ onMounted(loadThread)
                     {{ formatEditedTime(post.edited_at) }}
                   </span>
                 </div>
-                <div class="flex items-center gap-1">
-                  <button
-                    v-if="canEdit(post)"
-                    @click="startEditing(post)"
-                    class="text-xs px-2 py-1 rounded transition-colors"
-                    :class="isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'"
-                    title="Edit"
-                  >
-                    <i class="fa-solid fa-pen"></i>
-                  </button>
-                  <button
-                    v-if="authStore.isModerator"
-                    @click="handleDeletePost(post)"
-                    :disabled="modActionLoading === 'delete-post-' + post.id"
-                    class="text-xs px-2 py-1 rounded transition-colors text-red-400 hover:bg-red-500/15"
-                    :title="isFirstPost(post) ? 'Delete thread' : 'Delete post'"
-                  >
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                  <button
-                    v-if="authStore.isLoggedIn && authStore.user?.id !== post.user_id"
-                    @click="openReportModal(post.id)"
-                    class="text-xs px-2 py-1 rounded transition-colors"
-                    :class="isDark ? 'text-gray-400 hover:text-orange-400 hover:bg-gray-800' : 'text-gray-400 hover:text-orange-500 hover:bg-gray-100'"
-                    title="Report"
-                  >
-                    <i class="fa-solid fa-flag"></i>
-                  </button>
-                </div>
+                <div />
               </div>
 
               <!-- Editing mode -->
@@ -665,19 +645,50 @@ onMounted(loadThread)
                 <MarkdownRenderer :content="post.body" :rendered-content="post.rendered_content" />
               </template>
 
-              <!-- Post like button -->
-              <div v-if="authStore.isLoggedIn" class="mt-4 pt-3 border-t flex items-center gap-3" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
+              <!-- Post footer — always anchored at bottom -->
+              <div class="mt-4 pt-3 border-t flex items-center justify-between gap-3" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
+                <!-- Left: Like -->
                 <button
+                  v-if="authStore.isLoggedIn"
                   @click="togglePostLike(post)"
                   class="flex items-center gap-1.5 text-sm transition-colors"
                   :class="post.is_liked_by_me ? 'text-pink-400' : isDark ? 'text-gray-500 hover:text-pink-400' : 'text-gray-400 hover:text-pink-400'"
                 >
                   <i :class="post.is_liked_by_me ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
-                  <span>{{ post.like_count || '' }}</span>
+                  <span v-if="post.like_count > 0" class="text-xs">{{ post.like_count }} {{ post.like_count === 1 ? 'like' : 'likes' }}</span>
                 </button>
-                <span v-if="post.like_count > 0" class="text-xs" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
-                  {{ post.like_count }} {{ post.like_count === 1 ? 'person' : 'people' }} liked this
-                </span>
+                <div v-else />
+
+                <!-- Right: Edit / Delete / Report -->
+                <div class="flex items-center gap-1">
+                  <button
+                    v-if="canEdit(post)"
+                    @click="startEditing(post)"
+                    class="text-xs px-2 py-1 rounded transition-colors"
+                    :class="isDark ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-800' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'"
+                    title="Edit"
+                  >
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button
+                    v-if="authStore.isModerator"
+                    @click="handleDeletePost(post)"
+                    :disabled="modActionLoading === 'delete-post-' + post.id"
+                    class="text-xs px-2 py-1 rounded transition-colors text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
+                    :title="isFirstPost(post) ? 'Delete thread' : 'Delete post'"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                  <button
+                    v-if="authStore.isLoggedIn && authStore.user?.id !== post.user_id"
+                    @click="openReportModal(post.id)"
+                    class="text-xs px-2 py-1 rounded transition-colors"
+                    :class="isDark ? 'text-gray-600 hover:text-orange-400 hover:bg-gray-800' : 'text-gray-300 hover:text-orange-500 hover:bg-gray-100'"
+                    title="Report"
+                  >
+                    <i class="fa-solid fa-flag"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
