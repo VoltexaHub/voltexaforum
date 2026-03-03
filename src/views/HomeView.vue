@@ -4,6 +4,7 @@ import { useForumStore } from '../stores/forum'
 import { usePresenceStore } from '../stores/presence'
 import { getForums as fetchForumsApi } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
+import { formatRelative } from '../utils/date'
 
 const isDark = inject('isDark')
 const forumStore = useForumStore()
@@ -176,7 +177,7 @@ const filteredGames = computed(() => {
                           {{ forum.last_post_user.username }}
                         </div>
                         <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                          Latest post
+                          {{ forum.last_post_at ? formatRelative(forum.last_post_at) : 'Latest post' }}
                         </div>
                       </div>
                     </div>

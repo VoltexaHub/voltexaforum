@@ -56,6 +56,7 @@ const routes = [
       { path: 'store/purchases', name: 'AdminStorePurchases', component: () => import('../views/admin/AdminStorePurchases.vue'), meta: { title: 'Purchases' } },
       { path: 'achievements', name: 'AdminAchievements', component: () => import('../views/admin/AdminAchievements.vue'), meta: { title: 'Achievements' } },
       { path: 'awards', name: 'AdminAwards', component: () => import('../views/admin/AdminAwards.vue'), meta: { title: 'Awards' } },
+      { path: 'groups', name: 'AdminGroups', component: () => import('../views/admin/AdminGroups.vue'), meta: { title: 'Groups' } },
       { path: 'config', name: 'AdminConfig', component: () => import('../views/admin/AdminConfig.vue'), meta: { title: 'Configuration' } },
       { path: 'plugins', name: 'AdminPlugins', component: () => import('../views/admin/AdminPlugins.vue'), meta: { title: 'Plugins' } },
     ],

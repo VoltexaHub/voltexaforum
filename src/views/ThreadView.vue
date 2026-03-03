@@ -3,10 +3,11 @@ import { inject, ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
-import { getThread, getThreadPosts, createPost, updatePost, updateThread, pinThread, lockThread, solveThread, adminDeletePost, deleteThread, moveThread } from '../services/api'
+import { getThread, getThreadPosts, createPost, updatePost, updateThread, pinThread, lockThread, solveThread, adminDeletePost, deleteThread, moveThread, likeThread as likeThreadApi } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
 import MarkdownEditor from '../components/MarkdownEditor.vue'
 import MarkdownRenderer from '../components/MarkdownRenderer.vue'
+import { formatDateTime, formatJoinDate } from '../utils/date'
 
 const isDark = inject('isDark')
 const route = useRoute()
@@ -35,6 +36,11 @@ const replyTextarea = ref(null)
 const showMentionDropdown = ref(false)
 const mentionFilter = ref('')
 const mentionStartIndex = ref(-1)
+
+// Likes state
+const liked = ref(false)
+const likesCount = ref(0)
+const likers = ref([])
 
 // Moderation state
 const showMoveDropdown = ref(false)
@@ -204,6 +210,17 @@ async function handleDeletePost(post) {
   }
 }
 
+async function handleLike() {
+  if (!authStore.isLoggedIn) return
+  try {
+    const res = await likeThreadApi(thread.value.id)
+    const data = res.data.data || res.data
+    liked.value = data.liked
+    likesCount.value = data.likes_count ?? data.likesCount ?? likesCount.value
+    likers.value = data.likers || likers.value
+  } catch {}
+}
+
 async function loadThread() {
   loading.value = true
   error.value = null
@@ -215,6 +232,10 @@ async function loadThread() {
       getThreadPosts(route.params.id, 1),
     ])
     thread.value = threadRes.data.data
+    const threadLikes = thread.value.likes || []
+    likesCount.value = thread.value.likes_count ?? threadLikes.length
+    likers.value = threadLikes
+    liked.value = authStore.user?.id ? threadLikes.some(l => (l.id || l.user_id) === authStore.user.id) : false
     posts.value = postsRes.data.data
     pagination.value = postsRes.data.meta || null
   } catch (e) {
@@ -309,6 +330,43 @@ onMounted(loadThread)
         </span>
       </div>
 
+      <!-- Thread likes -->
+      <div class="flex items-center gap-3 mb-4 flex-wrap">
+        <button
+          @click="handleLike"
+          :disabled="!authStore.isLoggedIn"
+          class="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
+          :class="liked
+            ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
+            : isDark ? 'bg-gray-800 text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-400 hover:text-red-400 hover:bg-gray-200'"
+        >
+          <i :class="liked ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+          {{ likesCount }}
+        </button>
+        <div v-if="likers.length" class="flex items-center gap-1">
+          <router-link
+            v-for="liker in likers.slice(0, 8)"
+            :key="liker.id || liker.user_id"
+            :to="`/profile/${liker.username}`"
+            :title="liker.username"
+          >
+            <UserAvatar
+              :name="liker.username"
+              :color="liker.avatar_color || 'bg-purple-500'"
+              :avatar-url="liker.avatar_url"
+              size="sm"
+            />
+          </router-link>
+          <span
+            v-if="likers.length > 8"
+            class="text-xs font-medium ml-1"
+            :class="isDark ? 'text-gray-500' : 'text-gray-400'"
+          >
+            +{{ likers.length - 8 }} more
+          </span>
+        </div>
+      </div>
+
       <!-- Mod toolbar -->
       <div v-if="authStore.isModerator" class="flex items-center gap-2 mb-6 flex-wrap">
         <span class="text-xs font-semibold uppercase tracking-wide mr-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
@@ -378,7 +436,7 @@ onMounted(loadThread)
           <div class="flex flex-col sm:flex-row">
             <!-- Author sidebar -->
             <div
-              class="sm:w-52 shrink-0 p-5 flex sm:flex-col items-center sm:items-center gap-4 sm:gap-2 text-center border-b sm:border-b-0 sm:border-r"
+              class="sm:w-52 shrink-0 p-4 flex sm:flex-col items-center sm:items-center gap-4 sm:gap-2 text-center border-b sm:border-b-0 sm:border-r"
               :class="isDark ? 'bg-gray-800/40 border-gray-800' : 'bg-gray-50 border-gray-100'"
             >
               <UserAvatar
@@ -388,57 +446,59 @@ onMounted(loadThread)
                 :online="post.author?.is_online || false"
                 size="lg"
               />
-              <div class="space-y-1">
-                <router-link
-                  :to="`/profile/${post.author?.username}`"
-                  class="font-semibold text-sm hover:underline block"
-                  :style="{ color: post.author?.group_color || '#6b7280' }"
+              <router-link
+                :to="`/profile/${post.author?.username}`"
+                class="font-bold text-sm hover:underline"
+                :style="{ color: post.author?.group_color || (isDark ? '#e5e7eb' : '#1f2937') }"
+              >
+                {{ post.author?.username }}
+              </router-link>
+
+              <div
+                v-if="post.author?.group_label"
+                class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
+                :style="{
+                  backgroundColor: (post.author?.group_color || '#6b7280') + '20',
+                  color: post.author?.group_color || '#6b7280',
+                  border: `1px solid ${post.author?.group_color || '#6b7280'}40`,
+                }"
+              >
+                {{ post.author?.group_label }}
+              </div>
+
+              <div
+                class="w-full my-1 border-t"
+                :class="isDark ? 'border-gray-700' : 'border-gray-200'"
+              />
+
+              <div class="w-full space-y-1.5 text-left">
+                <div class="flex items-center gap-2 text-xs" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                  <i class="fa-solid fa-calendar-days w-3.5 text-center shrink-0" />
+                  <span class="truncate">{{ formatJoinDate(post.author?.created_at) }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                  <i class="fa-solid fa-pen-to-square w-3.5 text-center shrink-0" />
+                  <span>Posts</span>
+                  <span class="ml-auto font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ post.author?.post_count ?? 0 }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                  <i class="fa-solid fa-coins w-3.5 text-center shrink-0" />
+                  <span>Credits</span>
+                  <span class="ml-auto font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ post.author?.credits ?? 0 }}</span>
+                </div>
+              </div>
+
+              <div
+                v-if="post.author?.awards?.length"
+                class="flex items-center justify-center gap-1 mt-1"
+              >
+                <template
+                  v-for="award in post.author.awards.slice(0, 4)"
+                  :key="award.id"
                 >
-                  {{ post.author?.username }}
-                </router-link>
-
-                <div
-                  v-if="post.author?.group_label"
-                  class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
-                  :style="{
-                    backgroundColor: (post.author?.group_color || '#6b7280') + '20',
-                    color: post.author?.group_color || '#6b7280',
-                    border: `1px solid ${post.author?.group_color || '#6b7280'}40`,
-                  }"
-                >
-                  <span v-if="post.author?.group_badge">{{ post.author.group_badge }}</span>
-                  {{ post.author?.group_label }}
-                </div>
-
-                <div
-                  v-if="post.author?.user_title"
-                  class="text-xs italic"
-                  :class="isDark ? 'text-gray-500' : 'text-gray-400'"
-                >
-                  {{ post.author.user_title }}
-                </div>
-
-                <div class="text-xs mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                  Posts: {{ post.author?.post_count ?? 0 }} |
-                  Credits: {{ post.author?.credits ?? 0 }}
-                </div>
-
-                <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                  Joined {{ post.author?.join_date }}
-                </div>
-
-                <div
-                  v-if="post.author?.awards?.length"
-                  class="flex items-center justify-center gap-1 mt-1"
-                >
-                  <template
-                    v-for="award in post.author.awards.slice(0, 4)"
-                    :key="award.id"
-                  >
-                    <img v-if="award.icon_url" :src="award.icon_url" class="w-5 h-5 object-contain cursor-default" :title="award.name" />
-                    <span v-else class="cursor-default" :title="award.name">{{ award.icon || '' }}</span>
-                  </template>
-                </div>
+                  <img v-if="award.icon_url" :src="award.icon_url" class="w-5 h-5 object-contain cursor-default" :title="award.name" />
+                  <span v-else class="cursor-default" :title="award.name">{{ award.icon || '' }}</span>
+                </template>
               </div>
             </div>
 
@@ -447,7 +507,7 @@ onMounted(loadThread)
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                   <span class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                    {{ post.created_at }}
+                    {{ formatDateTime(post.created_at) }}
                   </span>
                   <span
                     v-if="post.edited_at"

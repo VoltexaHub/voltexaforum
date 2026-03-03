@@ -39,6 +39,7 @@ const navSections = [
       { to: '/admin/users', label: 'Users', icon: 'fa-solid fa-users' },
       { to: '/admin/forums', label: 'Forums', icon: 'fa-solid fa-comments' },
       { to: '/admin/moderation', label: 'Moderation', icon: 'fa-solid fa-shield-halved' },
+      { to: '/admin/groups', label: 'Groups', icon: 'fa-solid fa-users-gear' },
     ],
   },
   {

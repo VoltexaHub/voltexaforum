@@ -51,6 +51,7 @@ export const reactToPost = (postId, type) => api.post('/posts/' + postId + '/rea
 export const deletePost = (postId) => api.delete('/posts/' + postId)
 export const updatePost = (id, data) => api.put('/posts/' + id, data)
 export const updateThread = (id, data) => api.put('/threads/' + id, data)
+export const likeThread = (id) => api.post('/threads/' + id + '/like')
 
 // Search
 export const search = (query, type = 'all', page = 1) => api.get('/search', { params: { q: query, type, page } })
@@ -154,6 +155,12 @@ export const updateAdminAward = (id, data) =>
     ? api.post('/admin/awards/' + id + '?_method=PUT', data, { headers: { 'Content-Type': 'multipart/form-data' } })
     : api.put('/admin/awards/' + id, data)
 export const deleteAdminAward = (id) => api.delete('/admin/awards/' + id)
+
+// Admin - Groups
+export const getAdminGroups = () => api.get('/admin/groups')
+export const createAdminGroup = (d) => api.post('/admin/groups', d)
+export const updateAdminGroup = (id, d) => api.put('/admin/groups/' + id, d)
+export const deleteAdminGroup = (id) => api.delete('/admin/groups/' + id)
 
 // Admin - Config
 export const getAdminConfig = () => api.get('/admin/config')

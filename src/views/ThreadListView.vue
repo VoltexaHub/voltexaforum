@@ -5,6 +5,7 @@ import { getForumThreads } from '../services/api'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
 import UserAvatar from '../components/UserAvatar.vue'
+import { formatRelative } from '../utils/date'
 
 const isDark = inject('isDark')
 const route = useRoute()
@@ -188,7 +189,7 @@ function tagClass(tag) {
           <!-- Last reply -->
           <div class="hidden sm:block text-right text-sm"
                :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-            {{ thread.last_reply_at || thread.time_ago }}
+            {{ formatRelative(thread.last_reply_at) || thread.time_ago }}
           </div>
           </router-link>
         </template>
