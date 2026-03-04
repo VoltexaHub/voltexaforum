@@ -1,7 +1,6 @@
 <script setup>
-import { ref, inject, computed } from 'vue'
-import { marked } from 'marked'
-import { getMembers } from '../services/api'
+import { ref, inject, computed, watch } from 'vue'
+import { getMembers, uploadImage, previewContent } from '../services/api'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
@@ -73,16 +72,23 @@ function insertMention(username) {
   })
 }
 
-const renderedPreview = computed(() => {
-  if (!props.modelValue) return ''
-  return sanitize(marked.parse(props.modelValue))
-})
+const previewHtml = ref('')
+const previewLoading = ref(false)
 
-function sanitize(html) {
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-}
+watch(previewing, async (val) => {
+  if (val) {
+    previewLoading.value = true
+    previewHtml.value = ''
+    try {
+      const res = await previewContent({ content: props.modelValue || '' })
+      previewHtml.value = res.data.data.html
+    } catch {
+      previewHtml.value = '<p style="color:#f87171">Preview failed.</p>'
+    } finally {
+      previewLoading.value = false
+    }
+  }
+})
 
 function wrap(before, after, defaultText) {
   const el = textarea.value
@@ -155,9 +161,43 @@ function insertBBSpoiler() {
   wrap('[spoiler]', '[/spoiler]', 'hidden text')
 }
 
+const imageFileInput = ref(null)
+
 function insertBBImage() {
-  const url = prompt('Enter image URL:')
-  if (url) wrap('[img]', '[/img]', url)
+  imageFileInput.value?.click()
+}
+
+async function handleImageFile(file) {
+  if (!file || !file.type.startsWith('image/')) return
+  const placeholder = '[img]Uploading...[/img]'
+  const el = textarea.value
+  const pos = el ? el.selectionStart : props.modelValue.length
+  emit('update:modelValue', props.modelValue.slice(0, pos) + placeholder + props.modelValue.slice(pos))
+  try {
+    const form = new FormData()
+    form.append('image', file)
+    const res = await uploadImage(form)
+    const url = res.data.data.url
+    emit('update:modelValue', props.modelValue.replace(placeholder, `[img]${url}[/img]`))
+  } catch {
+    emit('update:modelValue', props.modelValue.replace(placeholder, ''))
+  }
+}
+
+async function onPaste(e) {
+  const files = e.clipboardData?.files
+  if (files?.length && files[0].type.startsWith('image/')) {
+    e.preventDefault()
+    await handleImageFile(files[0])
+  }
+}
+
+async function onDrop(e) {
+  const files = e.dataTransfer?.files
+  if (files?.length && files[0].type.startsWith('image/')) {
+    e.preventDefault()
+    await handleImageFile(files[0])
+  }
 }
 
 function insertBBVideo() {
@@ -197,6 +237,15 @@ const bbSizes = [
 
 <template>
   <div>
+    <!-- Hidden image file input -->
+    <input
+      type="file"
+      ref="imageFileInput"
+      accept="image/*"
+      class="hidden"
+      @change="e => handleImageFile(e.target.files[0])"
+    />
+
     <!-- Toolbar -->
     <div
       class="flex items-center gap-1 px-2 py-1.5 rounded-t-lg border border-b-0 flex-wrap"
@@ -331,6 +380,8 @@ const bbSizes = [
         ref="textarea"
         :value="modelValue"
         @input="handleInput"
+        @paste="onPaste"
+        @drop.prevent="onDrop"
         :rows="rows"
         :placeholder="placeholder"
         class="w-full px-4 py-3 rounded-b-lg border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-purple-accent resize-y"
@@ -359,10 +410,18 @@ const bbSizes = [
       :class="isDark ? 'bg-gray-800 border-gray-700 text-gray-300' : 'bg-white border-gray-200 text-gray-700'"
       :style="{ minHeight: (rows * 1.5) + 'rem' }"
     >
+      <!-- Loading spinner -->
+      <div v-if="previewLoading" class="flex items-center gap-2 py-4" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+        <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        <span class="text-xs">Rendering preview...</span>
+      </div>
       <div
-        v-if="renderedPreview"
+        v-else-if="previewHtml"
         class="markdown-preview prose max-w-none"
-        v-html="renderedPreview"
+        v-html="previewHtml"
       />
       <p v-else class="italic" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Nothing to preview</p>
     </div>
@@ -408,4 +467,9 @@ const bbSizes = [
 .markdown-preview :deep(ol) { list-style: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
 .markdown-preview :deep(li) { margin-bottom: 0.25rem; }
 .markdown-preview :deep(hr) { border-color: #374151; margin: 1rem 0; }
+/* BBCode rendered output */
+.markdown-preview :deep(.spoiler) { filter: blur(4px); cursor: pointer; transition: filter 0.2s; user-select: none; }
+.markdown-preview :deep(.spoiler:hover) { filter: none; }
+.markdown-preview :deep(img) { max-width: 100%; border-radius: 0.5rem; margin: 0.5rem 0; display: block; }
+.markdown-preview :deep(iframe) { max-width: 100%; border-radius: 0.5rem; margin: 0.5rem 0; }
 </style>
