@@ -88,7 +88,7 @@ export const deleteNotification = (id) => api.delete('/notifications/' + id)
 
 // Conversations / DMs
 export const getConversations = () => api.get('/conversations')
-export const startConversation = (userId) => api.post('/conversations', { user_id: userId })
+export const startConversation = (payload) => api.post('/conversations', payload)
 export const getConversation = (id) => api.get('/conversations/' + id)
 export const sendMessage = (id, body) => api.post('/conversations/' + id + '/messages', { body })
 export const getDMUnreadCount = () => api.get('/conversations/unread-count')
