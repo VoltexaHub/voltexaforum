@@ -51,6 +51,7 @@ const navSections = [
   {
     label: 'Commerce',
     items: [
+      { to: '/admin/upgrades', label: 'Upgrade Plans', icon: 'fa-solid fa-rocket' },
       { to: '/admin/store/items', label: 'Store Items', icon: 'fa-solid fa-store' },
       { to: '/admin/store/purchases', label: 'Purchases', icon: 'fa-solid fa-credit-card' },
       { to: '/admin/settings/store', label: 'Store Settings', icon: 'fa-solid fa-sliders' },

@@ -156,6 +156,11 @@ export const deleteAdminAward = (id) => api.delete('/admin/awards/' + id)
 
 // Admin - Groups
 export const getAdminGroups = () => api.get('/admin/groups')
+export const getUpgradePlans = () => api.get('/upgrade-plans')
+export const getAdminUpgradePlans = () => api.get('/admin/upgrade-plans')
+export const createAdminUpgradePlan = (d) => api.post('/admin/upgrade-plans', d)
+export const updateAdminUpgradePlan = (id, d) => api.put('/admin/upgrade-plans/' + id, d)
+export const deleteAdminUpgradePlan = (id) => api.delete('/admin/upgrade-plans/' + id)
 export const createAdminGroup = (d) => api.post('/admin/groups', d)
 export const updateAdminGroup = (id, d) => api.put('/admin/groups/' + id, d)
 export const deleteAdminGroup = (id) => api.delete('/admin/groups/' + id)
