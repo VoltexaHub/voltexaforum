@@ -34,7 +34,7 @@ function emptyForm() {
     name: '', description: '', color: '#8b5cf6', price: 9.99,
     term: 'lifetime', role_name: '', is_active: true, is_featured: false,
     rep_power_pos: 2, rep_power_neg: 2, rep_daily_limit: 5,
-    display_order: 0, stripe_price_id: '',
+    display_order: 0, stripe_price_id: '', required_plan_id: null,
     features: [],
     one_time_bonus: { credits: 0, label: '' },
   }
@@ -337,6 +337,25 @@ onMounted(fetchAll)
                     <option v-for="g in groups" :key="g.name" :value="g.name">{{ g.label || g.name }}</option>
                   </select>
                 </div>
+              </div>
+
+              <!-- Prerequisite -->
+              <div>
+                <label class="block text-xs font-medium mb-1" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
+                  Requires Plan First
+                  <span class="ml-1 font-normal" :class="isDark ? 'text-gray-500' : 'text-gray-400'">(optional — leave blank to allow anyone)</span>
+                </label>
+                <select v-model="form.required_plan_id"
+                  class="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  :class="isDark ? 'bg-gray-900 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'">
+                  <option :value="null">None — anyone can purchase</option>
+                  <option
+                    v-for="p in plans.filter(p => p.id !== editingId)"
+                    :key="p.id"
+                    :value="p.id">
+                    {{ p.name }}
+                  </option>
+                </select>
               </div>
 
               <!-- Rep settings -->

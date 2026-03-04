@@ -161,6 +161,14 @@ function handlePurchase(plan) {
           </div>
         </div>
 
+        <!-- Prerequisite notice -->
+        <div v-if="plan.required_plan"
+          class="mx-6 mb-3 px-3 py-2 rounded-lg flex items-center gap-2 text-xs"
+          :class="isDark ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' : 'bg-amber-50 border border-amber-200 text-amber-600'">
+          <i class="fa-solid fa-lock shrink-0"></i>
+          Requires <strong class="mx-1">{{ plan.required_plan.name }}</strong> first
+        </div>
+
         <!-- Purchase button -->
         <div class="px-6 pb-6">
           <button
