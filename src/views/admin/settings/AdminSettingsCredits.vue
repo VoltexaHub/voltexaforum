@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getAdminConfig, updateAdminConfig } from '../../../services/api'
+import { getAdminConfig, updateAdminConfig, getAdminGroups } from '../../../services/api'
 import { useToastStore } from '../../../stores/toast'
 
 const toast = useToastStore()
@@ -16,17 +16,24 @@ const creditsSettings = ref({
   credits_daily_post_limit: 50,
 })
 
-const roleMultipliers = ref({
-  admin: 1.0,
-  moderator: 1.0,
-  member: 1.0,
-})
+// Dynamic — keyed by role name, populated from groups API
+const roleMultipliers = ref({})
+const groups = ref([])
 
 async function fetchConfig() {
   loading.value = true
   try {
-    const res = await getAdminConfig()
-    const d = res.data.data || res.data
+    const [configRes, groupsRes] = await Promise.all([getAdminConfig(), getAdminGroups()])
+    const d = configRes.data.data || configRes.data
+
+    // Load groups (exclude 'banned' and 'guest' — no point giving them multipliers)
+    groups.value = (groupsRes.data.data || groupsRes.data).filter(g => !['banned', 'guest'].includes(g.name))
+
+    // Seed multipliers with 1.0 for each group
+    const defaults = {}
+    groups.value.forEach(g => { defaults[g.name] = 1.0 })
+    roleMultipliers.value = defaults
+
     if (d.credits) {
       Object.assign(creditsSettings.value, d.credits)
       if (d.credits.role_credit_multipliers) {
@@ -34,6 +41,7 @@ async function fetchConfig() {
           const parsed = typeof d.credits.role_credit_multipliers === 'string'
             ? JSON.parse(d.credits.role_credit_multipliers)
             : d.credits.role_credit_multipliers
+          // Merge saved values over defaults
           Object.assign(roleMultipliers.value, parsed)
         } catch {}
       }
@@ -113,19 +121,27 @@ onMounted(fetchConfig)
 
         <!-- Role Multipliers -->
         <div class="border-t border-gray-700/50 pt-5 mt-5">
-          <h4 class="text-sm font-semibold text-gray-300 mb-3">Role Multipliers</h4>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div>
-              <label class="block text-sm font-medium text-gray-400 mb-1.5">Admin Multiplier</label>
-              <input v-model.number="roleMultipliers.admin" type="number" step="0.1" min="0" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+          <div class="flex items-center gap-2 mb-1">
+            <h4 class="text-sm font-semibold text-gray-300">Role Multipliers</h4>
+          </div>
+          <p class="text-xs text-gray-500 mb-3">Multiply credits earned for each group. 1.0 = no bonus. Add new groups in <router-link to="/admin/groups" class="text-violet-400 hover:underline">Groups &amp; Roles</router-link>.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div v-for="group in groups" :key="group.name" class="relative">
+              <label class="flex items-center gap-1.5 text-sm font-medium text-gray-400 mb-1.5">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: group.color || '#94a3b8' }"></span>
+                {{ group.label || group.name }}
+              </label>
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="roleMultipliers[group.name]"
+                  type="number" step="0.1" min="0" max="10"
+                  class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none"
+                />
+                <span class="text-xs text-gray-500 shrink-0">×</span>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-400 mb-1.5">Moderator Multiplier</label>
-              <input v-model.number="roleMultipliers.moderator" type="number" step="0.1" min="0" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-400 mb-1.5">Member Multiplier</label>
-              <input v-model.number="roleMultipliers.member" type="number" step="0.1" min="0" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+            <div v-if="!groups.length" class="col-span-3 text-sm text-gray-500">
+              No groups found.
             </div>
           </div>
         </div>
