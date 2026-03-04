@@ -163,6 +163,25 @@ async function toggleActive(plan) {
   } catch { toast.show('Failed to update', 'error') }
 }
 
+async function movePlan(idx, dir) {
+  const swap = idx + dir
+  if (swap < 0 || swap >= plans.value.length) return
+  // Swap in local array
+  const a = plans.value[idx]
+  const b = plans.value[swap]
+  plans.value.splice(idx, 1, b)
+  plans.value.splice(swap, 1, a)
+  // Persist new display_order for both
+  try {
+    await Promise.all([
+      updateAdminUpgradePlan(a.id, { display_order: swap }),
+      updateAdminUpgradePlan(b.id, { display_order: idx }),
+    ])
+    a.display_order = swap
+    b.display_order = idx
+  } catch { toast.show('Failed to reorder', 'error') }
+}
+
 onMounted(fetchAll)
 </script>
 
@@ -240,6 +259,18 @@ onMounted(fetchAll)
               </button>
             </td>
             <td class="px-5 py-3 text-right">
+              <button @click="movePlan(plans.indexOf(plan), -1)" :disabled="plans.indexOf(plan) === 0"
+                title="Move up"
+                class="text-xs px-2 py-1 rounded transition-colors disabled:opacity-20"
+                :class="isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'">
+                <i class="fa-solid fa-chevron-up"></i>
+              </button>
+              <button @click="movePlan(plans.indexOf(plan), 1)" :disabled="plans.indexOf(plan) === plans.length - 1"
+                title="Move down"
+                class="text-xs px-2 py-1 rounded mr-1 transition-colors disabled:opacity-20"
+                :class="isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'">
+                <i class="fa-solid fa-chevron-down"></i>
+              </button>
               <button @click="openEdit(plan)" title="Edit"
                 class="text-xs px-2.5 py-1 rounded mr-1 transition-colors"
                 :class="isDark ? 'text-gray-400 hover:text-violet-400 hover:bg-gray-700' : 'text-gray-400 hover:text-violet-600 hover:bg-gray-100'">
