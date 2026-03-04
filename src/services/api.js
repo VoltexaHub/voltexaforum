@@ -184,6 +184,8 @@ export const getMembers = (params) => api.get('/members', { params })
 export const getStaff = () => api.get('/staff')
 export const getForumPermissions = (forumId) => api.get(`/admin/forums/${forumId}/permissions`)
 export const updateForumPermissions = (forumId, data) => api.put(`/admin/forums/${forumId}/permissions`, data)
+export const getGroupPermissions = () => api.get('/admin/group-permissions')
+export const updateGroupPermissions = (data) => api.put('/admin/group-permissions', data)
 export const testAdminEmail = () => api.post('/admin/config/test-email')
 
 // Reports
