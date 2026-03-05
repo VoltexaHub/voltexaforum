@@ -55,7 +55,7 @@ watch(() => route.params.username, () => {
     <!-- Loading -->
     <div v-if="loading" class="space-y-4">
       <div class="rounded-xl overflow-hidden animate-pulse" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-        <div style="height: 280px;" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'" />
+        <div style="height: 280px;" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'"></div>
         <div class="px-6 pb-6 pt-12 flex items-center gap-5">
           <div class="w-24 h-24 rounded-full -mt-20 border-4" :class="isDark ? 'bg-gray-800 border-gray-900' : 'bg-gray-200 border-white'" />
           <div class="flex-1 space-y-3">
@@ -81,27 +81,25 @@ watch(() => route.params.username, () => {
     <template v-else-if="profile">
       <!-- Banner header -->
       <div
-        class="rounded-xl overflow-hidden mb-6 transition-colors duration-300"
-        :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+        class="rounded-xl overflow-hidden mb-6 transition-colors duration-300 relative"
+        :style="profile.cover_url
+          ? {
+              backgroundImage: `url(${profile.cover_url})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center center',
+              backgroundRepeat: 'no-repeat',
+            }
+          : isDark ? { background: '#111827' } : { background: '#ffffff' }"
       >
+        <!-- Dark overlay when cover is set -->
         <div
-          style="height: 280px; position: relative; display: block;"
-          :style="profile.cover_url
-            ? {
-                backgroundImage: `url(${profile.cover_url})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center center',
-                backgroundRepeat: 'no-repeat',
-              }
-            : { background: `linear-gradient(135deg, ${bannerColor}30, ${bannerColor}15)` }"
-        >
-          <div
-            v-if="profile.cover_url"
-            style="position: absolute; inset: 0;"
-            :style="{ background: `rgba(0,0,0,${(profile.cover_overlay_opacity ?? 20) / 100})` }"
-          />
-        </div>
-        <div class="px-6 pb-6 relative">
+          v-if="profile.cover_url"
+          style="position: absolute; inset: 0; pointer-events: none; z-index: 0;"
+          :style="{ background: `rgba(0,0,0,${(profile.cover_overlay_opacity ?? 20) / 100})` }"
+        />
+        <!-- Spacer to create the banner height above the profile info -->
+        <div style="height: 200px;" />
+        <div class="px-6 pb-6 relative" style="z-index: 1;">
           <div class="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-14">
             <div class="shrink-0">
               <UserAvatar
