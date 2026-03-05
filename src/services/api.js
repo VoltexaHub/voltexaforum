@@ -261,7 +261,7 @@ export const updatePaymentProvider = (provider, data) => api.put(`/admin/payment
 // Admin - Advertisements
 export const getAdminAds = () => api.get('/admin/advertisements')
 export const createAd = (data) => api.post('/admin/advertisements', data)
-export const updateAd = (id, data) => api.put(`/admin/advertisements/${id}`, data)
+export const updateAd = (id, data) => api.post(`/admin/advertisements/${id}`, data) // POST + _method=PUT (PHP doesn't parse multipart PUT)
 export const deleteAd = (id) => api.delete(`/admin/advertisements/${id}`)
 export const toggleAd = (id) => api.post(`/admin/advertisements/${id}/toggle`)
 

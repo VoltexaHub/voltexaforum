@@ -42,7 +42,9 @@ function startEdit(ad) {
     position: ad.position,
     display_order: ad.display_order || 0,
     image: null,
+    existingImage: ad.image_path || null,
   }
+  imagePreview.value = null
   showForm.value = true
 }
 
@@ -92,8 +94,19 @@ async function handleDelete(ad) {
   }
 }
 
+const imagePreview = ref(null)
+const imageInput = ref(null)
+
 function handleImageSelect(e) {
-  form.value.image = e.target.files?.[0] || null
+  const file = e.target.files?.[0] || null
+  form.value.image = file
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (ev) => { imagePreview.value = ev.target.result }
+    reader.readAsDataURL(file)
+  } else {
+    imagePreview.value = null
+  }
 }
 
 onMounted(fetchAds)
@@ -137,7 +150,17 @@ onMounted(fetchAds)
         </div>
         <div class="sm:col-span-2">
           <label class="block text-xs font-medium text-gray-400 mb-1">Image</label>
-          <input type="file" accept="image/*" @change="handleImageSelect" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+          <input ref="imageInput" type="file" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" @change="handleImageSelect" />
+          <div class="flex items-center gap-3">
+            <div v-if="imagePreview || editingId" class="w-20 h-12 rounded overflow-hidden bg-gray-800 border border-gray-600 shrink-0">
+              <img :src="imagePreview || form.existingImage" class="w-full h-full object-cover" v-if="imagePreview || form.existingImage" />
+            </div>
+            <button type="button" @click="imageInput?.click()" class="px-3 py-2 rounded-lg text-xs font-medium border border-gray-600 text-gray-300 hover:bg-gray-700 transition-colors flex items-center gap-1.5">
+              <i class="fa-solid fa-upload text-xs"></i>
+              {{ form.image ? form.image.name : 'Choose Image' }}
+            </button>
+            <button v-if="form.image" type="button" @click="form.image = null; imagePreview = null; imageInput.value = ''" class="text-xs text-red-400 hover:text-red-300">✕ Clear</button>
+          </div>
         </div>
       </div>
       <div class="flex gap-2">
