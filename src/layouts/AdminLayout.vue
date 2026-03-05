@@ -46,6 +46,7 @@ const navSections = [
     items: [
       { to: '/admin/content/threads', label: 'Threads', icon: 'fa-solid fa-newspaper' },
       { to: '/admin/content/posts', label: 'Posts', icon: 'fa-solid fa-comment-dots' },
+      { to: '/admin/thread-prefixes', label: 'Thread Prefixes', icon: 'fa-solid fa-tag' },
     ],
   },
   {

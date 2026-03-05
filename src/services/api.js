@@ -202,6 +202,25 @@ export const updateAdminReport = (id, data) => api.put(`/admin/reports/${id}`, d
 export const toggleThreadSubscription = (threadId) => api.post(`/threads/${threadId}/subscribe`)
 export const getThreadSubscription = (threadId) => api.get(`/threads/${threadId}/subscription`)
 
+// Thread Solved / Best Answer
+export const markSolved = (threadId, postId) => api.post(`/threads/${threadId}/solved`, { post_id: postId })
+export const unmarkSolved = (threadId) => api.delete(`/threads/${threadId}/solved`)
+
+// Leaderboard
+export const getLeaderboard = (params) => api.get('/leaderboard', { params })
+
+// Thread Prefixes
+export const getThreadPrefixes = () => api.get('/thread-prefixes')
+export const getAdminThreadPrefixes = () => api.get('/admin/thread-prefixes')
+export const createThreadPrefix = (data) => api.post('/admin/thread-prefixes', data)
+export const updateThreadPrefix = (id, data) => api.put(`/admin/thread-prefixes/${id}`, data)
+export const deleteThreadPrefix = (id) => api.delete(`/admin/thread-prefixes/${id}`)
+export const reorderThreadPrefixes = (items) => api.post('/admin/thread-prefixes/reorder', { items })
+
+// Tags
+export const getTags = (params) => api.get('/tags', { params })
+export const getTagThreads = (slug, params) => api.get(`/tags/${slug}/threads`, { params })
+
 // Admin Content
 export const getAdminContentThreads = (params) => api.get('/admin/content/threads', { params })
 export const getAdminContentPosts = (params) => api.get('/admin/content/posts', { params })

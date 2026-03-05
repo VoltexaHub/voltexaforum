@@ -43,6 +43,8 @@ const routes = [
   { path: '/forgot-password', name: 'ForgotPassword', component: ForgotPasswordView },
   { path: '/reset-password', name: 'ResetPassword', component: ResetPasswordView },
   { path: '/verify-email', name: 'VerifyEmail', component: () => import('../views/EmailVerifyView.vue') },
+  { path: '/leaderboard', name: 'Leaderboard', component: () => import('../views/LeaderboardView.vue') },
+  { path: '/tags/:slug', name: 'TagView', component: () => import('../views/TagView.vue') },
 
   // Admin routes — lazy loaded
   {
@@ -75,6 +77,7 @@ const routes = [
       { path: 'appearance/custom-code', name: 'AdminAppearanceCustomCode', component: () => import('../views/admin/appearance/AdminAppearanceCustomCode.vue'), meta: { title: 'Custom CSS/JS' } },
       // Plugins
       { path: 'plugins', name: 'AdminPlugins', component: () => import('../views/admin/AdminPlugins.vue'), meta: { title: 'Plugins' } },
+      { path: 'thread-prefixes', name: 'AdminThreadPrefixes', component: () => import('../views/admin/AdminThreadPrefixes.vue'), meta: { title: 'Thread Prefixes' } },
       { path: 'plugins/announcements', name: 'AdminAnnouncementsPlugin', component: () => import('../views/admin/plugins/AdminAnnouncementsPlugin.vue'), meta: { title: 'Announcements Plugin' } },
       // Settings
       { path: 'settings', redirect: '/admin/settings/general' },

@@ -5,6 +5,8 @@ import { getForumThreads } from '../services/api'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
 import UserAvatar from '../components/UserAvatar.vue'
+import ThreadPrefix from '../components/ThreadPrefix.vue'
+import ThreadTags from '../components/ThreadTags.vue'
 import { formatRelative } from '../utils/date'
 
 const isDark = inject('isDark')
@@ -237,19 +239,16 @@ function tagClass(tag) {
             <UserAvatar :name="thread.author?.username" :color="thread.author?.avatar_color || 'bg-purple-500'" :avatar-url="thread.author?.avatar_url" :online="thread.author?.is_online || false" size="sm" />
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
-                <span
-                  v-for="tag in (thread.tags || [])"
-                  :key="tag"
-                  :class="tagClass(tag)"
-                  class="text-xs font-semibold px-2 py-0.5 rounded-full"
-                >
-                  {{ tag }}
+                <ThreadPrefix :prefix="thread.prefix" />
+                <span v-if="thread.is_solved" class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/30">
+                  <i class="fa-solid fa-check text-[10px]"></i> Solved
                 </span>
                 <span class="font-medium truncate group-hover:text-purple-accent">{{ thread.title }}</span>
               </div>
               <div class="text-sm mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
                 <span :style="thread.author?.group_color ? { color: thread.author.group_color } : {}">{{ thread.author?.username }}</span>
               </div>
+              <ThreadTags :tags="thread.tags" class="mt-1" />
             </div>
           </div>
 

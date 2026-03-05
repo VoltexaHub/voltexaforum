@@ -2,7 +2,7 @@
 import { inject, ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForumStore } from '../stores/forum'
-import { createThread, getForumThreads } from '../services/api'
+import { createThread, getForumThreads, getThreadPrefixes, getTags } from '../services/api'
 import MarkdownEditor from '../components/MarkdownEditor.vue'
 
 const isDark = inject('isDark')
@@ -20,13 +20,40 @@ const tags = ref([])
 const loading = ref(false)
 const error = ref(null)
 const errors = ref({})
+const prefixes = ref([])
+const selectedPrefixId = ref(null)
+const tagSuggestions = ref([])
+const showTagSuggestions = ref(false)
 
 onMounted(async () => {
   try {
-    const res = await getForumThreads(slug.value, 1)
-    forumMeta.value = res.data.forum || null
+    const [forumRes, prefixRes] = await Promise.all([
+      getForumThreads(slug.value, 1),
+      getThreadPrefixes(),
+    ])
+    forumMeta.value = forumRes.data.forum || null
+    prefixes.value = prefixRes.data.data || []
   } catch {}
 })
+
+async function onTagInput() {
+  const q = tagInput.value.trim()
+  if (q.length < 1) { showTagSuggestions.value = false; return }
+  try {
+    const res = await getTags({ q })
+    tagSuggestions.value = (res.data.data || []).filter(t => !tags.value.includes(t.name)).slice(0, 8)
+    showTagSuggestions.value = tagSuggestions.value.length > 0
+  } catch {
+    showTagSuggestions.value = false
+  }
+}
+
+function selectTagSuggestion(tag) {
+  if (tags.value.length >= 5) return
+  if (!tags.value.includes(tag.name)) tags.value.push(tag.name)
+  tagInput.value = ''
+  showTagSuggestions.value = false
+}
 
 function addTag() {
   const raw = tagInput.value.trim()
@@ -69,6 +96,7 @@ async function handleSubmit() {
       forum_slug: slug.value,
       title: title.value,
       body: body.value,
+      prefix_id: selectedPrefixId.value || undefined,
       tags: tags.value.length ? tags.value : undefined,
     })
     const newThread = res.data.data
@@ -125,6 +153,28 @@ async function handleSubmit() {
       </div>
 
       <form @submit.prevent="handleSubmit" class="space-y-5">
+        <!-- Prefix selector -->
+        <div v-if="prefixes.length">
+          <label class="block text-sm font-medium mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+            Prefix <span class="text-xs font-normal" :class="isDark ? 'text-gray-500' : 'text-gray-400'">(optional)</span>
+          </label>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" @click="selectedPrefixId = null"
+              class="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
+              :class="selectedPrefixId === null
+                ? 'border-purple-accent bg-purple-accent/10 text-purple-accent'
+                : isDark ? 'border-gray-700 text-gray-400 hover:border-gray-600' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
+              No prefix
+            </button>
+            <button type="button" v-for="p in prefixes" :key="p.id" @click="selectedPrefixId = p.id"
+              class="px-3 py-1.5 rounded-full text-xs font-bold border transition-colors"
+              :class="selectedPrefixId === p.id ? 'ring-2 ring-purple-accent ring-offset-1' : ''"
+              :style="{ background: p.bg_color, color: p.text_color, borderColor: p.color + '40' }">
+              {{ p.name }}
+            </button>
+          </div>
+        </div>
+
         <!-- Title -->
         <div>
           <label class="block text-sm font-medium mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
@@ -160,29 +210,43 @@ async function handleSubmit() {
         <!-- Tags -->
         <div>
           <label class="block text-sm font-medium mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-            Tags <span class="text-xs font-normal" :class="isDark ? 'text-gray-500' : 'text-gray-400'">(optional, comma-separated)</span>
+            Tags <span class="text-xs font-normal" :class="isDark ? 'text-gray-500' : 'text-gray-400'">(optional, max 5)</span>
           </label>
-          <div
-            class="flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg border transition-colors min-h-[42px]"
-            :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-          >
-            <span
-              v-for="tag in tags"
-              :key="tag"
-              class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-accent/15 text-purple-accent"
+          <div class="relative">
+            <div
+              class="flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg border transition-colors min-h-[42px]"
+              :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
             >
-              {{ tag }}
-              <button type="button" @click="removeTag(tag)" class="hover:text-white transition-colors">&times;</button>
-            </span>
-            <input
-              v-model="tagInput"
-              type="text"
-              placeholder="Add tags..."
-              @keydown="handleTagKeydown"
-              @blur="addTag"
-              class="flex-1 min-w-[120px] bg-transparent outline-none text-sm py-0.5"
-              :class="isDark ? 'text-white placeholder-gray-500' : 'text-gray-900 placeholder-gray-400'"
-            />
+              <span
+                v-for="tag in tags"
+                :key="tag"
+                class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-accent/15 text-purple-accent"
+              >
+                {{ tag }}
+                <button type="button" @click="removeTag(tag)" class="hover:text-white transition-colors">&times;</button>
+              </span>
+              <input
+                v-if="tags.length < 5"
+                v-model="tagInput"
+                type="text"
+                placeholder="Add tags..."
+                @keydown="handleTagKeydown"
+                @input="onTagInput"
+                @blur="() => { setTimeout(() => { showTagSuggestions = false }, 150); addTag() }"
+                class="flex-1 min-w-[120px] bg-transparent outline-none text-sm py-0.5"
+                :class="isDark ? 'text-white placeholder-gray-500' : 'text-gray-900 placeholder-gray-400'"
+              />
+            </div>
+            <!-- Autocomplete dropdown -->
+            <div v-if="showTagSuggestions && tagSuggestions.length" class="absolute z-20 w-full mt-1 rounded-lg border shadow-lg py-1 max-h-48 overflow-y-auto"
+              :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+              <button type="button" v-for="s in tagSuggestions" :key="s.id" @mousedown.prevent="selectTagSuggestion(s)"
+                class="w-full text-left px-3 py-2 text-sm transition-colors flex items-center justify-between"
+                :class="isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'">
+                <span>#{{ s.name }}</span>
+                <span class="text-xs" :class="isDark ? 'text-gray-600' : 'text-gray-400'">{{ s.use_count }} uses</span>
+              </button>
+            </div>
           </div>
         </div>
 

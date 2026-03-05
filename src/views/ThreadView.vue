@@ -3,11 +3,13 @@ import { inject, ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
-import { getThread, getThreadPosts, createPost, updatePost, updateThread, pinThread, lockThread, solveThread, adminDeletePost, deleteThread, moveThread, likeThread as likeThreadApi, likePost as likePostApi, reportPost, toggleThreadSubscription, getThreadSubscription } from '../services/api'
+import { getThread, getThreadPosts, createPost, updatePost, updateThread, pinThread, lockThread, solveThread, adminDeletePost, deleteThread, moveThread, likeThread as likeThreadApi, likePost as likePostApi, reportPost, toggleThreadSubscription, getThreadSubscription, markSolved, unmarkSolved } from '../services/api'
 import { useToastStore } from '../stores/toast'
 import UserAvatar from '../components/UserAvatar.vue'
 import MarkdownEditor from '../components/MarkdownEditor.vue'
 import MarkdownRenderer from '../components/MarkdownRenderer.vue'
+import ThreadPrefix from '../components/ThreadPrefix.vue'
+import ThreadTags from '../components/ThreadTags.vue'
 import { formatDateTime, formatJoinDate } from '../utils/date'
 
 const isDark = inject('isDark')
@@ -268,6 +270,32 @@ async function toggleSubscribe() {
   }
 }
 
+function canMarkSolved() {
+  if (!authStore.isLoggedIn || !thread.value) return false
+  return authStore.user?.id === thread.value.user_id || authStore.isModerator
+}
+
+async function handleMarkSolved(postId) {
+  try {
+    const res = await markSolved(thread.value.id, postId)
+    const data = res.data.data || res.data
+    thread.value.is_solved = true
+    thread.value.solved_post_id = data.solved_post_id
+  } catch (e) {
+    toast.show(e.response?.data?.message || 'Failed to mark as solved', 'error')
+  }
+}
+
+async function handleUnmarkSolved() {
+  try {
+    await unmarkSolved(thread.value.id)
+    thread.value.is_solved = false
+    thread.value.solved_post_id = null
+  } catch (e) {
+    toast.show(e.response?.data?.message || 'Failed to unmark solved', 'error')
+  }
+}
+
 async function togglePostLike(post) {
   if (!authStore.isLoggedIn) return
   const prev = { liked: post.is_liked_by_me, count: post.like_count }
@@ -395,6 +423,7 @@ onMounted(loadThread)
 
       <!-- Thread title -->
       <div class="flex items-center gap-3 mb-2 flex-wrap">
+        <ThreadPrefix :prefix="thread.prefix" />
         <h1 class="text-2xl font-bold">{{ thread.title }}</h1>
         <span v-if="thread.is_pinned" class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">
           <i class="fa-solid fa-thumbtack text-[10px]"></i> PINNED
@@ -402,7 +431,11 @@ onMounted(loadThread)
         <span v-if="thread.is_locked" class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30">
           <i class="fa-solid fa-lock text-[10px]"></i> LOCKED
         </span>
+        <span v-if="thread.is_solved" class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/30">
+          <i class="fa-solid fa-check text-[10px]"></i> SOLVED
+        </span>
       </div>
+      <ThreadTags :tags="thread.tags" class="mb-2" />
 
       <!-- Thread like + Subscribe + Mod toolbar row -->
       <div class="flex items-center justify-between mb-6 gap-3 flex-wrap">
@@ -507,8 +540,19 @@ onMounted(loadThread)
           v-for="post in posts"
           :key="post.id"
           class="rounded-xl overflow-hidden transition-colors duration-300"
-          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+          :class="[
+            thread.solved_post_id === post.id
+              ? 'border-l-4 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.08)]'
+              : '',
+            isDark ? 'bg-gray-900' : 'bg-white shadow-sm',
+          ]"
         >
+          <!-- Accepted Solution Banner -->
+          <div v-if="thread.solved_post_id === post.id" class="flex items-center gap-2 px-5 py-2 bg-green-500/10 border-b border-green-500/20">
+            <i class="fa-solid fa-check-circle text-green-400"></i>
+            <span class="text-sm font-semibold text-green-400">Accepted Solution</span>
+            <button v-if="canMarkSolved()" @click="handleUnmarkSolved" class="ml-auto text-xs text-green-400/60 hover:text-green-400 transition-colors">Unmark</button>
+          </div>
           <div class="flex flex-col sm:flex-row">
             <!-- Author sidebar -->
             <div
@@ -683,8 +727,19 @@ onMounted(loadThread)
                 </button>
                 <div v-else />
 
-                <!-- Right: Edit / Delete / Report -->
+                <!-- Right: Solved / Edit / Delete / Report -->
                 <div class="flex items-center gap-1">
+                  <!-- Mark as Solution button (non-OP posts only) -->
+                  <button
+                    v-if="canMarkSolved() && !isFirstPost(post) && thread.solved_post_id !== post.id"
+                    @click.prevent="handleMarkSolved(post.id)"
+                    class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors"
+                    :class="isDark ? 'text-gray-500 hover:text-green-400 hover:bg-green-500/10' : 'text-gray-400 hover:text-green-500 hover:bg-green-50'"
+                    title="Mark as Solution"
+                  >
+                    <i class="fa-solid fa-check text-[11px]"></i>
+                    <span class="hidden sm:inline">Solution</span>
+                  </button>
                   <button
                     v-if="canEdit(post)"
                     @click="startEditing(post)"
