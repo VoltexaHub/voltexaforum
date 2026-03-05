@@ -250,6 +250,8 @@ export const saveAwardsOrder = (data) => api.post('/user/awards-order', data)
 // Locked content
 export const unlockContent = (data) => api.post('/locked-content/unlock', data)
 export const checkUnlocked = (hash) => api.get('/locked-content/check', { params: { content_hash: hash } })
+export const getContentStatus = (hash) => api.get(`/locked-content/${hash}/status`)
+export const reportContent = (hash, status) => api.post(`/locked-content/${hash}/report`, { status })
 
 // Admin - Advertisements
 export const getAdminAds = () => api.get('/admin/advertisements')

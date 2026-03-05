@@ -710,7 +710,7 @@ onMounted(loadThread)
 
               <!-- Display mode -->
               <template v-else>
-                <MarkdownRenderer :content="post.body" :rendered-content="post.rendered_content" />
+                <MarkdownRenderer :content="post.body" :rendered-content="post.rendered_content" :author-id="post.author?.id" />
               </template>
 
               <!-- Post footer — always anchored at bottom -->
