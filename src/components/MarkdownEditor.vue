@@ -1,6 +1,9 @@
 <script setup>
 import { ref, inject, computed, watch } from 'vue'
 import { getMembers, uploadImage, previewContent } from '../services/api'
+import { useForumStore } from '../stores/forum'
+
+const forumStore = useForumStore()
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
@@ -162,9 +165,7 @@ function insertBBSpoiler() {
 }
 
 function insertBBLock() {
-  const cost = prompt('Credits required to unlock this content:', '10')
-  if (cost === null) return
-  const credits = parseInt(cost) || 10
+  const credits = parseInt(forumStore.config?.locked_content_default_cost) || 10
   wrap(`[lock=${credits}]`, '[/lock]', 'locked content')
 }
 
