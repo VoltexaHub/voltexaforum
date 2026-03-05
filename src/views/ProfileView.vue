@@ -91,11 +91,16 @@ watch(() => route.params.username, () => {
             }
           : isDark ? { background: '#111827' } : { background: '#ffffff' }"
       >
-        <!-- Dark overlay when cover is set -->
+        <!-- Flat dark tint over full card -->
         <div
           v-if="profile.cover_url"
           style="position: absolute; inset: 0; pointer-events: none; z-index: 0;"
           :style="{ background: `rgba(0,0,0,${(profile.cover_overlay_opacity ?? 20) / 100})` }"
+        />
+        <!-- Bottom gradient so text row is always readable -->
+        <div
+          v-if="profile.cover_url"
+          style="position: absolute; bottom: 0; left: 0; right: 0; height: 120px; pointer-events: none; z-index: 0; background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);"
         />
         <!-- Spacer to create the banner height above the profile info -->
         <div style="height: 200px;" />
@@ -108,32 +113,32 @@ watch(() => route.params.username, () => {
                 :avatar-url="profile.avatar_url"
                 :online="profile.is_online"
                 size="xl"
-                class="ring-4"
-                :class="isDark ? 'ring-gray-900' : 'ring-white'"
+                class="ring-4 ring-black/60"
               />
             </div>
             <div class="text-center sm:text-left flex-1 pb-1">
               <h1 class="text-2xl font-bold">
-                <span :style="profile.primary_role?.color ? { color: profile.primary_role.color } : {}" :class="!profile.primary_role?.color ? (isDark ? 'text-white' : 'text-gray-900') : ''">{{ profile.username }}</span>
+                <span
+                  :style="profile.cover_url && profile.primary_role?.color ? { color: profile.primary_role.color } : {}"
+                  :class="profile.cover_url ? 'text-white drop-shadow' : (profile.primary_role?.color ? '' : (isDark ? 'text-white' : 'text-gray-900'))"
+                >{{ profile.username }}</span>
               </h1>
               <div class="flex items-center justify-center sm:justify-start gap-2 mt-1.5">
                 <span
                   v-if="profile.primary_role"
                   class="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full"
-                  :style="{
-                    backgroundColor: (profile.primary_role.color || '#6b7280') + '20',
-                    color: profile.primary_role.color || '#6b7280',
-                    border: `1px solid ${profile.primary_role.color || '#6b7280'}40`,
-                  }"
+                  :style="profile.cover_url
+                    ? { backgroundColor: 'rgba(0,0,0,0.45)', color: profile.primary_role.color || '#fff', border: `1px solid ${profile.primary_role.color || '#ffffff'}50` }
+                    : { backgroundColor: (profile.primary_role.color || '#6b7280') + '20', color: profile.primary_role.color || '#6b7280', border: `1px solid ${profile.primary_role.color || '#6b7280'}40` }"
                 >
                   {{ profile.primary_role.label }}
                 </span>
-                <span v-if="profile.is_online" class="inline-flex items-center gap-1 text-xs font-medium text-green-500">
-                  <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span v-if="profile.is_online" class="inline-flex items-center gap-1 text-xs font-medium" :class="profile.cover_url ? 'text-green-400' : 'text-green-500'">
+                  <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
                   Online
                 </span>
               </div>
-              <div v-if="profile.user_title" class="text-sm italic mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+              <div v-if="profile.user_title" class="text-sm italic mt-1" :class="profile.cover_url ? 'text-gray-300' : (isDark ? 'text-gray-400' : 'text-gray-500')">
                 {{ profile.user_title }}
               </div>
             </div>
@@ -141,7 +146,7 @@ watch(() => route.params.username, () => {
               v-if="isOwnProfile"
               to="/usercp"
               class="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium border transition-colors shrink-0"
-              :class="isDark ? 'border-gray-700 text-gray-300 hover:bg-gray-800' : 'border-gray-200 text-gray-600 hover:bg-gray-100'"
+              :class="profile.cover_url ? 'border-white/30 text-white hover:bg-black/30 bg-black/20 backdrop-blur-sm' : (isDark ? 'border-gray-700 text-gray-300 hover:bg-gray-800' : 'border-gray-200 text-gray-600 hover:bg-gray-100')"
             >
               <i class="fa-solid fa-pen-to-square text-xs"></i> Edit Profile
             </router-link>
