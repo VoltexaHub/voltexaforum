@@ -6,8 +6,18 @@ const api = axios.create({
   withCredentials: false,
   headers: {
     Accept: 'application/json',
-    'Content-Type': 'application/json',
+    // Content-Type is NOT set globally — Axios auto-sets:
+    //   application/json for plain objects
+    //   multipart/form-data; boundary=... for FormData (with correct boundary)
   },
+})
+
+// Set JSON content-type only for non-FormData requests
+api.interceptors.request.use((config) => {
+  if (!(config.data instanceof FormData)) {
+    config.headers['Content-Type'] = 'application/json'
+  }
+  return config
 })
 
 api.interceptors.request.use((config) => {
@@ -57,8 +67,8 @@ export const likePost = (id) => api.post('/posts/' + id + '/like')
 export const search = (query, type = 'all', page = 1) => api.get('/search', { params: { q: query, type, page } })
 
 // User
-export const uploadAvatar = (formData) => api.post('/user/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-export const uploadPostbitBg = (formData) => api.post('/user/postbit-bg', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const uploadAvatar = (formData) => api.post('/user/avatar', formData)
+export const uploadPostbitBg = (formData) => api.post('/user/postbit-bg', formData)
 export const removePostbitBg = () => api.delete('/user/postbit-bg')
 export const getUserProfile = (username) => api.get('/users/' + username + '/profile')
 export const updateProfile = (data) => api.put('/user/profile', data)
@@ -147,10 +157,10 @@ export const updateAdminAchievement = (id, data) => api.put('/admin/achievements
 export const deleteAdminAchievement = (id) => api.delete('/admin/achievements/' + id)
 export const getAdminAwards = () => api.get('/admin/awards')
 export const createAdminAward = (data) =>
-  api.post('/admin/awards', data, data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {})
+  api.post('/admin/awards', data, data instanceof FormData ? {} : {})
 export const updateAdminAward = (id, data) =>
   data instanceof FormData
-    ? api.post('/admin/awards/' + id + '?_method=PUT', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+    ? api.post('/admin/awards/' + id + '?_method=PUT', data)
     : api.put('/admin/awards/' + id, data)
 export const deleteAdminAward = (id) => api.delete('/admin/awards/' + id)
 
@@ -183,7 +193,7 @@ export const getAdminConfig = () => api.get('/admin/config')
 export const updateAdminConfig = (data) => api.put('/admin/config', data)
 
 // Admin - Logo
-export const uploadLogo = (formData) => api.post('/admin/logo', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const uploadLogo = (formData) => api.post('/admin/logo', formData)
 export const removeLogo = () => api.delete('/admin/logo')
 export const getMembers = (params) => api.get('/members', { params })
 export const getStaff = () => api.get('/staff')
@@ -232,14 +242,14 @@ export const getCustomCode = () => api.get('/public/custom-code')
 export const verifyEmail = (params) => api.post('/email/verify', params)
 export const resendVerification = () => api.post('/email/resend')
 
-export const uploadImage = (formData) => api.post("/media/image", formData, { headers: { "Content-Type": "multipart/form-data" } })
+export const uploadImage = (formData) => api.post("/media/image", formData)
 export const previewContent = (data) => api.post("/content/preview", data)
 
 // Ads
 export const getAds = () => api.get('/ads')
 
 // User perks
-export const uploadCover = (formData) => api.post('/user/cover', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const uploadCover = (formData) => api.post('/user/cover', formData)
 export const updateCoverOverlay = (opacity) => api.put('/user/cover/overlay', { opacity })
 export const removeCover = () => api.delete('/user/cover')
 export const saveCustomCss = (data) => api.post('/user/custom-css', data)
@@ -260,8 +270,8 @@ export const updatePaymentProvider = (provider, data) => api.put(`/admin/payment
 
 // Admin - Advertisements
 export const getAdminAds = () => api.get('/admin/advertisements')
-export const createAd = (data) => api.post('/admin/advertisements', data, { headers: { 'Content-Type': 'multipart/form-data' } })
-export const updateAd = (id, data) => api.post(`/admin/advertisements/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const createAd = (data) => api.post('/admin/advertisements', data)
+export const updateAd = (id, data) => api.post(`/admin/advertisements/${id}`, data)
 export const deleteAd = (id) => api.delete(`/admin/advertisements/${id}`)
 export const toggleAd = (id) => api.post(`/admin/advertisements/${id}/toggle`)
 
