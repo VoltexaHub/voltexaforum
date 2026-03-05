@@ -142,6 +142,11 @@ onMounted(fetchAds)
             <option value="sidebar">Sidebar</option>
             <option value="footer">Footer</option>
           </select>
+          <p class="text-xs text-gray-500 mt-1">
+            <template v-if="form.position === 'header'">Recommended: <strong class="text-gray-400">1200×90 px</strong> — full-width leaderboard banner below the nav</template>
+            <template v-else-if="form.position === 'sidebar'">Recommended: <strong class="text-gray-400">300×250 px</strong> — medium rectangle (sidebar block)</template>
+            <template v-else-if="form.position === 'footer'">Recommended: <strong class="text-gray-400">728×90 px</strong> — leaderboard banner above the footer</template>
+          </p>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-400 mb-1">Display Order</label>
@@ -160,6 +165,7 @@ onMounted(fetchAds)
             </button>
             <button v-if="form.image" type="button" @click="form.image = null; imagePreview = null; imageInput.value = ''" class="text-xs text-red-400 hover:text-red-300">✕ Clear</button>
           </div>
+          <p class="text-xs text-gray-500 mt-1.5">JPG, PNG, GIF, WebP — max 10MB</p>
         </div>
       </div>
       <div class="flex gap-2">
@@ -202,6 +208,9 @@ onMounted(fetchAds)
                       'bg-orange-500/15 text-orange-400': ad.position === 'footer',
                     }"
                   >{{ ad.position }}</span>
+                  <span class="text-xs text-gray-600 block mt-0.5">
+                    {{ ad.position === 'header' ? '1200×90' : ad.position === 'sidebar' ? '300×250' : '728×90' }}
+                  </span>
                 </td>
                 <td class="px-5 py-3">
                   <img v-if="ad.image_url" :src="ad.image_url" class="h-8 w-16 object-cover rounded" />
