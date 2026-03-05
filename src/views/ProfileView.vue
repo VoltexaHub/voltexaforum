@@ -55,7 +55,7 @@ watch(() => route.params.username, () => {
     <!-- Loading -->
     <div v-if="loading" class="space-y-4">
       <div class="rounded-xl overflow-hidden animate-pulse" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-        <div class="h-36" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'" />
+        <div class="h-56" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'" />
         <div class="px-6 pb-6 pt-12 flex items-center gap-5">
           <div class="w-24 h-24 rounded-full -mt-20 border-4" :class="isDark ? 'bg-gray-800 border-gray-900' : 'bg-gray-200 border-white'" />
           <div class="flex-1 space-y-3">
@@ -85,7 +85,7 @@ watch(() => route.params.username, () => {
         :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
       >
         <div
-          class="h-36 relative overflow-hidden"
+          class="h-56 relative overflow-hidden"
           :style="!profile.cover_url ? { background: `linear-gradient(135deg, ${bannerColor}30, ${bannerColor}15)` } : {}"
         >
           <img
