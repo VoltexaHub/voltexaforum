@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { getAdminConfig, updateAdminConfig, uploadLogo, removeLogo } from '../../../services/api'
+import { getAdminConfig, updateAdminConfig, uploadLogo, removeLogo, getAdminGroups } from '../../../services/api'
 import { useToastStore } from '../../../stores/toast'
 import { useForumStore } from '../../../stores/forum'
 
@@ -115,6 +115,73 @@ async function handleRemoveLogo() {
   }
 }
 
+// Legend editor state
+const legendRoles = ref([])
+const legendLoading = ref(false)
+const legendSaving = ref(false)
+
+async function fetchLegendRoles() {
+  legendLoading.value = true
+  try {
+    const res = await getAdminGroups()
+    const groups = res.data.data || res.data
+    legendRoles.value = (Array.isArray(groups) ? groups : []).map(g => ({
+      id: g.id,
+      name: g.name,
+      slug: g.role_name || g.slug || g.name.toLowerCase().replace(/\s+/g, '_'),
+      color: g.color || '#6b7280',
+      label: g.label || g.name,
+      show: true,
+    }))
+    // Restore saved legend config from fetched admin config
+    const configRes = await getAdminConfig()
+    const d = configRes.data.data || configRes.data
+    if (d.usergroup_legend_groups) {
+      try {
+        const enabledSlugs = JSON.parse(d.usergroup_legend_groups)
+        legendRoles.value.forEach(r => {
+          r.show = enabledSlugs.includes(r.slug)
+        })
+      } catch {}
+    }
+    legendRoles.value.forEach(r => {
+      if (d[`group_color_${r.slug}`]) r.color = d[`group_color_${r.slug}`]
+      if (d[`group_label_${r.slug}`]) r.label = d[`group_label_${r.slug}`]
+    })
+  } catch {
+    legendRoles.value = []
+  } finally {
+    legendLoading.value = false
+  }
+}
+
+async function saveLegendConfig() {
+  legendSaving.value = true
+  try {
+    const config = {
+      usergroup_legend_groups: JSON.stringify(
+        legendRoles.value.filter(r => r.show).map(r => r.slug)
+      ),
+    }
+    legendRoles.value.forEach(r => {
+      config[`group_color_${r.slug}`] = r.color
+      config[`group_label_${r.slug}`] = r.label
+    })
+    await updateAdminConfig({ config })
+    forumStore.fetchConfig()
+    toast.show('Legend settings saved')
+  } catch (e) {
+    toast.show(e.response?.data?.message || 'Failed to save legend settings', 'error')
+  } finally {
+    legendSaving.value = false
+  }
+}
+
+// Fetch legend roles when legend is enabled
+watch(() => settings.value.show_usergroup_legend, (val) => {
+  if (val && legendRoles.value.length === 0) fetchLegendRoles()
+})
+
 async function save() {
   saving.value = true
   try {
@@ -137,9 +204,10 @@ async function save() {
 
 
 
-onMounted(() => {
-  fetchConfig()
+onMounted(async () => {
+  await fetchConfig()
   fetchUnlockReqs()
+  if (settings.value.show_usergroup_legend) fetchLegendRoles()
 })
 </script>
 
@@ -322,6 +390,75 @@ onMounted(() => {
             >
               <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="settings.show_usergroup_legend ? 'translate-x-6' : 'translate-x-1'" />
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend Groups Editor -->
+      <div v-if="settings.show_usergroup_legend" class="bg-gray-800 rounded-xl border border-gray-700/50 p-6 space-y-5">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-semibold text-white">Legend Groups</h3>
+          <button
+            @click="saveLegendConfig"
+            :disabled="legendSaving || legendLoading"
+            class="px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {{ legendSaving ? 'Saving...' : 'Save Legend' }}
+          </button>
+        </div>
+
+        <!-- Loading state -->
+        <div v-if="legendLoading" class="space-y-3 animate-pulse">
+          <div v-for="i in 4" :key="i" class="h-10 bg-gray-700 rounded"></div>
+        </div>
+
+        <!-- No roles fallback -->
+        <div v-else-if="legendRoles.length === 0" class="text-sm text-gray-500">
+          No roles found. Check API connection.
+        </div>
+
+        <!-- Role rows -->
+        <div v-else class="space-y-3">
+          <div
+            v-for="role in legendRoles"
+            :key="role.id"
+            class="flex items-center gap-3 bg-gray-700/50 rounded-lg px-4 py-2.5"
+          >
+            <!-- Color swatch -->
+            <label class="relative shrink-0 w-8 h-8 cursor-pointer">
+              <div
+                class="w-8 h-8 rounded border border-gray-600"
+                :style="{ backgroundColor: role.color }"
+              ></div>
+              <input
+                type="color"
+                v-model="role.color"
+                class="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer"
+              />
+            </label>
+
+            <!-- Role name -->
+            <span class="text-sm font-medium text-gray-300 w-28 shrink-0 truncate">{{ role.name }}</span>
+
+            <!-- Label input -->
+            <input
+              v-model="role.label"
+              type="text"
+              placeholder="Custom label"
+              class="flex-1 min-w-0 px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none"
+            />
+
+            <!-- Show toggle -->
+            <label class="flex items-center gap-2 shrink-0 cursor-pointer">
+              <span class="text-xs text-gray-400 hidden sm:inline">Show</span>
+              <button
+                @click="role.show = !role.show"
+                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                :class="role.show ? 'bg-violet-600' : 'bg-gray-600'"
+              >
+                <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="role.show ? 'translate-x-6' : 'translate-x-1'" />
+              </button>
+            </label>
           </div>
         </div>
       </div>
