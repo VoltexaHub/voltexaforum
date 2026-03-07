@@ -28,6 +28,7 @@ const avatarColors = [
 const selectedAvatar = ref('')
 const userTitle = ref('')
 const bio = ref('')
+const status = ref('')
 const signature = ref('')
 const discordUsername = ref('')
 const twitterHandle = ref('')
@@ -39,6 +40,7 @@ onMounted(() => {
     selectedAvatar.value = user.avatar_color || 'bg-purple-500'
     userTitle.value = user.user_title || ''
     bio.value = user.bio || ''
+    status.value = user.status || ''
     signature.value = user.signature || ''
     discordUsername.value = user.discord || ''
     twitterHandle.value = user.twitter || ''
@@ -90,6 +92,7 @@ async function saveProfile() {
       avatar_color: selectedAvatar.value,
       user_title: userTitle.value,
       bio: bio.value,
+      status: status.value,
       signature: signature.value,
       discord: discordUsername.value,
       twitter: twitterHandle.value,
@@ -216,6 +219,21 @@ async function saveProfile() {
         rows="4"
         placeholder="Tell others about yourself..."
         class="w-full px-4 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-purple-accent resize-none"
+        :class="isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'"
+      />
+    </div>
+
+    <div class="mb-6">
+      <label class="block text-sm font-medium mb-2 flex items-center justify-between" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+        <span>Status</span>
+        <span class="text-xs font-normal" :class="status.length > 80 ? 'text-red-400' : isDark ? 'text-gray-500' : 'text-gray-400'">{{ status.length }}/100</span>
+      </label>
+      <input
+        type="text"
+        v-model="status"
+        maxlength="100"
+        placeholder="What are you up to? e.g. Building something cool"
+        class="w-full px-4 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-purple-accent"
         :class="isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'"
       />
     </div>

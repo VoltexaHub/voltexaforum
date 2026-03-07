@@ -260,6 +260,8 @@ export const saveUsernameColor = (data) => api.post('/user/username-color', data
 export const saveUserbarHue = (data) => api.post('/user/userbar-hue', data)
 export const changeUsername = (data) => api.post('/user/change-username', data)
 export const saveAwardsOrder = (data) => api.post('/user/awards-order', data)
+export const pinThreadToProfile = (threadId) => api.put('/user/pinned-thread', { thread_id: threadId })
+export const unpinThreadFromProfile = () => api.put('/user/pinned-thread', { thread_id: null })
 
 // Locked content
 export const unlockContent = (data) => api.post('/locked-content/unlock', data)

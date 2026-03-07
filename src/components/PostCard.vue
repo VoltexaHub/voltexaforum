@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import { updatePost, updateThread, adminDeletePost, deleteThread, likePost as likePostApi } from '../services/api'
+import { updatePost, updateThread, adminDeletePost, deleteThread, likePost as likePostApi, pinThreadToProfile } from '../services/api'
 import MarkdownEditor from './MarkdownEditor.vue'
 import MarkdownRenderer from './MarkdownRenderer.vue'
 import { formatDateTime, formatJoinDate } from '../utils/date'
@@ -92,6 +92,19 @@ async function togglePostLike() {
   } catch {
     post.is_liked_by_me = prev.liked
     post.like_count = prev.count
+  }
+}
+
+const pinning = ref(false)
+async function handlePinToProfile() {
+  pinning.value = true
+  try {
+    await pinThreadToProfile(props.thread.id)
+    alert('Thread pinned to your profile!')
+  } catch {
+    alert('Failed to pin thread.')
+  } finally {
+    pinning.value = false
   }
 }
 
@@ -316,6 +329,18 @@ async function handleDeletePost() {
 
           <!-- Right: Solved / Edit / Delete / Report -->
           <div class="flex items-center gap-1">
+            <!-- Pin to Profile (thread author's first post only) -->
+            <button
+              v-if="isFirstPost && authStore.isLoggedIn && authStore.user?.id === thread.user_id"
+              @click="handlePinToProfile"
+              :disabled="pinning"
+              class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors"
+              :class="isDark ? 'text-gray-500 hover:text-amber-400 hover:bg-amber-500/10' : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50'"
+              title="Pin to Profile"
+            >
+              <i class="fa-solid fa-thumbtack text-[11px]"></i>
+              <span class="hidden sm:inline">Pin</span>
+            </button>
             <!-- Mark as Solution button (non-OP posts only) -->
             <button
               v-if="authStore.isLoggedIn && (authStore.user?.id === thread.user_id || authStore.isModerator) && !isFirstPost && thread.solved_post_id !== post.id"
