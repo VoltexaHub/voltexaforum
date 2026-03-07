@@ -2,7 +2,7 @@
 import { inject, ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { getUserProfile, unpinThreadFromProfile } from '../services/api'
+import { getUserProfile } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
 import { formatDate, formatDateTime, formatRelative, formatJoinDate } from '../utils/date'
 
@@ -17,7 +17,9 @@ const isOwnProfile = computed(() => {
 const profile = ref(null)
 const loading = ref(true)
 const error = ref(null)
-const activeTab = ref('overview') // kept for compat, unused
+const activeTab = ref('overview')
+
+const tabs = ['overview', 'posts', 'achievements', 'awards']
 
 const bannerColor = computed(() => {
   return profile.value?.primary_role?.color || '#7c3aed'
@@ -69,13 +71,6 @@ function startBoostTimer() {
     updateBoostCountdown()
     boostInterval = setInterval(updateBoostCountdown, 1000)
   }
-}
-
-async function handleUnpin() {
-  try {
-    await unpinThreadFromProfile()
-    profile.value.pinned_thread = null
-  } catch {}
 }
 
 onMounted(loadProfile)
@@ -186,10 +181,6 @@ onUnmounted(() => {
               <div v-if="profile.user_title" class="text-sm italic mt-1" :class="profile.cover_url ? 'text-gray-300' : (isDark ? 'text-gray-400' : 'text-gray-500')">
                 {{ profile.user_title }}
               </div>
-              <div v-if="profile.status" class="text-xs italic mt-1 flex items-center gap-1" :class="profile.cover_url ? 'text-gray-400' : (isDark ? 'text-gray-500' : 'text-gray-400')">
-                <i class="fa-solid fa-comment-dots text-[10px]"></i>
-                {{ profile.status }}
-              </div>
             </div>
             <router-link
               v-if="isOwnProfile"
@@ -204,7 +195,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Stats row -->
-      <div class="grid grid-cols-2 sm:grid-cols-6 gap-3 mb-6">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
         <div
           class="rounded-xl p-4 text-center transition-colors duration-300"
           :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
@@ -242,17 +233,6 @@ onUnmounted(() => {
           class="rounded-xl p-4 text-center transition-colors duration-300"
           :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
         >
-          <div class="text-xl font-bold text-rose-400">
-            {{ (profile.reputation ?? 0).toLocaleString() }}
-          </div>
-          <div class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-            <i class="fa-solid fa-heart mr-1 text-rose-400"></i>Reputation
-          </div>
-        </div>
-        <div
-          class="rounded-xl p-4 text-center transition-colors duration-300"
-          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-        >
           <div class="text-sm font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">
             {{ formatDate(profile.join_date) }}
           </div>
@@ -261,7 +241,7 @@ onUnmounted(() => {
           </div>
         </div>
         <div
-          class="rounded-xl p-4 text-center transition-colors duration-300"
+          class="rounded-xl p-4 text-center transition-colors duration-300 col-span-2 sm:col-span-1"
           :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
         >
           <div v-if="profile.is_online" class="text-sm font-bold text-green-500">Online Now</div>
@@ -323,338 +303,287 @@ onUnmounted(() => {
           </div>
         </div>
 
-      </div>
-
-      <!-- Profile layout — three columns on desktop -->
-      <div class="lg:grid lg:grid-cols-[240px_1fr_220px] gap-5">
-
-        <!-- LEFT COLUMN — About sidebar -->
-        <div class="space-y-4 mb-5 lg:mb-0">
-          <div class="rounded-xl overflow-hidden transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-
-            <!-- Level & XP -->
-            <div v-if="profile.level != null" class="p-4">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-semibold uppercase tracking-widest" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Level</span>
-                <span class="text-lg font-bold text-violet-400">{{ profile.level }}</span>
-              </div>
-              <div class="w-full h-1.5 rounded-full overflow-hidden" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'">
-                <div
-                  class="h-full rounded-full bg-violet-500 transition-all duration-500"
-                  :style="{ width: (profile.xp_progress_percent ?? profile.level_progress ?? 0) + '%' }"
-                />
-              </div>
-              <div class="text-[10px] mt-1 text-right" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
-                <template v-if="profile.xp_next_level">{{ (profile.xp ?? 0).toLocaleString() }} / {{ profile.xp_next_level.toLocaleString() }} XP</template>
-                <template v-else>Max Level</template>
-              </div>
-            </div>
-
-            <!-- Reputation & Likes Given mini stat boxes -->
-            <div class="grid grid-cols-2 border-t" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
-              <div class="p-3 text-center border-r" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
-                <div class="text-lg font-bold text-green-400">{{ (profile.reputation ?? 0).toLocaleString() }}</div>
-                <div class="text-[10px] font-semibold uppercase tracking-widest" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Rep</div>
-              </div>
-              <div class="p-3 text-center">
-                <div class="text-lg font-bold text-sky-400">{{ (profile.likes_given ?? 0).toLocaleString() }}</div>
-                <div class="text-[10px] font-semibold uppercase tracking-widest" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Given</div>
-              </div>
-            </div>
-
-            <!-- Detail list -->
-            <div class="text-sm">
-              <div class="flex items-center justify-between px-4 py-2.5 border-t" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
-                <span class="flex items-center gap-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  <i class="fa-solid fa-coins text-amber-400 text-xs w-4 text-center"></i> Credits
-                </span>
-                <span class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-700'">{{ (profile.credits ?? 0).toLocaleString() }}</span>
-              </div>
-              <div class="flex items-center justify-between px-4 py-2.5 border-t" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
-                <span class="flex items-center gap-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  <i class="fa-solid fa-comment text-blue-400 text-xs w-4 text-center"></i> Replies
-                </span>
-                <span class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-700'">{{ (profile.replies_made ?? 0).toLocaleString() }}</span>
-              </div>
-              <div class="flex items-center justify-between px-4 py-2.5 border-t" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
-                <span class="flex items-center gap-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  <i class="fa-solid fa-calendar-days text-xs w-4 text-center"></i> Member since
-                </span>
-                <span class="font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-700'">{{ formatDate(profile.join_date) }}</span>
-              </div>
-              <div class="flex items-center justify-between px-4 py-2.5 border-t" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
-                <span class="flex items-center gap-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  <i class="fa-solid fa-circle text-xs w-4 text-center" :class="profile.is_online ? 'text-green-400' : ''"></i> Last seen
-                </span>
-                <span class="font-medium" :class="profile.is_online ? 'text-green-400' : (isDark ? 'text-gray-200' : 'text-gray-700')">
-                  {{ profile.is_online ? 'Online Now' : (formatRelative(profile.last_seen) || 'N/A') }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Pinned Thread -->
-            <div v-if="profile.pinned_thread" class="border-t p-4" :class="isDark ? 'border-gray-800' : 'border-gray-100'">
-              <div class="flex items-center justify-between mb-2">
-                <h3 class="font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  <i class="fa-solid fa-thumbtack text-amber-400"></i> Pinned Thread
-                </h3>
-                <button
-                  v-if="isOwnProfile"
-                  @click="handleUnpin"
-                  class="text-[10px] px-1.5 py-0.5 rounded transition-colors"
-                  :class="isDark ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-800' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'"
-                >
-                  Unpin
-                </button>
-              </div>
-              <router-link
-                :to="`/thread/${profile.pinned_thread.slug}`"
-                class="font-medium text-sm hover:text-purple-accent transition-colors line-clamp-2"
-              >
-                {{ profile.pinned_thread.title }}
-              </router-link>
-              <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span
-                  v-if="profile.pinned_thread.forum"
-                  class="text-[10px] px-1.5 py-0.5 rounded-full"
-                  :class="isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'"
-                >
-                  {{ profile.pinned_thread.forum.name }}
-                </span>
-                <span class="text-[10px]" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                  <i class="fa-solid fa-comments mr-0.5"></i>{{ profile.pinned_thread.reply_count }} replies
-                </span>
-              </div>
-            </div>
+        <!-- XP Boost badge -->
+        <div
+          v-if="profile.xp_boost_active && boostTimeRemaining"
+          class="sm:w-56 shrink-0 rounded-xl p-4 flex items-center gap-3 transition-colors duration-300 border border-amber-500/30"
+          :class="isDark ? 'bg-amber-500/5' : 'bg-amber-50 shadow-sm'"
+        >
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/15 text-amber-400 animate-pulse">
+            <i class="fa-solid fa-bolt text-lg"></i>
+          </span>
+          <div>
+            <div class="text-sm font-semibold text-amber-400">{{ profile.xp_boost_multiplier || 2 }}x XP Boost</div>
+            <div class="text-xs font-mono" :class="isDark ? 'text-amber-500/70' : 'text-amber-600/70'">{{ boostTimeRemaining }}</div>
           </div>
         </div>
+      </div>
 
-        <!-- CENTER COLUMN — Main content -->
-        <div class="space-y-5 mb-5 lg:mb-0">
-          <!-- Bio -->
-          <div
-            v-if="profile.bio"
-            class="rounded-xl p-5 transition-colors duration-300"
-            :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-          >
-            <h3 class="font-semibold mb-3 flex items-center gap-2">
-              <i class="fa-solid fa-user text-sm text-purple-accent"></i> About
-            </h3>
-            <p class="text-sm leading-relaxed" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-              {{ profile.bio }}
-            </p>
-          </div>
+      <!-- Social links -->
+      <div
+        v-if="profile.discord_username || profile.twitter_handle || profile.website_url"
+        class="flex items-center gap-3 mb-6 flex-wrap"
+      >
+        <a
+          v-if="profile.discord_username"
+          class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          :class="isDark ? 'bg-gray-900 text-gray-300 hover:bg-gray-800' : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm'"
+          :title="profile.discord_username"
+        >
+          <i class="fa-brands fa-discord text-indigo-400"></i>
+          {{ profile.discord_username }}
+        </a>
+        <a
+          v-if="profile.twitter_handle"
+          :href="`https://twitter.com/${profile.twitter_handle.replace('@', '')}`"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          :class="isDark ? 'bg-gray-900 text-gray-300 hover:bg-gray-800' : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm'"
+        >
+          <i class="fa-brands fa-twitter text-sky-400"></i>
+          {{ profile.twitter_handle }}
+        </a>
+        <a
+          v-if="profile.website_url"
+          :href="profile.website_url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          :class="isDark ? 'bg-gray-900 text-gray-300 hover:bg-gray-800' : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm'"
+        >
+          <i class="fa-solid fa-globe text-green-400"></i>
+          Website
+        </a>
+      </div>
 
-          <!-- Recent Activity Feed -->
+      <!-- Tabs -->
+      <div
+        class="flex gap-1 mb-6 overflow-x-auto border-b"
+        :class="isDark ? 'border-gray-800' : 'border-gray-200'"
+      >
+        <button
+          v-for="tab in tabs"
+          :key="tab"
+          @click="activeTab = tab"
+          class="px-4 py-2.5 font-medium text-sm capitalize transition-colors whitespace-nowrap relative"
+          :class="activeTab === tab
+            ? 'text-purple-accent'
+            : isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'"
+        >
+          {{ tab }}
           <div
-            v-if="profile.recent_activity?.length"
-            class="rounded-xl p-5 transition-colors duration-300"
-            :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-          >
-            <h3 class="font-semibold mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-bolt text-sm text-purple-accent"></i> Recent Activity
-            </h3>
-            <div class="space-y-0">
-              <div
-                v-for="(item, idx) in profile.recent_activity"
-                :key="item.id"
-                class="flex gap-3 pl-3 relative"
-                :class="idx < profile.recent_activity.length - 1 ? 'pb-4' : ''"
-              >
-                <div class="absolute left-0 top-0 bottom-0 w-0.5 bg-violet-500/30 rounded-full"></div>
-                <div class="min-w-0 flex-1">
-                  <router-link
-                    :to="`/thread/${item.thread_slug}`"
-                    class="font-medium text-sm hover:text-purple-accent transition-colors"
-                  >
-                    {{ item.thread_title }}
-                  </router-link>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span
-                      v-if="item.forum_name"
-                      class="text-[11px] px-1.5 py-0.5 rounded"
-                      :class="isDark ? 'bg-gray-800 text-gray-500' : 'bg-gray-100 text-gray-400'"
-                    >{{ item.forum_name }}</span>
-                    <span class="text-[11px]" :class="isDark ? 'text-gray-600' : 'text-gray-400'">{{ formatRelative(item.created_at) }}</span>
-                  </div>
-                  <p v-if="item.excerpt" class="text-xs mt-1 line-clamp-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                    {{ item.excerpt }}
-                  </p>
+            v-if="activeTab === tab"
+            class="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-accent rounded-t"
+          />
+        </button>
+      </div>
+
+      <!-- Overview tab -->
+      <div v-if="activeTab === 'overview'" class="space-y-6">
+        <!-- Bio -->
+        <div
+          v-if="profile.bio"
+          class="rounded-xl p-5 transition-colors duration-300"
+          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+        >
+          <h3 class="font-semibold mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-user text-sm text-purple-accent"></i> About
+          </h3>
+          <p class="text-sm leading-relaxed" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+            {{ profile.bio }}
+          </p>
+        </div>
+
+        <!-- Recent Posts -->
+        <div
+          v-if="profile.recent_posts?.length"
+          class="rounded-xl p-5 transition-colors duration-300"
+          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+        >
+          <h3 class="font-semibold mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-sm text-purple-accent"></i> Recent Posts
+          </h3>
+          <div class="space-y-3">
+            <div
+              v-for="post in profile.recent_posts"
+              :key="post.id"
+              class="flex items-start gap-3 p-3 rounded-lg transition-colors"
+              :class="isDark ? 'hover:bg-gray-800/60' : 'hover:bg-gray-50'"
+            >
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0"
+                   :class="isDark ? 'bg-gray-800 text-gray-500' : 'bg-gray-100 text-gray-400'">
+                <i class="fa-solid fa-message"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <router-link
+                  v-if="post.thread_id"
+                  :to="`/thread/${post.thread_id}`"
+                  class="font-medium text-sm truncate block hover:text-purple-accent transition-colors"
+                >
+                  {{ post.thread_title }}
+                </router-link>
+                <p v-if="post.excerpt" class="text-xs mt-0.5 line-clamp-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                  {{ post.excerpt }}
+                </p>
+                <div class="text-xs mt-1" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
+                  {{ formatRelative(post.created_at) }}
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Recent Posts -->
-          <div
-            v-if="profile.recent_posts?.length"
-            class="rounded-xl p-5 transition-colors duration-300"
-            :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-          >
-            <h3 class="font-semibold mb-3 flex items-center gap-2 text-sm">
-              <i class="fa-solid fa-pen-to-square text-purple-accent"></i> Recent Posts
-            </h3>
-            <div class="space-y-2">
-              <div
-                v-for="post in profile.recent_posts"
-                :key="post.id"
-                class="p-3 rounded-lg border transition-colors"
-                :class="isDark ? 'border-gray-800 hover:bg-gray-800/60' : 'border-gray-100 hover:bg-gray-50'"
-              >
-                <router-link
-                  v-if="post.thread_id"
-                  :to="`/thread/${post.thread_id}`"
-                  class="font-medium text-sm hover:text-purple-accent transition-colors line-clamp-1"
-                >{{ post.thread_title }}</router-link>
-                <p v-if="post.excerpt" class="text-xs mt-1 line-clamp-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ post.excerpt }}</p>
-                <div class="text-[11px] mt-1.5" :class="isDark ? 'text-gray-600' : 'text-gray-400'">{{ formatDateTime(post.created_at) }}</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Empty state -->
-          <div
-            v-if="!profile.bio && !profile.recent_activity?.length && !profile.recent_posts?.length && !profile.pinned_thread"
-            class="rounded-xl p-12 text-center transition-colors duration-300"
-            :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-          >
-            <i class="fa-solid fa-user-astronaut text-4xl text-gray-400"></i>
-            <p class="mt-3" :class="isDark ? 'text-gray-400' : 'text-gray-500'">This profile is looking a bit empty.</p>
-          </div>
         </div>
 
-        <!-- RIGHT COLUMN — Sidebar widgets -->
-        <div class="space-y-4">
-          <!-- Awards card -->
-          <div
-            v-if="profile.awards?.length > 0"
-            class="rounded-xl p-4 transition-colors duration-300"
-            :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-          >
-            <h3 class="font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5 mb-3" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-              <i class="fa-solid fa-trophy text-yellow-500"></i> Awards
-            </h3>
-            <div class="grid grid-cols-2 gap-2">
-              <div
-                v-for="award in profile.awards.slice(0, 6)"
-                :key="award.id"
-                class="flex items-center justify-center p-2 rounded-lg"
-                :class="isDark ? 'bg-gray-800' : 'bg-gray-50'"
-                :title="award.name"
-              >
-                <img
-                  v-if="award.icon_url"
-                  :src="award.icon_url"
-                  :alt="award.name"
-                  class="w-8 h-8 object-contain"
-                />
-                <i v-else class="fa-solid fa-award text-xl text-yellow-500"></i>
+        <!-- Recent Achievements -->
+        <div
+          v-if="profile.achievements?.length"
+          class="rounded-xl p-5 transition-colors duration-300"
+          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+        >
+          <h3 class="font-semibold mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-trophy text-sm text-purple-accent"></i> Recent Achievements
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div
+              v-for="ach in profile.achievements.slice(0, 6)"
+              :key="ach.id"
+              class="flex items-center gap-3 p-3 rounded-lg border border-purple-accent/30 bg-purple-accent/5"
+            >
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 bg-purple-accent/10 text-purple-accent">
+                <template v-if="ach.icon && !ach.icon.startsWith('fa-')">{{ ach.icon }}</template>
+                <i v-else :class="ach.icon || 'fa-solid fa-star'"></i>
               </div>
-            </div>
-          </div>
-
-          <!-- XP Boost card -->
-          <div
-            v-if="profile.xp_boost_active && boostTimeRemaining"
-            class="rounded-xl p-4 flex items-center gap-3 transition-colors duration-300 border border-amber-500/30"
-            :class="isDark ? 'bg-amber-500/5' : 'bg-amber-50 shadow-sm'"
-          >
-            <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/15 text-amber-400 animate-pulse">
-              <i class="fa-solid fa-bolt text-lg"></i>
-            </span>
-            <div>
-              <div class="text-sm font-semibold text-amber-400">{{ profile.xp_boost_multiplier || 2 }}x XP Boost</div>
-              <div class="text-xs font-mono" :class="isDark ? 'text-amber-500/70' : 'text-amber-600/70'">{{ boostTimeRemaining }}</div>
-            </div>
-          </div>
-
-          <!-- Social links card -->
-          <div
-            v-if="profile.discord_username || profile.twitter_handle || profile.website_url || profile.minecraft_ign"
-            class="rounded-xl p-4 transition-colors duration-300"
-            :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-          >
-            <h3 class="font-semibold text-xs uppercase tracking-wider flex items-center gap-1.5 mb-3" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-              <i class="fa-solid fa-link text-purple-accent"></i> Connect
-            </h3>
-            <div class="space-y-2">
-              <a
-                v-if="profile.discord_username"
-                class="flex items-center gap-2 text-sm rounded-lg px-2.5 py-1.5 transition-colors"
-                :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'"
-                :title="profile.discord_username"
-              >
-                <i class="fa-brands fa-discord text-indigo-400 w-4 text-center"></i>
-                <span class="truncate">{{ profile.discord_username }}</span>
-              </a>
-              <a
-                v-if="profile.twitter_handle"
-                :href="`https://twitter.com/${profile.twitter_handle.replace('@', '')}`"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="flex items-center gap-2 text-sm rounded-lg px-2.5 py-1.5 transition-colors"
-                :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'"
-              >
-                <i class="fa-brands fa-twitter text-sky-400 w-4 text-center"></i>
-                <span class="truncate">{{ profile.twitter_handle }}</span>
-              </a>
-              <a
-                v-if="profile.website_url"
-                :href="profile.website_url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="flex items-center gap-2 text-sm rounded-lg px-2.5 py-1.5 transition-colors"
-                :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'"
-              >
-                <i class="fa-solid fa-globe text-green-400 w-4 text-center"></i>
-                <span class="truncate">Website</span>
-              </a>
-              <a
-                v-if="profile.minecraft_ign"
-                class="flex items-center gap-2 text-sm rounded-lg px-2.5 py-1.5 transition-colors"
-                :class="isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'"
-              >
-                <i class="fa-solid fa-gamepad text-emerald-400 w-4 text-center"></i>
-                <span class="truncate">{{ profile.minecraft_ign }}</span>
-              </a>
+              <div class="min-w-0">
+                <div class="font-medium text-sm truncate">{{ ach.name }}</div>
+                <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                  {{ formatDate(ach.unlocked_at) }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
+        <!-- Empty state for overview -->
+        <div
+          v-if="!profile.bio && !profile.recent_posts?.length && !profile.achievements?.length"
+          class="rounded-xl p-12 text-center transition-colors duration-300"
+          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+        >
+          <i class="fa-solid fa-user-astronaut text-4xl text-gray-400"></i>
+          <p class="mt-3" :class="isDark ? 'text-gray-400' : 'text-gray-500'">This profile is looking a bit empty.</p>
+        </div>
       </div>
 
-      <!-- Achievements — full width below the three columns -->
-      <div v-if="profile.achievements?.length" class="lg:col-span-3 mt-2">
-        <div class="rounded-xl p-5 transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-          <h3 class="font-semibold mb-4 flex items-center gap-2 text-sm">
-            <i class="fa-solid fa-trophy text-purple-accent"></i> Achievements
-          </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <!-- Posts tab -->
+      <div v-if="activeTab === 'posts'" class="space-y-4">
+        <div
+          class="rounded-xl p-5 transition-colors duration-300"
+          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+        >
+          <div v-if="profile.recent_posts?.length" class="space-y-3">
             <div
-              v-for="ach in profile.achievements"
-              :key="ach.id"
-              class="flex items-start gap-3 p-3 rounded-lg border transition-colors"
-              :class="ach.unlocked
-                ? 'border-purple-accent/30 ' + (isDark ? 'bg-gray-800/50' : 'bg-violet-50')
-                : (isDark ? 'border-gray-800 opacity-40' : 'border-gray-200 opacity-40')"
+              v-for="post in profile.recent_posts"
+              :key="post.id"
+              class="p-4 rounded-lg border transition-colors"
+              :class="isDark ? 'border-gray-800 hover:bg-gray-800/60' : 'border-gray-100 hover:bg-gray-50'"
             >
+              <router-link
+                v-if="post.thread_id"
+                :to="`/thread/${post.thread_id}`"
+                class="font-medium text-sm hover:text-purple-accent transition-colors"
+              >
+                {{ post.thread_title }}
+              </router-link>
+              <p v-if="post.excerpt" class="text-sm mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ post.excerpt }}</p>
+              <div class="text-xs mt-2" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
+                {{ formatDateTime(post.created_at) }}
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-8" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+            <i class="fa-solid fa-pen-to-square text-3xl mb-2"></i>
+            <p>No posts yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Achievements tab -->
+      <div v-if="activeTab === 'achievements'">
+        <div v-if="profile.achievements?.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            v-for="ach in profile.achievements"
+            :key="ach.id"
+            class="rounded-xl p-4 border transition-colors duration-300"
+            :class="ach.unlocked
+              ? 'border-purple-accent/40 ' + (isDark ? 'bg-gray-900' : 'bg-white shadow-sm')
+              : (isDark ? 'border-gray-800 bg-gray-900/50 opacity-50' : 'border-gray-200 bg-gray-50 opacity-50')"
+          >
+            <div class="flex items-start gap-3">
               <div
-                class="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0"
-                :class="ach.unlocked ? 'bg-purple-accent/10 text-purple-accent' : (isDark ? 'bg-gray-800 text-gray-600' : 'bg-gray-200 text-gray-400')"
+                class="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
+                :class="[
+                  ach.unlocked ? 'bg-purple-accent/10 text-purple-accent' : (isDark ? 'bg-gray-800 text-gray-600' : 'bg-gray-200 text-gray-400'),
+                  { 'grayscale': !ach.unlocked }
+                ]"
               >
                 <template v-if="ach.icon && !ach.icon.startsWith('fa-')">{{ ach.icon }}</template>
                 <i v-else :class="ach.icon || 'fa-solid fa-star'"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-2">
                   <span class="font-medium text-sm truncate">{{ ach.name }}</span>
-                  <i v-if="ach.unlocked" class="fa-solid fa-circle-check text-green-500 text-[10px] shrink-0"></i>
-                  <i v-else class="fa-solid fa-lock text-[10px] shrink-0" :class="isDark ? 'text-gray-600' : 'text-gray-400'"></i>
+                  <i v-if="ach.unlocked" class="fa-solid fa-circle-check text-green-500 text-xs shrink-0"></i>
+                  <i v-else class="fa-solid fa-lock text-xs shrink-0" :class="isDark ? 'text-gray-600' : 'text-gray-400'"></i>
                 </div>
-                <p class="text-xs mt-0.5 line-clamp-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ ach.description }}</p>
+                <p class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                  {{ ach.description }}
+                </p>
+                <div v-if="ach.unlocked" class="text-xs text-purple-accent mt-1">
+                  Unlocked {{ formatDate(ach.unlocked_at) }}
+                </div>
               </div>
             </div>
           </div>
+        </div>
+        <div v-else class="rounded-xl p-8 text-center" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
+          <i class="fa-solid fa-trophy text-4xl text-gray-400"></i>
+          <p class="mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">No achievements yet.</p>
+        </div>
+      </div>
+
+      <!-- Awards tab -->
+      <div v-if="activeTab === 'awards'">
+        <div v-if="profile.awards?.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            v-for="award in profile.awards"
+            :key="award.id"
+            class="rounded-xl p-5 border transition-colors duration-300"
+            :class="isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'"
+          >
+            <div class="text-center">
+              <img
+                v-if="award.icon_url"
+                :src="award.icon_url"
+                :alt="award.name"
+                class="w-12 h-12 object-contain mx-auto"
+              />
+              <div v-else class="w-12 h-12 rounded-lg mx-auto flex items-center justify-center bg-yellow-500/10">
+                <i class="fa-solid fa-award text-2xl text-yellow-500"></i>
+              </div>
+              <h4 class="font-semibold mt-2">{{ award.name }}</h4>
+              <p class="text-sm mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                {{ award.description }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          v-else
+          class="rounded-xl p-8 text-center"
+          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+        >
+          <i class="fa-solid fa-medal text-4xl text-gray-400"></i>
+          <p class="mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">No awards yet.</p>
         </div>
       </div>
       <!-- Custom CSS -->
