@@ -17,9 +17,7 @@ const isOwnProfile = computed(() => {
 const profile = ref(null)
 const loading = ref(true)
 const error = ref(null)
-const activeTab = ref('overview')
-
-const tabs = ['overview', 'posts', 'achievements', 'awards']
+const activeTab = ref('overview') // kept for compat, unused
 
 const bannerColor = computed(() => {
   return profile.value?.primary_role?.color || '#7c3aed'
@@ -327,30 +325,8 @@ onUnmounted(() => {
 
       </div>
 
-      <!-- Tabs -->
-      <div
-        class="flex gap-1 mb-6 overflow-x-auto border-b"
-        :class="isDark ? 'border-gray-800' : 'border-gray-200'"
-      >
-        <button
-          v-for="tab in tabs"
-          :key="tab"
-          @click="activeTab = tab"
-          class="px-4 py-2.5 font-medium text-sm capitalize transition-colors whitespace-nowrap relative"
-          :class="activeTab === tab
-            ? 'text-purple-accent'
-            : isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'"
-        >
-          {{ tab }}
-          <div
-            v-if="activeTab === tab"
-            class="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-accent rounded-t"
-          />
-        </button>
-      </div>
-
-      <!-- Overview tab -->
-      <div v-if="activeTab === 'overview'" class="lg:grid lg:grid-cols-[240px_1fr_220px] gap-5">
+      <!-- Profile layout — three columns on desktop -->
+      <div class="lg:grid lg:grid-cols-[240px_1fr_220px] gap-5">
 
         <!-- LEFT COLUMN — About sidebar -->
         <div class="space-y-4 mb-5 lg:mb-0">
@@ -509,38 +485,36 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Recent Achievements -->
+          <!-- Recent Posts -->
           <div
-            v-if="profile.achievements?.length"
+            v-if="profile.recent_posts?.length"
             class="rounded-xl p-5 transition-colors duration-300"
             :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
           >
-            <h3 class="font-semibold mb-3 flex items-center gap-2">
-              <i class="fa-solid fa-trophy text-sm text-purple-accent"></i> Recent Achievements
+            <h3 class="font-semibold mb-3 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-pen-to-square text-purple-accent"></i> Recent Posts
             </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="space-y-2">
               <div
-                v-for="ach in profile.achievements.slice(0, 6)"
-                :key="ach.id"
-                class="flex items-center gap-3 p-3 rounded-lg border border-purple-accent/30 bg-purple-accent/5"
+                v-for="post in profile.recent_posts"
+                :key="post.id"
+                class="p-3 rounded-lg border transition-colors"
+                :class="isDark ? 'border-gray-800 hover:bg-gray-800/60' : 'border-gray-100 hover:bg-gray-50'"
               >
-                <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 bg-purple-accent/10 text-purple-accent">
-                  <template v-if="ach.icon && !ach.icon.startsWith('fa-')">{{ ach.icon }}</template>
-                  <i v-else :class="ach.icon || 'fa-solid fa-star'"></i>
-                </div>
-                <div class="min-w-0">
-                  <div class="font-medium text-sm truncate">{{ ach.name }}</div>
-                  <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                    {{ formatDate(ach.unlocked_at) }}
-                  </div>
-                </div>
+                <router-link
+                  v-if="post.thread_id"
+                  :to="`/thread/${post.thread_id}`"
+                  class="font-medium text-sm hover:text-purple-accent transition-colors line-clamp-1"
+                >{{ post.thread_title }}</router-link>
+                <p v-if="post.excerpt" class="text-xs mt-1 line-clamp-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ post.excerpt }}</p>
+                <div class="text-[11px] mt-1.5" :class="isDark ? 'text-gray-600' : 'text-gray-400'">{{ formatDateTime(post.created_at) }}</div>
               </div>
             </div>
           </div>
 
-          <!-- Empty state for overview -->
+          <!-- Empty state -->
           <div
-            v-if="!profile.bio && !profile.recent_activity?.length && !profile.achievements?.length && !profile.pinned_thread"
+            v-if="!profile.bio && !profile.recent_activity?.length && !profile.recent_posts?.length && !profile.pinned_thread"
             class="rounded-xl p-12 text-center transition-colors duration-300"
             :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
           >
@@ -649,116 +623,38 @@ onUnmounted(() => {
 
       </div>
 
-      <!-- Posts tab -->
-      <div v-if="activeTab === 'posts'" class="space-y-4">
-        <div
-          class="rounded-xl p-5 transition-colors duration-300"
-          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-        >
-          <div v-if="profile.recent_posts?.length" class="space-y-3">
+      <!-- Achievements — full width below the three columns -->
+      <div v-if="profile.achievements?.length" class="lg:col-span-3 mt-2">
+        <div class="rounded-xl p-5 transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
+          <h3 class="font-semibold mb-4 flex items-center gap-2 text-sm">
+            <i class="fa-solid fa-trophy text-purple-accent"></i> Achievements
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div
-              v-for="post in profile.recent_posts"
-              :key="post.id"
-              class="p-4 rounded-lg border transition-colors"
-              :class="isDark ? 'border-gray-800 hover:bg-gray-800/60' : 'border-gray-100 hover:bg-gray-50'"
+              v-for="ach in profile.achievements"
+              :key="ach.id"
+              class="flex items-start gap-3 p-3 rounded-lg border transition-colors"
+              :class="ach.unlocked
+                ? 'border-purple-accent/30 ' + (isDark ? 'bg-gray-800/50' : 'bg-violet-50')
+                : (isDark ? 'border-gray-800 opacity-40' : 'border-gray-200 opacity-40')"
             >
-              <router-link
-                v-if="post.thread_id"
-                :to="`/thread/${post.thread_id}`"
-                class="font-medium text-sm hover:text-purple-accent transition-colors"
-              >
-                {{ post.thread_title }}
-              </router-link>
-              <p v-if="post.excerpt" class="text-sm mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ post.excerpt }}</p>
-              <div class="text-xs mt-2" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
-                {{ formatDateTime(post.created_at) }}
-              </div>
-            </div>
-          </div>
-          <div v-else class="text-center py-8" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-            <i class="fa-solid fa-pen-to-square text-3xl mb-2"></i>
-            <p>No posts yet.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Achievements tab -->
-      <div v-if="activeTab === 'achievements'">
-        <div v-if="profile.achievements?.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div
-            v-for="ach in profile.achievements"
-            :key="ach.id"
-            class="rounded-xl p-4 border transition-colors duration-300"
-            :class="ach.unlocked
-              ? 'border-purple-accent/40 ' + (isDark ? 'bg-gray-900' : 'bg-white shadow-sm')
-              : (isDark ? 'border-gray-800 bg-gray-900/50 opacity-50' : 'border-gray-200 bg-gray-50 opacity-50')"
-          >
-            <div class="flex items-start gap-3">
               <div
-                class="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
-                :class="[
-                  ach.unlocked ? 'bg-purple-accent/10 text-purple-accent' : (isDark ? 'bg-gray-800 text-gray-600' : 'bg-gray-200 text-gray-400'),
-                  { 'grayscale': !ach.unlocked }
-                ]"
+                class="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0"
+                :class="ach.unlocked ? 'bg-purple-accent/10 text-purple-accent' : (isDark ? 'bg-gray-800 text-gray-600' : 'bg-gray-200 text-gray-400')"
               >
                 <template v-if="ach.icon && !ach.icon.startsWith('fa-')">{{ ach.icon }}</template>
                 <i v-else :class="ach.icon || 'fa-solid fa-star'"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
                   <span class="font-medium text-sm truncate">{{ ach.name }}</span>
-                  <i v-if="ach.unlocked" class="fa-solid fa-circle-check text-green-500 text-xs shrink-0"></i>
-                  <i v-else class="fa-solid fa-lock text-xs shrink-0" :class="isDark ? 'text-gray-600' : 'text-gray-400'"></i>
+                  <i v-if="ach.unlocked" class="fa-solid fa-circle-check text-green-500 text-[10px] shrink-0"></i>
+                  <i v-else class="fa-solid fa-lock text-[10px] shrink-0" :class="isDark ? 'text-gray-600' : 'text-gray-400'"></i>
                 </div>
-                <p class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                  {{ ach.description }}
-                </p>
-                <div v-if="ach.unlocked" class="text-xs text-purple-accent mt-1">
-                  Unlocked {{ formatDate(ach.unlocked_at) }}
-                </div>
+                <p class="text-xs mt-0.5 line-clamp-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ ach.description }}</p>
               </div>
             </div>
           </div>
-        </div>
-        <div v-else class="rounded-xl p-8 text-center" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-          <i class="fa-solid fa-trophy text-4xl text-gray-400"></i>
-          <p class="mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">No achievements yet.</p>
-        </div>
-      </div>
-
-      <!-- Awards tab -->
-      <div v-if="activeTab === 'awards'">
-        <div v-if="profile.awards?.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div
-            v-for="award in profile.awards"
-            :key="award.id"
-            class="rounded-xl p-5 border transition-colors duration-300"
-            :class="isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'"
-          >
-            <div class="text-center">
-              <img
-                v-if="award.icon_url"
-                :src="award.icon_url"
-                :alt="award.name"
-                class="w-12 h-12 object-contain mx-auto"
-              />
-              <div v-else class="w-12 h-12 rounded-lg mx-auto flex items-center justify-center bg-yellow-500/10">
-                <i class="fa-solid fa-award text-2xl text-yellow-500"></i>
-              </div>
-              <h4 class="font-semibold mt-2">{{ award.name }}</h4>
-              <p class="text-sm mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                {{ award.description }}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div
-          v-else
-          class="rounded-xl p-8 text-center"
-          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
-        >
-          <i class="fa-solid fa-medal text-4xl text-gray-400"></i>
-          <p class="mt-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">No awards yet.</p>
         </div>
       </div>
       <!-- Custom CSS -->
