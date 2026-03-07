@@ -389,9 +389,7 @@ onMounted(fetchTree)
                       </div>
                       <div class="flex items-center gap-2">
                         <span class="text-xs text-gray-500">{{ forum.thread_count || forum.threads || 0 }} threads</span>
-                        <span v-if="forum.parent_forum_id" class="text-[10px] text-violet-400/70">
-                          Sub forum of: {{ getParentName(forum, category) || 'parent' }}
-                        </span>
+
                       </div>
                     </div>
                     <span
