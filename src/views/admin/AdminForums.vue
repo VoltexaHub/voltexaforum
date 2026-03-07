@@ -62,7 +62,20 @@ async function fetchTree() {
   error.value = null
   try {
     const res = await getAdminForumTree()
-    tree.value = res.data.data || res.data || []
+    const raw = res.data.data || res.data || []
+    // Flatten subforums into the category.forums array so they appear in the list
+    // (the draggable list uses parent_forum_id + indent styling to differentiate them)
+    for (const cat of raw) {
+      const flat = []
+      for (const forum of (cat.forums || [])) {
+        flat.push(forum)
+        for (const sub of (forum.subforums || [])) {
+          flat.push(sub)
+        }
+      }
+      cat.forums = flat
+    }
+    tree.value = raw
     // Auto-expand all categories
     for (const cat of tree.value) {
       if (expandedCategories.value[cat.id] === undefined) {
