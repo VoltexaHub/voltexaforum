@@ -12,7 +12,8 @@ const stats = ref({ user_count: 0, post_count: 0, thread_count: 0, revenue_this_
 const recentActivity = ref([])
 const recentRegistrations = ref([])
 const recentPurchases = ref([])
-const quickActions = ref({ pending_reports: 0, failed_deliveries: 0 })
+const topForums = ref([])
+const quickActions = ref({ pending_reports: 0 })
 
 const statCards = ref([])
 
@@ -23,6 +24,9 @@ function buildStatCards(s) {
     { label: 'Total Threads', value: Number(s.thread_count).toLocaleString(), icon: 'fa-solid fa-comments' },
     { label: 'Online Now', value: Number(s.online_count ?? 0).toLocaleString(), icon: 'fa-solid fa-circle text-green-500' },
     { label: 'Revenue This Month', value: '$' + Number(s.revenue_this_month).toFixed(2), icon: 'fa-solid fa-dollar-sign' },
+    { label: 'Posts Today', value: Number(s.posts_today ?? 0).toLocaleString(), icon: 'fa-solid fa-comment' },
+    { label: 'Threads Today', value: Number(s.threads_today ?? 0).toLocaleString(), icon: 'fa-solid fa-pen-to-square' },
+    { label: 'New Users Today', value: Number(s.users_today ?? 0).toLocaleString(), icon: 'fa-solid fa-user-plus' },
   ]
 }
 
@@ -35,11 +39,12 @@ async function fetchData() {
     stats.value = d
     statCards.value = buildStatCards(d)
     recentActivity.value = d.recent_activity || []
-    recentRegistrations.value = d.recent_registrations || []
-    recentPurchases.value = d.recent_purchases || []
+    const raw = res.data
+    recentRegistrations.value = raw.recent_registrations || []
+    recentPurchases.value = raw.recent_purchases || []
+    topForums.value = d.top_forums || []
     quickActions.value = {
       pending_reports: d.pending_reports || 0,
-      failed_deliveries: d.failed_deliveries || 0,
     }
   } catch (e) {
     error.value = e.response?.data?.message || 'Failed to load dashboard'
@@ -94,9 +99,6 @@ function activityIcon(type) {
       <button class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 text-amber-400 rounded-lg text-sm font-medium hover:bg-amber-500/20 transition-colors border border-amber-500/20">
         <i class="fa-solid fa-shield-halved"></i> View Pending Reports ({{ quickActions.pending_reports }})
       </button>
-      <button class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-500/10 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-colors border border-red-500/20">
-        <i class="fa-solid fa-box"></i> Process Failed Deliveries ({{ quickActions.failed_deliveries }})
-      </button>
       <router-link to="/admin/awards" class="inline-flex items-center gap-2 px-4 py-2.5 bg-violet-500/10 text-violet-400 rounded-lg text-sm font-medium hover:bg-violet-500/20 transition-colors border border-violet-500/20">
         <i class="fa-solid fa-award"></i> New Award
       </router-link>
@@ -125,6 +127,25 @@ function activityIcon(type) {
           <span class="text-xs text-gray-500 shrink-0">{{ event.time }}</span>
         </div>
         <div v-if="!recentActivity.length" class="px-5 py-8 text-center text-sm text-gray-500">No recent activity</div>
+      </div>
+    </div>
+
+    <!-- Top Forums -->
+    <div v-if="!loading && topForums.length" class="bg-gray-800 rounded-xl border border-gray-700/50">
+      <div class="px-5 py-4 border-b border-gray-700/50">
+        <h2 class="text-base font-semibold text-white">Top Forums</h2>
+      </div>
+      <div class="divide-y divide-gray-700/50">
+        <div
+          v-for="(forum, idx) in topForums"
+          :key="forum.id"
+          class="flex items-center gap-3 px-5 py-3 hover:bg-gray-700/30 transition-colors"
+        >
+          <span class="text-sm font-bold text-gray-500 w-6 text-center">{{ idx + 1 }}</span>
+          <router-link :to="'/forum/' + forum.slug" class="text-sm font-medium text-violet-400 hover:text-violet-300 flex-1">{{ forum.name }}</router-link>
+          <span class="text-xs text-gray-400">{{ forum.thread_count }} threads</span>
+          <span class="text-xs text-gray-500">{{ forum.post_count }} posts</span>
+        </div>
       </div>
     </div>
 
