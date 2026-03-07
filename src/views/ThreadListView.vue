@@ -144,38 +144,60 @@ function tagClass(tag) {
         class="rounded-xl overflow-hidden transition-colors duration-300 mb-6"
         :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
       >
-        <div
-          class="px-5 py-3 border-b"
-          :class="isDark ? 'bg-gray-800/50 border-gray-800' : 'bg-gray-50 border-gray-200'"
+        <router-link
+          v-for="(sub, subIdx) in forumMeta.subforums"
+          :key="sub.id"
+          :to="`/forum/${sub.slug}`"
+          class="flex items-center gap-4 px-5 py-4 transition-colors duration-150"
+          :class="[
+            isDark ? 'hover:bg-gray-800/60' : 'hover:bg-gray-50',
+            subIdx < forumMeta.subforums.length - 1 ? (isDark ? 'border-b border-gray-800/50' : 'border-b border-gray-100') : '',
+          ]"
         >
-          <h3 class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-            <i class="fa-solid fa-folder-tree"></i> Sub Forums
-          </h3>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" :class="isDark ? 'bg-gray-800/30' : 'bg-gray-100'">
-          <router-link
-            v-for="sub in forumMeta.subforums"
-            :key="sub.id"
-            :to="`/forum/${sub.slug}`"
-            class="flex items-center gap-3 p-4 transition-colors duration-150"
-            :class="isDark ? 'bg-gray-900 hover:bg-gray-800/60' : 'bg-white hover:bg-gray-50'"
-          >
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" :class="isDark ? 'bg-gray-800' : 'bg-gray-100'">
-              <i :class="[sub.icon || 'fa-solid fa-comment', 'text-purple-accent text-sm']"></i>
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="font-medium text-sm hover:text-purple-accent transition-colors" :class="isDark ? 'text-white' : 'text-gray-900'">
-                {{ sub.name }}
+          <!-- Icon -->
+          <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" :class="isDark ? 'bg-gray-800' : 'bg-gray-100'">
+            <i :class="[sub.icon || 'fa-solid fa-comment', 'text-purple-accent']"></i>
+          </div>
+
+          <!-- Name + description -->
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold transition-colors" :class="isDark ? 'text-white' : 'text-gray-900'">{{ sub.name }}</div>
+            <div v-if="sub.description" class="text-sm truncate" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ sub.description }}</div>
+          </div>
+
+          <!-- Post count -->
+          <div class="hidden sm:flex flex-col items-center shrink-0 w-16">
+            <span class="text-lg font-bold" :class="isDark ? 'text-gray-200' : 'text-gray-800'">{{ (sub.post_count ?? 0).toLocaleString() }}</span>
+            <span class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">posts</span>
+          </div>
+
+          <!-- Divider -->
+          <div class="hidden md:block self-stretch w-px mx-1 shrink-0" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'"></div>
+
+          <!-- Last post -->
+          <div class="hidden md:flex items-center gap-2.5 shrink-0 w-52">
+            <template v-if="sub.last_post_user">
+              <UserAvatar
+                :name="sub.last_post_user.username"
+                :color="sub.last_post_user.avatar_color || '#7c3aed'"
+                :avatar-url="sub.last_post_user.avatar_url"
+                :online="false"
+                size="sm"
+              />
+              <div class="min-w-0">
+                <router-link
+                  v-if="sub.last_thread"
+                  :to="`/thread/${sub.last_thread.slug}`"
+                  class="text-xs font-medium truncate block hover:text-purple-accent transition-colors"
+                  :class="isDark ? 'text-gray-300' : 'text-gray-700'"
+                  @click.stop
+                >{{ sub.last_thread.title }}</router-link>
+                <div class="text-[11px]" :class="isDark ? 'text-gray-600' : 'text-gray-400'">{{ sub.last_post_user.username }}</div>
               </div>
-              <div v-if="sub.description" class="text-xs truncate" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                {{ sub.description }}
-              </div>
-              <div class="text-[11px] mt-0.5" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
-                {{ (sub.thread_count ?? sub.threads_count ?? 0).toLocaleString() }} threads
-              </div>
-            </div>
-          </router-link>
-        </div>
+            </template>
+            <span v-else class="text-xs" :class="isDark ? 'text-gray-600' : 'text-gray-400'">No posts yet</span>
+          </div>
+        </router-link>
       </div>
 
       <!-- Thread list -->
@@ -222,18 +244,16 @@ function tagClass(tag) {
           <!-- Title + author -->
           <div class="flex items-center gap-3 min-w-0">
 
-            <!-- Left icon cluster: likes (unpinned) OR pin/lock icons (pinned) -->
+            <!-- Left icon cluster: pin + lock (red) + likes (green) -->
             <div class="hidden sm:flex flex-col items-center justify-center gap-0.5 w-7 shrink-0">
-              <template v-if="thread.is_pinned">
-                <i class="fa-solid fa-thumbtack text-[11px] text-violet-400"></i>
-                <i v-if="thread.is_locked" class="fa-solid fa-lock text-[11px] text-gray-500 mt-0.5"></i>
-              </template>
-              <template v-else>
-                <span class="text-[10px] font-semibold leading-none" :class="thread.likes_count > 0 ? (isDark ? 'text-gray-400' : 'text-gray-500') : (isDark ? 'text-gray-700' : 'text-gray-300')">
-                  {{ thread.likes_count || 0 }}
-                </span>
-                <i class="fa-regular fa-heart text-[11px]" :class="thread.likes_count > 0 ? 'text-pink-400' : (isDark ? 'text-gray-700' : 'text-gray-300')"></i>
-              </template>
+              <div v-if="thread.is_pinned || thread.is_locked" class="flex items-center gap-0.5">
+                <i v-if="thread.is_pinned" class="fa-solid fa-thumbtack text-[11px] text-red-400"></i>
+                <i v-if="thread.is_locked" class="fa-solid fa-lock text-[11px] text-red-400"></i>
+              </div>
+              <span class="text-[10px] font-semibold leading-none" :class="thread.likes_count > 0 ? 'text-green-400' : (isDark ? 'text-gray-700' : 'text-gray-300')">
+                {{ thread.likes_count || 0 }}
+              </span>
+              <i class="fa-regular fa-heart text-[11px]" :class="thread.likes_count > 0 ? 'text-green-400' : (isDark ? 'text-gray-700' : 'text-gray-300')"></i>
             </div>
 
             <UserAvatar :name="thread.author?.username" :color="thread.author?.avatar_color || 'bg-purple-500'" :avatar-url="thread.author?.avatar_url" :online="thread.author?.is_online || false" size="sm" />
