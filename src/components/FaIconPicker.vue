@@ -28,6 +28,7 @@ const icons = [
   'fa-robot', 'fa-brain', 'fa-eye', 'fa-hand', 'fa-handshake', 'fa-peace',
   'fa-exclamation', 'fa-question', 'fa-info', 'fa-circle-check', 'fa-circle-xmark',
   'fa-plus', 'fa-minus', 'fa-xmark', 'fa-check', 'fa-arrow-right', 'fa-arrow-up',
+  'fa-folder', 'fa-folder-open', 'fa-folder-closed', 'fa-folder-plus', 'fa-folder-minus', 'fa-folder-tree',
   'fa-bullhorn', 'fa-rss', 'fa-share-nodes', 'fa-link',
   'fa-trash', 'fa-pen', 'fa-pencil', 'fa-scissors', 'fa-paperclip',
   'fa-wallet', 'fa-coins', 'fa-dollar-sign', 'fa-credit-card', 'fa-gem',
