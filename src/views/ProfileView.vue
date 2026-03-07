@@ -214,6 +214,56 @@ watch(() => route.params.username, () => {
         </div>
       </div>
 
+      <!-- Level & Years of Service -->
+      <div v-if="profile.level != null || profile.years_of_service" class="flex flex-col sm:flex-row gap-3 mb-6">
+        <!-- Level badge with progress bar -->
+        <div
+          v-if="profile.level != null"
+          class="flex-1 rounded-xl p-4 transition-colors duration-300"
+          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-violet-500/10 text-violet-400 font-bold text-sm">
+                {{ profile.level }}
+              </span>
+              <div>
+                <div class="text-sm font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">
+                  Level {{ profile.level }}{{ profile.level_label ? ' — ' + profile.level_label : '' }}
+                </div>
+                <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                  <template v-if="profile.xp_next_level">
+                    {{ (profile.xp ?? 0).toLocaleString() }} / {{ profile.xp_next_level.toLocaleString() }} XP
+                  </template>
+                  <template v-else>Max Level</template>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="w-full h-2 rounded-full overflow-hidden" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'">
+            <div
+              class="h-full rounded-full bg-violet-500 transition-all duration-500"
+              :style="{ width: (profile.level_progress ?? 0) + '%' }"
+            />
+          </div>
+        </div>
+
+        <!-- Years of Service badge -->
+        <div
+          v-if="profile.years_of_service"
+          class="sm:w-48 shrink-0 rounded-xl p-4 flex items-center gap-3 transition-colors duration-300"
+          :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+        >
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400">
+            <i class="fa-solid fa-calendar-days text-lg"></i>
+          </span>
+          <div>
+            <div class="text-sm font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ profile.years_of_service }}</div>
+            <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Member</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Social links -->
       <div
         v-if="profile.discord_username || profile.twitter_handle || profile.website_url"

@@ -74,6 +74,7 @@ const routes = [
       // Gamification
       { path: 'achievements', name: 'AdminAchievements', component: () => import('../views/admin/AdminAchievements.vue'), meta: { title: 'Achievements' } },
       { path: 'awards', name: 'AdminAwards', component: () => import('../views/admin/AdminAwards.vue'), meta: { title: 'Awards' } },
+      { path: 'levels', name: 'AdminLevels', component: () => import('../views/admin/AdminLevels.vue'), meta: { title: 'Levels & XP' } },
       // Appearance
       { path: 'appearance/themes', name: 'AdminAppearanceThemes', component: () => import('../views/admin/appearance/AdminAppearanceThemes.vue'), meta: { title: 'Themes' } },
       { path: 'appearance/custom-code', name: 'AdminAppearanceCustomCode', component: () => import('../views/admin/appearance/AdminAppearanceCustomCode.vue'), meta: { title: 'Custom CSS/JS' } },

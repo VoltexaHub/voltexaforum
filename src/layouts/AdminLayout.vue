@@ -64,6 +64,7 @@ const navSections = [
     items: [
       { to: '/admin/achievements', label: 'Achievements', icon: 'fa-solid fa-trophy' },
       { to: '/admin/awards', label: 'Awards', icon: 'fa-solid fa-award' },
+      { to: '/admin/levels', label: 'Levels & XP', icon: 'fa-solid fa-arrow-up-right-dots' },
     ],
   },
   {

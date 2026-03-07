@@ -641,6 +641,15 @@ onMounted(loadThread)
                     </span>
                     <span class="font-semibold text-purple-accent">{{ (post.author?.credits ?? 0).toLocaleString() }}</span>
                   </div>
+                  <div v-if="post.author?.level" class="flex items-center justify-between text-[11px]" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                    <span class="flex items-center gap-1.5">
+                      <i class="fa-solid fa-arrow-up-right-dots w-3 text-center opacity-70" />
+                      Level
+                    </span>
+                    <span class="font-semibold" :class="isDark ? 'text-gray-300' : 'text-gray-600'">
+                      {{ post.author.level }}{{ post.author.level_label ? ' · ' + post.author.level_label : '' }}
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Awards -->

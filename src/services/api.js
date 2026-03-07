@@ -281,3 +281,12 @@ export const toggleAd = (id) => api.post(`/admin/advertisements/${id}/toggle`)
 // Admin - Unlock Requirements
 export const getUnlockRequirements = () => api.get('/admin/unlock-requirements')
 export const updateUnlockRequirements = (data) => api.put('/admin/unlock-requirements', data)
+
+// Admin - Levels & XP
+export const getAdminLevels = () => api.get('/admin/levels')
+export const createAdminLevel = (data) => api.post('/admin/levels', data)
+export const updateAdminLevel = (id, data) => api.put('/admin/levels/' + id, data)
+export const deleteAdminLevel = (id) => api.delete('/admin/levels/' + id)
+export const presetAdminLevels = () => api.post('/admin/levels/preset')
+export const getAdminXpSettings = () => api.get('/admin/levels/xp-settings')
+export const updateAdminXpSettings = (data) => api.put('/admin/levels/xp-settings', data)
