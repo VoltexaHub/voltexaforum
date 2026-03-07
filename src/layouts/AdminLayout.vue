@@ -44,8 +44,7 @@ const navSections = [
   {
     label: 'Content',
     items: [
-      { to: '/admin/content/threads', label: 'Threads', icon: 'fa-solid fa-newspaper' },
-      { to: '/admin/content/posts', label: 'Posts', icon: 'fa-solid fa-comment-dots' },
+      { to: '/admin/settings/forums', label: 'Forums', icon: 'fa-solid fa-comments' },
       { to: '/admin/thread-prefixes', label: 'Thread Prefixes', icon: 'fa-solid fa-tag' },
     ],
   },
@@ -84,7 +83,6 @@ const navSections = [
     label: 'Settings',
     items: [
       { to: '/admin/settings/general', label: 'General', icon: 'fa-solid fa-sliders' },
-      { to: '/admin/settings/forums', label: 'Forums', icon: 'fa-solid fa-comments' },
       { to: '/admin/settings/email', label: 'Email & SMTP', icon: 'fa-solid fa-envelope' },
       { to: '/admin/settings/credits', label: 'Credits', icon: 'fa-solid fa-coins' },
     ],

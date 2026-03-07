@@ -61,8 +61,7 @@ const routes = [
       { path: 'groups', name: 'AdminGroups', component: () => import('../views/admin/AdminGroups.vue'), meta: { title: 'Groups & Roles' } },
       { path: 'moderation', name: 'AdminModeration', component: () => import('../views/admin/AdminModeration.vue'), meta: { title: 'Moderation' } },
       // Content
-      { path: 'content/threads', name: 'AdminContentThreads', component: () => import('../views/admin/content/AdminContentThreads.vue'), meta: { title: 'Threads' } },
-      { path: 'content/posts', name: 'AdminContentPosts', component: () => import('../views/admin/content/AdminContentPosts.vue'), meta: { title: 'Posts' } },
+
       // Commerce
 
       { path: 'store', redirect: '/admin/store/items' },
