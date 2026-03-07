@@ -43,6 +43,7 @@ const routes = [
   { path: '/forgot-password', name: 'ForgotPassword', component: ForgotPasswordView },
   { path: '/reset-password', name: 'ResetPassword', component: ResetPasswordView },
   { path: '/verify-email', name: 'VerifyEmail', component: () => import('../views/EmailVerifyView.vue') },
+  { path: '/upgrade', name: 'Upgrade', component: () => import('../views/UpgradeView.vue') },
   { path: '/leaderboard', name: 'Leaderboard', component: () => import('../views/LeaderboardView.vue') },
   { path: '/tags/:slug', name: 'TagView', component: () => import('../views/TagView.vue') },
 
@@ -67,6 +68,7 @@ const routes = [
       { path: 'store', redirect: '/admin/store/items' },
       { path: 'store/items', name: 'AdminStoreItems', component: () => import('../views/admin/AdminStoreItems.vue'), meta: { title: 'Store Items' } },
       { path: 'store/purchases', name: 'AdminStorePurchases', component: () => import('../views/admin/AdminStorePurchases.vue'), meta: { title: 'Purchases' } },
+      { path: 'upgrades', name: 'AdminUpgrades', component: () => import('../views/admin/AdminUpgrades.vue'), meta: { title: 'Upgrade Plans' } },
       // Advertisements
       { path: 'advertisements', name: 'AdminAdvertisements', component: () => import('../views/admin/AdminAdvertisements.vue'), meta: { title: 'Advertisements' } },
       // Gamification
