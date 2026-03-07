@@ -647,7 +647,7 @@ onMounted(loadThread)
                       Level
                     </span>
                     <span class="font-semibold" :class="isDark ? 'text-gray-300' : 'text-gray-600'">
-                      {{ post.author.level }}{{ post.author.level_label ? ' · ' + post.author.level_label : '' }}
+                      {{ post.author.level }}
                     </span>
                   </div>
                 </div>
