@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { getAdminStoreItems, createAdminStoreItem, updateAdminStoreItem, deleteAdminStoreItem } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
 
@@ -24,6 +24,18 @@ const newItem = ref({
   is_active: true,
 })
 
+// XP boost dedicated fields
+const boostMultiplier = ref(2)
+const boostDurationHours = ref(1)
+
+// When switching to xp_boost, reset boost fields; when switching away, clear them
+watch(() => newItem.value.item_type, (type) => {
+  if (type === 'xp_boost') {
+    boostMultiplier.value = 2
+    boostDurationHours.value = 1
+  }
+})
+
 function resetNewItem() {
   newItem.value = { name: '', slug: '', description: '', icon: '', category: '', price_money: null, price_credits: null, item_type: 'rank', item_value: '', is_active: true }
 }
@@ -44,7 +56,11 @@ async function fetchItems() {
 
 async function submitCreate() {
   try {
-    await createAdminStoreItem(newItem.value)
+    const payload = { ...newItem.value }
+    if (payload.item_type === 'xp_boost') {
+      payload.item_value = JSON.stringify({ multiplier: boostMultiplier.value, duration_hours: boostDurationHours.value })
+    }
+    await createAdminStoreItem(payload)
     toast.show('Item created')
     showCreateForm.value = false
     resetNewItem()
@@ -146,13 +162,37 @@ onMounted(fetchItems)
           </select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1">Command</label>
-          <input v-model="newItem.item_value" type="text"
-            :placeholder="newItem.item_type === 'xp_boost' ? '{&quot;multiplier&quot;: 2, &quot;duration_hours&quot;: 1}' : newItem.item_type === 'postbit_bg' ? 'https://... (image/gif URL)' : newItem.item_type === 'currency' ? 'Amount e.g. 500' : newItem.item_type === 'flair' ? '🔥' : 'eco give {player} 500'"
+          <label class="block text-xs font-medium text-gray-400 mb-1">{{ newItem.item_type === 'xp_boost' ? 'Boost Settings' : 'Command / Value' }}</label>
+          <!-- XP Boost: two simple dropdowns -->
+          <template v-if="newItem.item_type === 'xp_boost'">
+            <div class="flex gap-3">
+              <div class="flex-1">
+                <label class="block text-xs text-gray-500 mb-1">Multiplier</label>
+                <select v-model="boostMultiplier" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none">
+                  <option :value="1.5">1.5x XP</option>
+                  <option :value="2">2x XP (Double)</option>
+                  <option :value="3">3x XP</option>
+                  <option :value="5">5x XP</option>
+                </select>
+              </div>
+              <div class="flex-1">
+                <label class="block text-xs text-gray-500 mb-1">Duration</label>
+                <select v-model="boostDurationHours" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none">
+                  <option :value="1">1 Hour</option>
+                  <option :value="3">3 Hours</option>
+                  <option :value="6">6 Hours</option>
+                  <option :value="12">12 Hours</option>
+                  <option :value="24">24 Hours</option>
+                  <option :value="48">48 Hours</option>
+                  <option :value="168">1 Week</option>
+                </select>
+              </div>
+            </div>
+          </template>
+          <!-- Everything else: plain text -->
+          <input v-else v-model="newItem.item_value" type="text"
+            :placeholder="newItem.item_type === 'postbit_bg' ? 'https://... (image/gif URL)' : newItem.item_type === 'currency' ? 'Amount e.g. 500' : newItem.item_type === 'flair' ? '🔥' : 'eco give {player} 500'"
             class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
-          <p v-if="newItem.item_type === 'xp_boost'" class="text-xs text-amber-400 mt-1">
-            <i class="fa-solid fa-bolt mr-1"></i>JSON format: {"multiplier": 2, "duration_hours": 1} — multiplier applied to XP, duration in hours
-          </p>
         </div>
       </div>
       <div>
