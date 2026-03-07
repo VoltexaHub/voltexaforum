@@ -293,6 +293,11 @@ async function handleMoneyPurchase(item) {
                   <span class="text-5xl">{{ item.icon }}</span>
                 </div>
                 <h3 class="font-bold text-center text-lg">{{ item.name }}</h3>
+                <div v-if="item.item_type === 'xp_boost'" class="flex justify-center mt-1">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                    <i class="fa-solid fa-bolt text-[10px]"></i> XP Boost
+                  </span>
+                </div>
                 <p class="text-sm text-center mt-1.5 mb-4" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
                   {{ item.description }}
                 </p>

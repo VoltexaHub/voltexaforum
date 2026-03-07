@@ -1,5 +1,5 @@
 <script setup>
-import { inject, ref, computed, onMounted, watch } from 'vue'
+import { inject, ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { getUserProfile } from '../services/api'
@@ -31,6 +31,7 @@ async function loadProfile() {
   try {
     const res = await getUserProfile(route.params.username)
     profile.value = res.data.data
+    startBoostTimer()
   } catch (e) {
     if (e.response?.status === 404) {
       profile.value = null
@@ -42,11 +43,50 @@ async function loadProfile() {
   }
 }
 
+// XP Boost countdown
+const boostTimeRemaining = ref('')
+let boostInterval = null
+
+function updateBoostCountdown() {
+  if (!profile.value?.xp_boost_active || !profile.value?.xp_boost_expires_at) {
+    boostTimeRemaining.value = ''
+    return
+  }
+  const diff = new Date(profile.value.xp_boost_expires_at).getTime() - Date.now()
+  if (diff <= 0) {
+    boostTimeRemaining.value = ''
+    profile.value.xp_boost_active = false
+    if (boostInterval) { clearInterval(boostInterval); boostInterval = null }
+    return
+  }
+  const h = Math.floor(diff / 3600000)
+  const m = Math.floor((diff % 3600000) / 60000)
+  const s = Math.floor((diff % 60000) / 1000)
+  boostTimeRemaining.value = `${h}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`
+}
+
+function startBoostTimer() {
+  if (boostInterval) clearInterval(boostInterval)
+  if (profile.value?.xp_boost_active) {
+    updateBoostCountdown()
+    boostInterval = setInterval(updateBoostCountdown, 1000)
+  }
+}
+
 onMounted(loadProfile)
 
 watch(() => route.params.username, () => {
   activeTab.value = 'overview'
   loadProfile()
+})
+
+watch(() => profile.value?.xp_boost_active, (active) => {
+  if (active) startBoostTimer()
+  else if (boostInterval) { clearInterval(boostInterval); boostInterval = null }
+})
+
+onUnmounted(() => {
+  if (boostInterval) clearInterval(boostInterval)
 })
 </script>
 
@@ -260,6 +300,21 @@ watch(() => route.params.username, () => {
           <div>
             <div class="text-sm font-semibold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ profile.years_of_service }}</div>
             <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Member</div>
+          </div>
+        </div>
+
+        <!-- XP Boost badge -->
+        <div
+          v-if="profile.xp_boost_active && boostTimeRemaining"
+          class="sm:w-56 shrink-0 rounded-xl p-4 flex items-center gap-3 transition-colors duration-300 border border-amber-500/30"
+          :class="isDark ? 'bg-amber-500/5' : 'bg-amber-50 shadow-sm'"
+        >
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/15 text-amber-400 animate-pulse">
+            <i class="fa-solid fa-bolt text-lg"></i>
+          </span>
+          <div>
+            <div class="text-sm font-semibold text-amber-400">{{ profile.xp_boost_multiplier || 2 }}x XP Boost</div>
+            <div class="text-xs font-mono" :class="isDark ? 'text-amber-500/70' : 'text-amber-600/70'">{{ boostTimeRemaining }}</div>
           </div>
         </div>
       </div>

@@ -646,8 +646,9 @@ onMounted(loadThread)
                       <i class="fa-solid fa-arrow-up-right-dots w-3 text-center opacity-70" />
                       Level
                     </span>
-                    <span class="font-semibold" :class="isDark ? 'text-gray-300' : 'text-gray-600'">
+                    <span class="font-semibold flex items-center gap-1" :class="isDark ? 'text-gray-300' : 'text-gray-600'">
                       {{ post.author.level }}
+                      <i v-if="post.author.xp_boost_active" class="fa-solid fa-bolt text-amber-400 text-[10px]" title="XP Boost Active"></i>
                     </span>
                   </div>
                 </div>

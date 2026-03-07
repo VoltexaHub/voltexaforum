@@ -174,6 +174,15 @@ async function handleLogout() {
               </span>
             </router-link>
 
+            <!-- XP Boost indicator -->
+            <span
+              v-if="authStore.user?.xp_boost_active"
+              class="p-2 text-amber-400 animate-pulse"
+              title="XP Boost Active"
+            >
+              <i class="fa-solid fa-bolt"></i>
+            </span>
+
             <router-link
               to="/credits"
               class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"

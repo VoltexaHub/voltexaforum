@@ -142,13 +142,17 @@ onMounted(fetchItems)
             <option value="cosmetic">Cosmetic</option>
             <option value="flair">Flair</option>
             <option value="postbit_bg">Postbit Background</option>
+            <option value="xp_boost">XP Boost</option>
           </select>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-400 mb-1">Command</label>
           <input v-model="newItem.item_value" type="text"
-            :placeholder="newItem.item_type === 'postbit_bg' ? 'https://... (image/gif URL)' : newItem.item_type === 'currency' ? 'Amount e.g. 500' : newItem.item_type === 'flair' ? '🔥' : 'eco give {player} 500'"
+            :placeholder="newItem.item_type === 'xp_boost' ? '{&quot;multiplier&quot;: 2, &quot;duration_hours&quot;: 1}' : newItem.item_type === 'postbit_bg' ? 'https://... (image/gif URL)' : newItem.item_type === 'currency' ? 'Amount e.g. 500' : newItem.item_type === 'flair' ? '🔥' : 'eco give {player} 500'"
             class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+          <p v-if="newItem.item_type === 'xp_boost'" class="text-xs text-amber-400 mt-1">
+            <i class="fa-solid fa-bolt mr-1"></i>JSON format: {"multiplier": 2, "duration_hours": 1} — multiplier applied to XP, duration in hours
+          </p>
         </div>
       </div>
       <div>
