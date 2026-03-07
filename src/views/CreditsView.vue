@@ -146,7 +146,7 @@ function formatDate(dateStr) {
 
       <div v-else-if="earningInfo?.ways_to_earn?.length" class="mb-8">
         <h2 class="text-lg font-bold mb-4">How to Earn Credits</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div
             v-for="way in earningInfo.ways_to_earn"
             :key="way.action"
