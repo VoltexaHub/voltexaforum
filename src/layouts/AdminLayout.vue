@@ -114,7 +114,6 @@ function isActive(path) {
     >
       <!-- Logo -->
       <div class="h-16 flex items-center gap-2 px-5 border-b border-gray-800 shrink-0">
-        <i class="fa-solid fa-bolt text-violet-400"></i>
         <span class="font-bold text-gray-300 text-sm tracking-wide">{{ forumStore.config?.forum_name || 'My Forum' }} Admin</span>
       </div>
 
