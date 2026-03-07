@@ -104,7 +104,7 @@ function formatDate(dateStr) {
           class="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-xl"
           :class="isDark ? 'bg-gray-900 text-purple-accent' : 'bg-white text-purple-accent shadow-sm'"
         >
-          <span>&#9889;</span>
+          <span><i class="fa-solid fa-coins"></i></span>
           <span>{{ authStore.credits.toLocaleString() }}</span>
         </div>
       </div>
@@ -129,7 +129,7 @@ function formatDate(dateStr) {
           class="rounded-xl p-5 text-center transition-colors duration-300"
           :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
         >
-          <div class="text-2xl font-bold text-purple-accent">&#9889; {{ authStore.credits.toLocaleString() }}</div>
+          <div class="text-2xl font-bold text-purple-accent"><i class="fa-solid fa-coins"></i> {{ authStore.credits.toLocaleString() }}</div>
           <div class="text-sm mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Current Balance</div>
         </div>
       </div>
