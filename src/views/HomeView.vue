@@ -146,29 +146,26 @@ onMounted(async () => {
                 </router-link>
               </div>
 
-              <!-- Sub forums (indented, compact) -->
+              <!-- Sub forums -->
               <div
                 v-if="forum.subforums && forum.subforums.length"
-                class="pl-14 pr-5 pb-3 pt-1"
-                :class="idx < category.forums.length - 1 ? (isDark ? 'border-b border-gray-800/50' : 'border-b border-gray-100') : ''"
+                class="mx-4 mb-3 rounded-lg overflow-hidden border"
+                :class="isDark ? 'border-gray-700/50 bg-gray-800/30' : 'border-gray-200 bg-gray-50'"
               >
-                <div class="flex items-center gap-1.5 mb-1.5">
-                  <i class="fa-solid fa-folder-tree text-[10px]" :class="isDark ? 'text-gray-600' : 'text-gray-400'"></i>
-                  <span class="text-[10px] font-semibold uppercase tracking-wider" :class="isDark ? 'text-gray-600' : 'text-gray-400'">Sub Forums</span>
-                </div>
-                <div class="flex flex-wrap gap-x-4 gap-y-1">
-                  <router-link
-                    v-for="sub in forum.subforums"
-                    :key="sub.id"
-                    :to="`/forum/${sub.slug}`"
-                    class="inline-flex items-center gap-1.5 text-sm py-0.5 hover:text-purple-accent transition-colors"
-                    :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-                  >
-                    <i :class="[sub.icon || 'fa-solid fa-comment', 'text-xs']"></i>
-                    <span>{{ sub.name }}</span>
-                    <span class="text-[11px]" :class="isDark ? 'text-gray-600' : 'text-gray-400'">({{ sub.thread_count ?? sub.threads_count ?? 0 }})</span>
-                  </router-link>
-                </div>
+                <router-link
+                  v-for="(sub, subIdx) in forum.subforums"
+                  :key="sub.id"
+                  :to="`/forum/${sub.slug}`"
+                  class="flex items-center gap-3 px-4 py-2.5 transition-colors duration-150"
+                  :class="[
+                    isDark ? 'hover:bg-gray-700/40' : 'hover:bg-gray-100',
+                    subIdx < forum.subforums.length - 1 ? (isDark ? 'border-b border-gray-700/50' : 'border-b border-gray-200') : '',
+                  ]"
+                >
+                  <i :class="[sub.icon || 'fa-solid fa-comment', 'text-purple-accent text-sm w-4 text-center shrink-0']"></i>
+                  <span class="text-sm font-medium flex-1" :class="isDark ? 'text-gray-300' : 'text-gray-700'">{{ sub.name }}</span>
+                  <span class="text-xs" :class="isDark ? 'text-gray-600' : 'text-gray-400'">{{ (sub.thread_count ?? sub.threads_count ?? 0).toLocaleString() }} threads</span>
+                </router-link>
               </div>
             </div>
           </div>
