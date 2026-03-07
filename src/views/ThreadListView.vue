@@ -244,17 +244,22 @@ function tagClass(tag) {
           <!-- Title + author -->
           <div class="flex items-center gap-3 min-w-0">
 
-            <!-- Left icon cluster: pin + lock (red) + likes (green) -->
+            <!-- Pin OR likes column -->
             <div class="hidden sm:flex flex-col items-center justify-center gap-0.5 w-7 shrink-0">
-              <div v-if="thread.is_pinned || thread.is_locked" class="flex items-center gap-0.5">
-                <i v-if="thread.is_pinned" class="fa-solid fa-thumbtack text-[11px] text-red-400"></i>
-                <i v-if="thread.is_locked" class="fa-solid fa-lock text-[11px] text-red-400"></i>
-              </div>
-              <span class="text-[10px] font-semibold leading-none" :class="thread.likes_count > 0 ? 'text-green-400' : (isDark ? 'text-gray-700' : 'text-gray-300')">
-                {{ thread.likes_count || 0 }}
-              </span>
-              <i class="fa-regular fa-heart text-[11px]" :class="thread.likes_count > 0 ? 'text-green-400' : (isDark ? 'text-gray-700' : 'text-gray-300')"></i>
+              <template v-if="thread.is_pinned">
+                <i class="fa-solid fa-thumbtack text-[13px] text-red-400"></i>
+              </template>
+              <template v-else>
+                <span class="text-[10px] font-semibold leading-none" :class="thread.likes_count > 0 ? 'text-green-400' : (isDark ? 'text-gray-700' : 'text-gray-300')">
+                  {{ thread.likes_count || 0 }}
+                </span>
+                <i class="fa-regular fa-heart text-[11px]" :class="thread.likes_count > 0 ? 'text-green-400' : (isDark ? 'text-gray-700' : 'text-gray-300')"></i>
+              </template>
             </div>
+
+            <!-- Lock icon — small, sits between pin/likes and avatar -->
+            <i v-if="thread.is_locked" class="hidden sm:block fa-solid fa-lock text-[9px] text-red-400 shrink-0 -mx-1"></i>
+            <span v-else class="hidden sm:block w-[9px] shrink-0 -mx-1"></span>
 
             <UserAvatar :name="thread.author?.username" :color="thread.author?.avatar_color || 'bg-purple-500'" :avatar-url="thread.author?.avatar_url" :online="thread.author?.is_online || false" size="sm" />
             <div class="min-w-0">
