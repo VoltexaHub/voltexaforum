@@ -456,50 +456,32 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Stats Breakdown Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div class="rounded-xl p-4 flex items-center gap-3 transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-            <i class="fa-solid fa-comments text-violet-400"></i>
-            <div>
-              <div class="text-sm font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ (profile.thread_count ?? 0).toLocaleString() }}</div>
-              <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Threads Started</div>
+        <!-- Stats Bar -->
+        <div class="rounded-xl overflow-hidden transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
+          <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0" :class="isDark ? 'divide-gray-800' : 'divide-gray-100'">
+            <!-- Threads -->
+            <div class="flex flex-col items-center justify-center py-5 px-3 group relative overflow-hidden">
+              <div class="absolute top-0 inset-x-0 h-0.5 bg-violet-500 opacity-60"></div>
+              <span class="text-2xl font-black tracking-tight text-violet-400">{{ (profile.thread_count ?? 0).toLocaleString() }}</span>
+              <span class="text-[11px] font-medium mt-1 uppercase tracking-widest" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Threads</span>
             </div>
-          </div>
-          <div class="rounded-xl p-4 flex items-center gap-3 transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-            <i class="fa-solid fa-pen-to-square text-blue-400"></i>
-            <div>
-              <div class="text-sm font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ (profile.replies_made ?? 0).toLocaleString() }}</div>
-              <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Replies Made</div>
+            <!-- Replies -->
+            <div class="flex flex-col items-center justify-center py-5 px-3 relative overflow-hidden">
+              <div class="absolute top-0 inset-x-0 h-0.5 bg-blue-500 opacity-60"></div>
+              <span class="text-2xl font-black tracking-tight text-blue-400">{{ (profile.replies_made ?? 0).toLocaleString() }}</span>
+              <span class="text-[11px] font-medium mt-1 uppercase tracking-widest" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Replies</span>
             </div>
-          </div>
-          <div class="rounded-xl p-4 flex items-center gap-3 transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-            <i class="fa-solid fa-heart text-rose-400"></i>
-            <div>
-              <div class="text-sm font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ (profile.reputation ?? 0).toLocaleString() }}</div>
-              <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Reputation</div>
+            <!-- Reputation -->
+            <div class="flex flex-col items-center justify-center py-5 px-3 relative overflow-hidden">
+              <div class="absolute top-0 inset-x-0 h-0.5 bg-rose-500 opacity-60"></div>
+              <span class="text-2xl font-black tracking-tight text-rose-400">{{ (profile.reputation ?? 0).toLocaleString() }}</span>
+              <span class="text-[11px] font-medium mt-1 uppercase tracking-widest" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Reputation</span>
             </div>
-          </div>
-          <div class="rounded-xl p-4 flex items-center gap-3 transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-            <i class="fa-solid fa-thumbs-up text-sky-400"></i>
-            <div>
-              <div class="text-sm font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ (profile.likes_given ?? 0).toLocaleString() }}</div>
-              <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Likes Given</div>
-            </div>
-          </div>
-          <div class="rounded-xl p-4 flex items-center gap-3 transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-            <i class="fa-solid fa-calendar-days text-emerald-400"></i>
-            <div>
-              <div class="text-sm font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ formatDate(profile.join_date) }}</div>
-              <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Member Since</div>
-            </div>
-          </div>
-          <div class="rounded-xl p-4 flex items-center gap-3 transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
-            <i class="fa-solid fa-eye text-amber-400"></i>
-            <div>
-              <div class="text-sm font-bold" :class="profile.is_online ? 'text-green-500' : (isDark ? 'text-white' : 'text-gray-900')">
-                {{ profile.is_online ? 'Online Now' : (formatRelative(profile.last_seen) || 'N/A') }}
-              </div>
-              <div class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Last Seen</div>
+            <!-- Likes Given -->
+            <div class="flex flex-col items-center justify-center py-5 px-3 relative overflow-hidden">
+              <div class="absolute top-0 inset-x-0 h-0.5 bg-sky-500 opacity-60"></div>
+              <span class="text-2xl font-black tracking-tight text-sky-400">{{ (profile.likes_given ?? 0).toLocaleString() }}</span>
+              <span class="text-[11px] font-medium mt-1 uppercase tracking-widest" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Likes Given</span>
             </div>
           </div>
         </div>
