@@ -4,6 +4,7 @@ import { marked } from 'marked'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
 import { unlockContent, getContentStatus, reportContent } from '../services/api'
+import { useCodePaste } from '../composables/useCodePaste'
 
 const props = defineProps({
   content: { type: String, default: '' },
@@ -30,6 +31,9 @@ const rendered = computed(() => {
   if (!props.content) return ''
   return sanitize(marked.parse(props.content))
 })
+
+// Code Paste: syntax highlighting, copy button, line numbers
+const { enhanceCodeBlocks } = useCodePaste(container, rendered)
 
 // Is the currently logged-in user the author of this content?
 const isAuthor = computed(() =>
@@ -188,7 +192,7 @@ function cancelUnlock() {
 }
 
 // Run on mount (rendered already has value on first render — watch alone misses it)
-onMounted(() => nextTick(() => { bindSpoilers(); bindLockedContent() }))
+onMounted(() => nextTick(() => { bindSpoilers(); bindLockedContent(); enhanceCodeBlocks() }))
 
 // Re-run if content updates (e.g. edit)
 watch(rendered, () => nextTick(() => { bindSpoilers(); bindLockedContent() }))

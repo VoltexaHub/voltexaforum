@@ -35,6 +35,10 @@ function formatSize(bytes) {
 
 const pluginAdminPages = {
   announcements: '/admin/plugins/announcements',
+  'status-page': '/admin/plugins/status-page',
+  'thread-polls': '/admin/plugins/thread-polls',
+  'code-paste': '/admin/plugins/code-paste',
+  'github-sponsors': '/admin/plugins/github-sponsors',
 }
 
 async function fetchPlugins() {

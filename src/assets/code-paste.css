@@ -1,0 +1,138 @@
+/* ── Code Paste Plugin ─────────────────────────────────────────── */
+.code-paste-block {
+  position: relative;
+  background: #0d1117 !important;
+  border: 1px solid #1e293b;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  padding: 0 !important;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.code-paste-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.75rem;
+  background: #161b22;
+  border-bottom: 1px solid #1e293b;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.code-paste-lang {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #7c3aed;
+  text-transform: uppercase;
+}
+
+.code-paste-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #8b949e;
+  background: transparent;
+  border: 1px solid #30363d;
+  border-radius: 0.375rem;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.code-paste-copy:hover {
+  color: #c9d1d9;
+  border-color: #484f58;
+  background: #21262d;
+}
+
+.code-paste-copy.copied {
+  color: #3fb950;
+  border-color: #238636;
+}
+
+.code-paste-body {
+  display: flex;
+  overflow-x: auto;
+}
+
+.code-paste-line-numbers {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 0;
+  text-align: right;
+  user-select: none;
+  border-right: 1px solid #1e293b;
+  min-width: 2.5rem;
+  flex-shrink: 0;
+}
+
+.code-paste-line-numbers span {
+  padding: 0 0.65rem;
+  color: #3b4252;
+  font-size: 0.75rem;
+  font-family: ui-monospace, monospace;
+  line-height: 1.6;
+}
+
+.code-paste-code {
+  flex: 1;
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.code-paste-code code {
+  display: block;
+  padding: 0.75rem 1rem !important;
+  background: none !important;
+  color: #c9d1d9;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+/* ── highlight.js token colors (GitHub Dark) ────────────────────── */
+.code-paste-block .hljs-keyword,
+.code-paste-block .hljs-selector-tag { color: #ff7b72; }
+
+.code-paste-block .hljs-string,
+.code-paste-block .hljs-addition { color: #a5d6ff; }
+
+.code-paste-block .hljs-comment,
+.code-paste-block .hljs-quote { color: #8b949e; font-style: italic; }
+
+.code-paste-block .hljs-number,
+.code-paste-block .hljs-literal { color: #79c0ff; }
+
+.code-paste-block .hljs-built_in,
+.code-paste-block .hljs-type { color: #ffa657; }
+
+.code-paste-block .hljs-function,
+.code-paste-block .hljs-title { color: #d2a8ff; }
+
+.code-paste-block .hljs-variable,
+.code-paste-block .hljs-template-variable { color: #ffa657; }
+
+.code-paste-block .hljs-attr,
+.code-paste-block .hljs-attribute { color: #79c0ff; }
+
+.code-paste-block .hljs-symbol,
+.code-paste-block .hljs-bullet { color: #ffa657; }
+
+.code-paste-block .hljs-meta { color: #8b949e; }
+
+.code-paste-block .hljs-deletion { color: #ffa198; background: rgba(248, 81, 73, 0.1); }
+.code-paste-block .hljs-addition { background: rgba(63, 185, 80, 0.1); }
+
+.code-paste-block .hljs-params { color: #c9d1d9; }
+.code-paste-block .hljs-property { color: #79c0ff; }
+.code-paste-block .hljs-selector-class { color: #7ee787; }
+.code-paste-block .hljs-tag { color: #7ee787; }
+.code-paste-block .hljs-name { color: #7ee787; }
+.code-paste-block .hljs-regexp { color: #a5d6ff; }

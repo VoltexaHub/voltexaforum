@@ -284,6 +284,24 @@ export const toggleAd = (id) => api.post(`/admin/advertisements/${id}/toggle`)
 export const getUnlockRequirements = () => api.get('/admin/unlock-requirements')
 export const updateUnlockRequirements = (data) => api.put('/admin/unlock-requirements', data)
 
+// Status Page
+export const getStatus = () => api.get('/status')
+export const getAdminStatus = () => api.get('/admin/status')
+export const setStatusOverride = (data) => api.post('/admin/status/override', data)
+export const clearStatusOverride = (service) => api.delete(`/admin/status/override/${service}`)
+export const clearAllStatusOverrides = () => api.delete('/admin/status/overrides')
+
+// Thread Polls
+export const createPoll = (threadId, data) => api.post(`/threads/${threadId}/poll`, data)
+export const getPoll = (pollId) => api.get(`/polls/${pollId}`)
+export const votePoll = (pollId, data) => api.post(`/polls/${pollId}/vote`, data)
+export const removePollVote = (pollId) => api.delete(`/polls/${pollId}/vote`)
+
+// GitHub Sponsors
+export const getAdminGithubSponsors = () => api.get('/admin/github-sponsors')
+export const grantSponsor = (userId) => api.post(`/admin/github-sponsors/${userId}/grant`)
+export const revokeSponsor = (userId) => api.post(`/admin/github-sponsors/${userId}/revoke`)
+
 // Admin - Levels & XP
 export const getAdminLevels = () => api.get('/admin/levels')
 export const createAdminLevel = (data) => api.post('/admin/levels', data)
