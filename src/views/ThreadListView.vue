@@ -158,42 +158,35 @@ function tagClass(tag) {
           v-for="(sub, subIdx) in forumMeta.subforums"
           :key="sub.id"
           :to="`/forum/${sub.slug}`"
-          class="flex items-center gap-4 px-5 py-4 transition-colors duration-150"
+          class="sm:grid grid-cols-[1fr_100px_16px_120px] gap-4 items-center px-5 py-4 transition-colors duration-150"
           :class="[
             isDark ? 'hover:bg-gray-800/60' : 'hover:bg-gray-50',
             subIdx < forumMeta.subforums.length - 1 ? (isDark ? 'border-b border-gray-800/50' : 'border-b border-gray-100') : '',
           ]"
         >
-          <!-- Icon -->
-          <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" :class="isDark ? 'bg-gray-800' : 'bg-gray-100'">
-            <i :class="[sub.icon || 'fa-solid fa-comment', 'text-purple-accent']"></i>
-          </div>
-
-          <!-- Name + description -->
-          <div class="flex-1 min-w-0">
-            <div class="font-semibold transition-colors" :class="isDark ? 'text-white' : 'text-gray-900'">{{ sub.name }}</div>
-            <div v-if="sub.description" class="text-sm truncate" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ sub.description }}</div>
+          <!-- Icon + name + description -->
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" :class="isDark ? 'bg-gray-800' : 'bg-gray-100'">
+              <i :class="[sub.icon || 'fa-solid fa-comment', 'text-purple-accent']"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="font-semibold transition-colors" :class="isDark ? 'text-white' : 'text-gray-900'">{{ sub.name }}</div>
+              <div v-if="sub.description" class="text-sm truncate" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ sub.description }}</div>
+            </div>
           </div>
 
           <!-- Post count -->
-          <div class="hidden sm:block text-center font-medium text-sm w-16 shrink-0" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+          <div class="hidden sm:block text-center font-medium text-sm" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
             {{ (sub.post_count ?? 0).toLocaleString() }}
           </div>
 
-          <!-- Divider -->
-          <div class="hidden md:block self-stretch w-px mx-1 shrink-0" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'"></div>
+          <!-- Spacer (matches divider column in header) -->
+          <div></div>
 
           <!-- Last post -->
-          <div class="hidden md:flex items-center gap-2.5 shrink-0 w-52">
+          <div class="hidden sm:flex items-center gap-2.5 justify-end">
             <template v-if="sub.last_post_user">
-              <UserAvatar
-                :name="sub.last_post_user.username"
-                :color="sub.last_post_user.avatar_color || '#7c3aed'"
-                :avatar-url="sub.last_post_user.avatar_url"
-                :online="false"
-                size="sm"
-              />
-              <div class="min-w-0">
+              <div class="min-w-0 text-right">
                 <router-link
                   v-if="sub.last_thread"
                   :to="`/thread/${sub.last_thread.slug}`"
