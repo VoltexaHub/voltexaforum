@@ -176,9 +176,8 @@ function tagClass(tag) {
           </div>
 
           <!-- Post count -->
-          <div class="hidden sm:flex flex-col items-center shrink-0 w-16">
-            <span class="text-lg font-bold" :class="isDark ? 'text-gray-200' : 'text-gray-800'">{{ (sub.post_count ?? 0).toLocaleString() }}</span>
-            <span class="text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">posts</span>
+          <div class="hidden sm:block text-center font-medium text-sm w-16 shrink-0" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+            {{ (sub.post_count ?? 0).toLocaleString() }}
           </div>
 
           <!-- Divider -->
