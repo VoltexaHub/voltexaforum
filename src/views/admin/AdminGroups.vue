@@ -18,7 +18,7 @@ const newLabel = ref('')
 // Edit state
 const editingId = ref(null)
 const editTab = ref('general')
-const editColor = ref('')
+const editName = ref('')
 const editLabel = ref('')
 const editPriority = ref(0)
 const editPerks = ref([])
@@ -92,6 +92,7 @@ async function handleCreate() {
 function startEdit(group) {
   editingId.value = group.id
   editTab.value = 'general'
+  editName.value = group.name
   editColor.value = group.color || '#8b5cf6'
   editLabel.value = group.label || group.name
   editPriority.value = group.priority ?? 0
@@ -118,6 +119,7 @@ async function saveEdit(group) {
   saving.value = true
   try {
     const res = await updateAdminGroup(group.id, {
+      name:              editName.value.trim(),
       color:             editColor.value,
       label:             editLabel.value.trim(),
       priority:          editPriority.value,
@@ -280,12 +282,13 @@ onMounted(fetchGroups)
                 </div>
 
                 <!-- Tab: General -->
-                <div v-if="editTab === 'general'" class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div v-if="editTab === 'general'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                   <div>
-                    <label class="block text-xs font-medium mb-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Display Label</label>
-                    <input v-model="editLabel" type="text"
+                    <label class="block text-xs font-medium mb-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Display Name</label>
+                    <input v-model="editLabel" type="text" placeholder="e.g. Administrators"
                       class="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                       :class="isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+                    <p class="text-[11px] mt-1.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Shown to users everywhere on the forum.</p>
                   </div>
                   <div>
                     <label class="block text-xs font-medium mb-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Group Color</label>
@@ -296,6 +299,13 @@ onMounted(fetchGroups)
                         class="flex-1 px-3 py-2 rounded-lg border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
                         :class="isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'" />
                     </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium mb-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-600'">System Name</label>
+                    <input v-model="editName" type="text" placeholder="e.g. admin"
+                      class="w-full px-3 py-2 rounded-lg border text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      :class="isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+                    <p class="text-[11px] mt-1.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Internal identifier. Lowercase, no spaces. Changing this may break permission rules.</p>
                   </div>
                   <div>
                     <label class="block text-xs font-medium mb-1.5" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Priority (0–100)</label>

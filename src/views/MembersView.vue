@@ -37,11 +37,15 @@ async function load() {
 }
 
 function groupColor(role) {
-  return forumStore.config?.[`group_color_${role}`] || '#6b7280'
+  if (!role) return '#6b7280'
+  if (typeof role === 'object') return role.color || '#6b7280'
+  return '#6b7280'
 }
 
 function groupLabel(role) {
-  return forumStore.config?.[`group_label_${role}`] || (role ? role.charAt(0).toUpperCase() + role.slice(1) : '')
+  if (!role) return ''
+  if (typeof role === 'object') return role.label || (role.name ? role.name.charAt(0).toUpperCase() + role.name.slice(1) : '')
+  return role ? role.charAt(0).toUpperCase() + role.slice(1) : ''
 }
 
 let searchTimer
