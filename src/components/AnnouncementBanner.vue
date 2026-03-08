@@ -68,12 +68,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="announcements.length" class="w-full">
+  <div v-if="announcements.length" class="max-w-7xl mx-auto px-4 sm:px-6 pt-3 space-y-2">
     <div
       v-for="a in announcements"
       v-show="!dismissed.has(a.id)"
       :key="a.id"
-      class="border-l-4 px-4 py-3 flex items-center gap-3"
+      class="border-l-4 rounded-r-lg px-4 py-3 flex items-center gap-3"
       :class="[getConfig(a.type).bg, getConfig(a.type).border]"
     >
       <i :class="[getConfig(a.type).icon, getConfig(a.type).text]" class="text-sm flex-shrink-0"></i>
