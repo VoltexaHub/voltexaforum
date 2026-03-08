@@ -34,6 +34,9 @@ const navItems = computed(() => {
   if (authStore.hasStaffPermission('grant_awards')) {
     items.push({ to: '/staffcp/awards', label: 'Awards', icon: 'fa-solid fa-award' })
   }
+  if (authStore.hasStaffPermission('view_reports') || authStore.isAdmin) {
+    items.push({ to: '/staffcp/bugs', label: 'Bug Reports', icon: 'fa-solid fa-bug' })
+  }
   return items
 })
 

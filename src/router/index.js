@@ -47,6 +47,9 @@ const routes = [
   { path: '/leaderboard', name: 'Leaderboard', component: () => import('../views/LeaderboardView.vue') },
   { path: '/tags/:slug', name: 'TagView', component: () => import('../views/TagView.vue') },
   { path: '/status', name: 'StatusPage', component: () => import('../views/StatusPage.vue') },
+  { path: '/bugs', name: 'BugReports', component: () => import('../views/bugs/BugReportsView.vue'), meta: { title: 'Bug Reports', requiresAuth: true } },
+  { path: '/bugs/submit', name: 'BugReportSubmit', component: () => import('../views/bugs/BugReportSubmit.vue'), meta: { title: 'Submit Bug Report', requiresAuth: true } },
+  { path: '/bugs/:id', name: 'BugReportView', component: () => import('../views/bugs/BugReportView.vue'), meta: { title: 'Bug Report', requiresAuth: true } },
 
   // Staff routes — lazy loaded
   {
@@ -60,6 +63,8 @@ const routes = [
       { path: 'threads', name: 'StaffThreads', component: () => import('../views/staff/StaffThreads.vue'), meta: { title: 'Thread Management' } },
       { path: 'users', name: 'StaffUsers', component: () => import('../views/staff/StaffUsers.vue'), meta: { title: 'User Management' } },
       { path: 'awards', name: 'StaffAwards', component: () => import('../views/staff/StaffAwards.vue'), meta: { title: 'Awards' } },
+      { path: 'bugs', name: 'StaffBugReports', component: () => import('../views/staff/StaffBugReports.vue'), meta: { title: 'Bug Reports' } },
+      { path: 'bugs/:id', name: 'StaffBugReportDetail', component: () => import('../views/staff/StaffBugReportDetail.vue'), meta: { title: 'Bug Report Detail' } },
     ],
   },
 
