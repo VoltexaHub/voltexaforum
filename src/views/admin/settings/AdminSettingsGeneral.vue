@@ -138,16 +138,14 @@ async function fetchLegendRoles() {
     const d = configRes.data.data || configRes.data
     if (d.usergroup_legend_groups) {
       try {
-        const enabledSlugs = JSON.parse(d.usergroup_legend_groups)
+        const enabledNames = JSON.parse(d.usergroup_legend_groups)
         legendRoles.value.forEach(r => {
-          r.show = enabledSlugs.includes(r.slug)
+          // Match case-insensitively since old configs may have stored lowercase
+          r.show = enabledNames.some(n => n.toLowerCase() === r.name.toLowerCase())
         })
       } catch {}
     }
-    legendRoles.value.forEach(r => {
-      if (d[`group_color_${r.slug}`]) r.color = d[`group_color_${r.slug}`]
-      if (d[`group_label_${r.slug}`]) r.label = d[`group_label_${r.slug}`]
-    })
+    // Colors and labels come directly from the Role model — no config overrides needed
   } catch {
     legendRoles.value = []
   } finally {
@@ -158,15 +156,12 @@ async function fetchLegendRoles() {
 async function saveLegendConfig() {
   legendSaving.value = true
   try {
+    // Only save which groups are shown — colors/labels come from the Role model
     const config = {
       usergroup_legend_groups: JSON.stringify(
-        legendRoles.value.filter(r => r.show).map(r => r.slug)
+        legendRoles.value.filter(r => r.show).map(r => r.name)
       ),
     }
-    legendRoles.value.forEach(r => {
-      config[`group_color_${r.slug}`] = r.color
-      config[`group_label_${r.slug}`] = r.label
-    })
     await updateAdminConfig({ config })
     forumStore.fetchConfig()
     toast.show('Legend settings saved')
@@ -424,40 +419,21 @@ onMounted(async () => {
             :key="role.id"
             class="flex items-center gap-3 bg-gray-700/50 rounded-lg px-4 py-2.5"
           >
-            <!-- Color swatch -->
-            <label class="relative shrink-0 w-8 h-8 cursor-pointer">
-              <div
-                class="w-8 h-8 rounded border border-gray-600"
-                :style="{ backgroundColor: role.color }"
-              ></div>
-              <input
-                type="color"
-                v-model="role.color"
-                class="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer"
-              />
-            </label>
+            <!-- Color swatch (read-only — edit in Admin → Groups) -->
+            <div class="w-3 h-3 rounded-full shrink-0" :style="{ backgroundColor: role.color }" />
 
-            <!-- Role name -->
-            <span class="text-sm font-medium text-gray-300 w-28 shrink-0 truncate">{{ role.name }}</span>
-
-            <!-- Label input -->
-            <input
-              v-model="role.label"
-              type="text"
-              placeholder="Custom label"
-              class="flex-1 min-w-0 px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none"
-            />
+            <!-- Role label -->
+            <span class="text-sm font-medium flex-1" :style="{ color: role.color }">{{ role.label }}</span>
+            <span class="text-xs text-gray-500 shrink-0">{{ role.name }}</span>
 
             <!-- Show toggle -->
-            <label class="flex items-center gap-2 shrink-0 cursor-pointer">
-              <span class="text-xs text-gray-400 hidden sm:inline">Show</span>
-              <button
-                @click="role.show = !role.show"
-                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                :class="role.show ? 'bg-violet-600' : 'bg-gray-600'"
-              >
-                <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="role.show ? 'translate-x-6' : 'translate-x-1'" />
-              </button>
+            <button
+              @click="role.show = !role.show"
+              class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0"
+              :class="role.show ? 'bg-violet-600' : 'bg-gray-600'"
+            >
+              <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="role.show ? 'translate-x-6' : 'translate-x-1'" />
+            </button>
             </label>
           </div>
         </div>
