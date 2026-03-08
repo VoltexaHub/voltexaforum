@@ -58,9 +58,6 @@ onMounted(fetchSponsors)
   <div class="space-y-6">
     <!-- Header -->
     <div class="flex items-center gap-3">
-      <router-link to="/admin/plugins" class="text-gray-400 hover:text-white transition-colors">
-        <i class="fa-solid fa-arrow-left text-sm"></i>
-      </router-link>
       <h2 class="text-lg font-semibold text-white">GitHub Sponsors</h2>
     </div>
 

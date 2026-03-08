@@ -101,11 +101,6 @@ const routes = [
       // Plugins
       { path: 'plugins', name: 'AdminPlugins', component: () => import('../views/admin/AdminPlugins.vue'), meta: { title: 'Plugins' } },
       { path: 'thread-prefixes', name: 'AdminThreadPrefixes', component: () => import('../views/admin/AdminThreadPrefixes.vue'), meta: { title: 'Thread Prefixes' } },
-      { path: 'plugins/announcements', name: 'AdminAnnouncementsPlugin', component: () => import('../views/admin/plugins/AdminAnnouncementsPlugin.vue'), meta: { title: 'Announcements Plugin' } },
-      { path: 'plugins/status-page', name: 'AdminStatusPagePlugin', component: () => import('../views/admin/plugins/AdminStatusPagePlugin.vue'), meta: { title: 'Status Page Plugin' } },
-      { path: 'plugins/thread-polls', name: 'AdminThreadPollsPlugin', component: () => import('../views/admin/plugins/AdminThreadPollsPlugin.vue'), meta: { title: 'Thread Polls Plugin' } },
-      { path: 'plugins/code-paste', name: 'AdminCodePastePlugin', component: () => import('../views/admin/plugins/AdminCodePastePlugin.vue'), meta: { title: 'Code Paste Plugin' } },
-      { path: 'plugins/github-sponsors', name: 'AdminGithubSponsorsPlugin', component: () => import('../views/admin/plugins/AdminGithubSponsorsPlugin.vue'), meta: { title: 'GitHub Sponsors Plugin' } },
       // Settings
       { path: 'settings', redirect: '/admin/settings/general' },
       { path: 'settings/general', name: 'AdminSettingsGeneral', component: () => import('../views/admin/settings/AdminSettingsGeneral.vue'), meta: { title: 'General Settings' } },

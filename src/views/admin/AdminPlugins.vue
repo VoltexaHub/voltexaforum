@@ -1,18 +1,44 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { getAdminPlugins, installPlugin, togglePlugin, uninstallPlugin } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
 
+import AdminAnnouncementsPlugin from './plugins/AdminAnnouncementsPlugin.vue'
+import AdminStatusPagePlugin from './plugins/AdminStatusPagePlugin.vue'
+import AdminThreadPollsPlugin from './plugins/AdminThreadPollsPlugin.vue'
+import AdminCodePastePlugin from './plugins/AdminCodePastePlugin.vue'
+import AdminGithubSponsorsPlugin from './plugins/AdminGithubSponsorsPlugin.vue'
+import AdminBugReportsPlugin from './plugins/AdminBugReportsPlugin.vue'
+
 const toast = useToastStore()
-const router = useRouter()
 const plugins = ref([])
 const loading = ref(true)
+const selectedTab = ref('manager')
 const showUploadModal = ref(false)
 const isDragging = ref(false)
+const showAvailable = ref(false)
+
+const pluginComponents = {
+  'announcements': AdminAnnouncementsPlugin,
+  'status-page': AdminStatusPagePlugin,
+  'thread-polls': AdminThreadPollsPlugin,
+  'code-paste': AdminCodePastePlugin,
+  'github-sponsors': AdminGithubSponsorsPlugin,
+  'bug-reports': AdminBugReportsPlugin,
+}
+
+const pluginIcons = {
+  'announcements': 'fa-solid fa-bullhorn',
+  'status-page': 'fa-solid fa-heart-pulse',
+  'thread-polls': 'fa-solid fa-square-poll-vertical',
+  'code-paste': 'fa-solid fa-code',
+  'github-sponsors': 'fa-brands fa-github',
+  'bug-reports': 'fa-solid fa-bug',
+}
 
 const installedPlugins = computed(() => plugins.value.filter(p => p.installed))
 const availablePlugins = computed(() => plugins.value.filter(p => !p.installed))
+const selectedPlugin = computed(() => plugins.value.find(p => p.slug === selectedTab.value))
 
 function onDragOver(e) { e.preventDefault(); isDragging.value = true }
 function onDragLeave() { isDragging.value = false }
@@ -26,19 +52,6 @@ function onFileSelect(e) {
   const files = Array.from(e.target.files).filter(f => f.name.endsWith('.zip'))
   if (!files.length) { toast.error('Only .zip files are accepted'); return }
   toast.error('Plugin zip upload is not yet connected to a backend.')
-}
-function formatSize(bytes) {
-  if (bytes < 1024) return bytes + ' B'
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-}
-
-const pluginAdminPages = {
-  announcements: '/admin/plugins/announcements',
-  'status-page': '/admin/plugins/status-page',
-  'thread-polls': '/admin/plugins/thread-polls',
-  'code-paste': '/admin/plugins/code-paste',
-  'github-sponsors': '/admin/plugins/github-sponsors',
 }
 
 async function fetchPlugins() {
@@ -83,15 +96,15 @@ async function doUninstall(slug) {
     await uninstallPlugin(slug)
     const idx = plugins.value.findIndex(p => p.slug === slug)
     if (idx !== -1) plugins.value[idx] = { ...plugins.value[idx], installed: false, enabled: false }
+    if (selectedTab.value === slug) selectedTab.value = 'manager'
     toast.success('Plugin uninstalled.')
   } catch {
     toast.error('Failed to uninstall plugin.')
   }
 }
 
-function configure(slug) {
-  const path = pluginAdminPages[slug]
-  if (path) router.push(path)
+function selectPlugin(slug) {
+  selectedTab.value = slug
 }
 
 onMounted(fetchPlugins)
@@ -115,103 +128,195 @@ onMounted(fetchPlugins)
       </button>
     </div>
 
-    <!-- Loading skeleton -->
-    <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div v-for="i in 2" :key="i" class="bg-gray-800 rounded-xl border border-gray-700/50 p-5 animate-pulse">
-        <div class="h-5 bg-gray-700 rounded w-1/3 mb-3"></div>
-        <div class="h-4 bg-gray-700 rounded w-2/3 mb-4"></div>
-        <div class="h-8 bg-gray-700 rounded w-1/4"></div>
-      </div>
-    </div>
-
-    <!-- Available on disk (not installed) -->
-    <div v-if="!loading && availablePlugins.length" class="bg-gray-800 rounded-xl border border-gray-700/50 p-5 space-y-4">
-      <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-        <i class="fa-solid fa-hard-drive text-gray-400 text-xs"></i>
-        Available on Disk
-      </h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div
-          v-for="p in availablePlugins"
-          :key="p.slug"
-          class="bg-gray-700/40 rounded-lg border border-gray-600/40 p-4 flex flex-col gap-3"
+    <!-- Two-column layout -->
+    <div class="flex gap-0 bg-gray-800 rounded-xl border border-gray-700/50 overflow-hidden min-h-[600px]">
+      <!-- Left sidebar -->
+      <div class="w-[220px] flex-shrink-0 bg-gray-800 border-r border-gray-700/50 flex flex-col">
+        <!-- Plugin Manager tab -->
+        <button
+          class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors border-l-2"
+          :class="selectedTab === 'manager'
+            ? 'bg-violet-600/20 text-violet-300 border-violet-500'
+            : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 border-transparent'"
+          @click="selectedTab = 'manager'"
         >
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-semibold text-white">{{ p.name }}</span>
-              <span class="text-xs text-gray-500">v{{ p.version }}</span>
-            </div>
-            <p class="text-xs text-gray-400 mt-1">{{ p.description }}</p>
-            <p class="text-xs text-gray-500 mt-1">By {{ p.author }}</p>
-          </div>
+          <i class="fa-solid fa-puzzle-piece text-xs"></i>
+          Plugin Manager
+        </button>
+
+        <div class="border-b border-gray-700/50 mx-3"></div>
+
+        <!-- Loading skeleton -->
+        <div v-if="loading" class="p-3 space-y-2">
+          <div v-for="i in 3" :key="i" class="h-8 bg-gray-700/50 rounded animate-pulse"></div>
+        </div>
+
+        <!-- Installed plugins -->
+        <div v-else class="flex-1 overflow-y-auto">
           <button
-            class="self-start px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors"
-            @click="doInstall(p.slug)"
+            v-for="p in installedPlugins"
+            :key="p.slug"
+            class="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors border-l-2"
+            :class="selectedTab === p.slug
+              ? 'bg-violet-600/20 text-violet-300 border-violet-500'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 border-transparent'"
+            @click="selectPlugin(p.slug)"
           >
-            <i class="fa-solid fa-download mr-1"></i> Install
+            <span
+              class="w-2 h-2 rounded-full flex-shrink-0"
+              :class="p.enabled ? 'bg-green-400' : 'bg-gray-600'"
+            ></span>
+            <i :class="pluginIcons[p.slug] || 'fa-solid fa-puzzle-piece'" class="text-xs w-4 text-center"></i>
+            <span class="truncate">{{ p.name }}</span>
           </button>
-        </div>
-      </div>
-    </div>
 
-    <!-- Installed Plugins -->
-    <div v-if="!loading" class="space-y-4">
-      <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-        <i class="fa-solid fa-puzzle-piece text-gray-400 text-xs"></i>
-        Installed Plugins
-      </h3>
-
-      <div v-if="!installedPlugins.length" class="bg-gray-800 rounded-xl border border-gray-700/50 p-6">
-        <div class="text-center py-6">
-          <div class="text-3xl mb-3 text-gray-600"><i class="fa-solid fa-puzzle-piece"></i></div>
-          <p class="text-sm text-gray-500">No plugins installed yet</p>
-          <p v-if="availablePlugins.length" class="text-xs text-gray-600 mt-1">Install a plugin from the available section above</p>
-        </div>
-      </div>
-
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div
-          v-for="p in installedPlugins"
-          :key="p.slug"
-          class="bg-gray-800 rounded-xl border border-gray-700/50 p-5 flex flex-col gap-4"
-        >
-          <div class="flex items-start justify-between">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-semibold text-white">{{ p.name }}</span>
-                <span class="text-xs text-gray-500">v{{ p.version }}</span>
+          <!-- Available section -->
+          <div v-if="availablePlugins.length" class="border-t border-gray-700/50 mt-1">
+            <button
+              class="w-full flex items-center justify-between px-4 py-2.5 text-left text-xs font-medium text-gray-500 hover:text-gray-400 transition-colors"
+              @click="showAvailable = !showAvailable"
+            >
+              <span>Available ({{ availablePlugins.length }})</span>
+              <i class="fa-solid fa-chevron-down text-[10px] transition-transform" :class="showAvailable ? 'rotate-180' : ''"></i>
+            </button>
+            <div v-if="showAvailable" class="pb-2">
+              <div
+                v-for="p in availablePlugins"
+                :key="p.slug"
+                class="flex items-center justify-between px-4 py-2"
+              >
+                <span class="text-xs text-gray-500 truncate mr-2">{{ p.name }}</span>
+                <button
+                  class="px-2 py-1 bg-violet-600 hover:bg-violet-500 text-white text-[10px] font-medium rounded transition-colors flex-shrink-0"
+                  @click="doInstall(p.slug)"
+                >
+                  Install
+                </button>
               </div>
-              <p class="text-xs text-gray-400 mt-1">{{ p.description }}</p>
-              <p class="text-xs text-gray-500 mt-1">By {{ p.author }}</p>
             </div>
-            <!-- Enabled toggle pill -->
-            <button
-              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-              :class="p.enabled ? 'bg-green-500' : 'bg-gray-600'"
-              @click="doToggle(p.slug)"
-            >
-              <span
-                class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200"
-                :class="p.enabled ? 'translate-x-5' : 'translate-x-0'"
-              ></span>
-            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="flex-1 p-6 overflow-y-auto bg-gray-900/30">
+        <!-- Plugin Manager panel -->
+        <template v-if="selectedTab === 'manager'">
+          <!-- Loading skeleton -->
+          <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-for="i in 2" :key="i" class="bg-gray-800 rounded-xl border border-gray-700/50 p-5 animate-pulse">
+              <div class="h-5 bg-gray-700 rounded w-1/3 mb-3"></div>
+              <div class="h-4 bg-gray-700 rounded w-2/3 mb-4"></div>
+              <div class="h-8 bg-gray-700 rounded w-1/4"></div>
+            </div>
           </div>
 
-          <div class="flex items-center gap-2">
-            <button
-              v-if="pluginAdminPages[p.slug]"
-              class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-medium rounded-lg transition-colors"
-              @click="configure(p.slug)"
-            >
-              <i class="fa-solid fa-gear mr-1"></i> Configure
-            </button>
-            <button
-              class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium rounded-lg transition-colors"
-              @click="doUninstall(p.slug)"
-            >
-              <i class="fa-solid fa-trash mr-1"></i> Uninstall
-            </button>
+          <template v-else>
+            <!-- Installed Plugins -->
+            <div class="space-y-4">
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <i class="fa-solid fa-puzzle-piece text-gray-400 text-xs"></i>
+                Installed Plugins
+              </h3>
+
+              <div v-if="!installedPlugins.length" class="bg-gray-800 rounded-xl border border-gray-700/50 p-6">
+                <div class="text-center py-6">
+                  <div class="text-3xl mb-3 text-gray-600"><i class="fa-solid fa-puzzle-piece"></i></div>
+                  <p class="text-sm text-gray-500">No plugins installed yet</p>
+                  <p v-if="availablePlugins.length" class="text-xs text-gray-600 mt-1">Install a plugin from the sidebar or available section below</p>
+                </div>
+              </div>
+
+              <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  v-for="p in installedPlugins"
+                  :key="p.slug"
+                  class="bg-gray-800 rounded-xl border border-gray-700/50 p-5 flex flex-col gap-4 cursor-pointer hover:border-gray-600/50 transition-colors"
+                  @click="selectPlugin(p.slug)"
+                >
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <i :class="pluginIcons[p.slug] || 'fa-solid fa-puzzle-piece'" class="text-gray-400 text-sm"></i>
+                        <span class="text-sm font-semibold text-white">{{ p.name }}</span>
+                        <span class="text-xs text-gray-500">v{{ p.version }}</span>
+                      </div>
+                      <p class="text-xs text-gray-400 mt-1">{{ p.description }}</p>
+                      <p class="text-xs text-gray-500 mt-1">By {{ p.author }}</p>
+                    </div>
+                    <!-- Enabled toggle pill -->
+                    <button
+                      class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+                      :class="p.enabled ? 'bg-green-500' : 'bg-gray-600'"
+                      @click.stop="doToggle(p.slug)"
+                    >
+                      <span
+                        class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200"
+                        :class="p.enabled ? 'translate-x-5' : 'translate-x-0'"
+                      ></span>
+                    </button>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <button
+                      class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium rounded-lg transition-colors"
+                      @click.stop="doUninstall(p.slug)"
+                    >
+                      <i class="fa-solid fa-trash mr-1"></i> Uninstall
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Available on disk -->
+            <div v-if="availablePlugins.length" class="mt-6 bg-gray-800 rounded-xl border border-gray-700/50 p-5 space-y-4">
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <i class="fa-solid fa-hard-drive text-gray-400 text-xs"></i>
+                Available on Disk
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  v-for="p in availablePlugins"
+                  :key="p.slug"
+                  class="bg-gray-700/40 rounded-lg border border-gray-600/40 p-4 flex flex-col gap-3"
+                >
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-semibold text-white">{{ p.name }}</span>
+                      <span class="text-xs text-gray-500">v{{ p.version }}</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">{{ p.description }}</p>
+                    <p class="text-xs text-gray-500 mt-1">By {{ p.author }}</p>
+                  </div>
+                  <button
+                    class="self-start px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-colors"
+                    @click="doInstall(p.slug)"
+                  >
+                    <i class="fa-solid fa-download mr-1"></i> Install
+                  </button>
+                </div>
+              </div>
+            </div>
+          </template>
+        </template>
+
+        <!-- Plugin admin panel -->
+        <template v-else-if="selectedPlugin">
+          <component
+            v-if="pluginComponents[selectedPlugin.slug]"
+            :is="pluginComponents[selectedPlugin.slug]"
+          />
+          <div v-else class="flex flex-col items-center justify-center py-16 text-center">
+            <div class="text-3xl mb-3 text-gray-600"><i class="fa-solid fa-gear"></i></div>
+            <p class="text-sm text-gray-400">No settings available for this plugin.</p>
           </div>
+        </template>
+
+        <!-- Fallback -->
+        <div v-else class="flex flex-col items-center justify-center py-16 text-center">
+          <div class="text-3xl mb-3 text-gray-600"><i class="fa-solid fa-puzzle-piece"></i></div>
+          <p class="text-sm text-gray-400">Select a plugin from the sidebar.</p>
         </div>
       </div>
     </div>

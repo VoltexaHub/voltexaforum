@@ -110,9 +110,6 @@ onMounted(fetchAnnouncements)
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <router-link to="/admin/plugins" class="text-gray-400 hover:text-white transition-colors">
-          <i class="fa-solid fa-arrow-left text-sm"></i>
-        </router-link>
         <h2 class="text-lg font-semibold text-white">Announcements</h2>
         <span class="px-2.5 py-0.5 bg-blue-500/10 text-blue-400 rounded-full text-xs font-semibold">
           {{ announcements.length }} total
