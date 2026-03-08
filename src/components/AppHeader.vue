@@ -236,17 +236,17 @@ async function handleLogout() {
                     <i class="fa-solid fa-crown w-4 text-center"></i> Admin Panel
                   </router-link>
 
-                  <!-- Mod tools (mod or admin) -->
+                  <!-- Staff panel link -->
                   <router-link
-                    v-if="authStore.isModerator"
-                    to="/admin/moderation"
+                    v-if="authStore.isStaff"
+                    to="/staffcp"
                     @click="closeDropdown"
-                    class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors text-amber-400 hover:bg-amber-400/10"
+                    class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors text-violet-400 hover:bg-violet-400/10"
                   >
-                    <i class="fa-solid fa-shield-halved w-4 text-center"></i> Moderation
+                    <i class="fa-solid fa-shield-halved w-4 text-center"></i> Staff Panel
                   </router-link>
 
-                  <div v-if="authStore.isModerator" class="border-t my-1" :class="isDark ? 'border-gray-700' : 'border-gray-100'" />
+                  <div v-if="authStore.isStaff" class="border-t my-1" :class="isDark ? 'border-gray-700' : 'border-gray-100'" />
 
                   <!-- Standard links -->
                   <router-link
@@ -464,11 +464,11 @@ async function handleLogout() {
             <i class="fa-solid fa-crown w-4 text-center"></i> Admin Panel
           </router-link>
           <router-link
-            v-if="authStore.isModerator"
-            to="/admin/moderation"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-amber-400 hover:bg-amber-400/10"
+            v-if="authStore.isStaff"
+            to="/staffcp"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-violet-400 hover:bg-violet-400/10"
           >
-            <i class="fa-solid fa-shield-halved w-4 text-center"></i> Moderation
+            <i class="fa-solid fa-shield-halved w-4 text-center"></i> Staff Panel
           </router-link>
         </nav>
       </template>

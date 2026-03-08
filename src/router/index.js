@@ -48,6 +48,21 @@ const routes = [
   { path: '/tags/:slug', name: 'TagView', component: () => import('../views/TagView.vue') },
   { path: '/status', name: 'StatusPage', component: () => import('../views/StatusPage.vue') },
 
+  // Staff routes — lazy loaded
+  {
+    path: '/staffcp',
+    component: () => import('../layouts/StaffLayout.vue'),
+    meta: { requiresStaff: true },
+    children: [
+      { path: '', redirect: '/staffcp/dashboard' },
+      { path: 'dashboard', name: 'StaffDashboard', component: () => import('../views/staff/StaffDashboard.vue'), meta: { title: 'Staff Dashboard' } },
+      { path: 'reports', name: 'StaffReports', component: () => import('../views/staff/StaffReports.vue'), meta: { title: 'Reports' } },
+      { path: 'threads', name: 'StaffThreads', component: () => import('../views/staff/StaffThreads.vue'), meta: { title: 'Thread Management' } },
+      { path: 'users', name: 'StaffUsers', component: () => import('../views/staff/StaffUsers.vue'), meta: { title: 'User Management' } },
+      { path: 'awards', name: 'StaffAwards', component: () => import('../views/staff/StaffAwards.vue'), meta: { title: 'Awards' } },
+    ],
+  },
+
   // Admin routes — lazy loaded
   {
     path: '/admin',
@@ -122,6 +137,11 @@ router.beforeEach((to) => {
 
   if (to.meta.requiresAuth && !authStore.token) {
     return { path: '/login', query: { redirect: to.fullPath } }
+  }
+
+  if (to.meta.requiresStaff || to.path.startsWith('/staffcp')) {
+    if (!authStore.token) return '/'
+    if (authStore.initialized && !authStore.isStaff) return '/'
   }
 
   if (to.meta.requiresAdmin || to.path.startsWith('/admin')) {

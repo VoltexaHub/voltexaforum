@@ -19,9 +19,13 @@ const newLabel = ref('')
 
 // Edit state
 const editingId = ref(null)
+const editTab = ref('general')
 const editColor = ref('')
 const editLabel = ref('')
+const editPriority = ref(0)
 const editPerks = ref([])
+const editIsStaff = ref(false)
+const editStaffPermissions = ref([])
 
 const ALL_PERKS = [
   { value: 'no_ads',                label: 'No Advertisements' },
@@ -34,6 +38,14 @@ const ALL_PERKS = [
   { value: 'username_color',        label: 'Custom Username Color' },
   { value: 'awards_reorder',        label: 'Reorder Awards' },
   { value: 'pre_access',            label: 'Pre-Access to New Features' },
+]
+
+const ALL_STAFF_PERMISSIONS = [
+  { value: 'view_reports',    label: 'View & manage reports' },
+  { value: 'manage_threads',  label: 'Manage threads (pin, lock, solve, delete)' },
+  { value: 'manage_posts',    label: 'Manage posts (delete)' },
+  { value: 'ban_users',       label: 'Ban & unban users' },
+  { value: 'grant_awards',    label: 'Grant & revoke awards' },
 ]
 
 // Group permissions
@@ -113,9 +125,13 @@ async function handleCreate() {
 
 function startEdit(group) {
   editingId.value = group.id
+  editTab.value = 'general'
   editColor.value = group.color || '#8b5cf6'
   editLabel.value = group.label || group.name
+  editPriority.value = group.priority ?? 0
   editPerks.value = Array.isArray(group.perks) ? [...group.perks] : []
+  editIsStaff.value = !!group.is_staff
+  editStaffPermissions.value = Array.isArray(group.staff_permissions) ? [...group.staff_permissions] : []
 }
 
 function cancelEdit() {
@@ -128,7 +144,10 @@ async function saveEdit(group) {
     const res = await updateAdminGroup(group.id, {
       color: editColor.value,
       label: editLabel.value.trim(),
+      priority: editPriority.value,
       perks: editPerks.value,
+      is_staff: editIsStaff.value,
+      staff_permissions: editIsStaff.value ? editStaffPermissions.value : [],
     })
     const updated = res.data.data || res.data
     const idx = groups.value.findIndex(g => g.id === group.id)
@@ -202,13 +221,14 @@ onMounted(() => {
             <th class="text-left px-5 py-3">Name</th>
             <th class="text-left px-5 py-3">Color</th>
             <th class="text-left px-5 py-3">Label</th>
+            <th class="text-center px-3 py-3">Priority</th>
             <th class="text-center px-5 py-3">Users</th>
             <th class="text-right px-5 py-3">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!groups.length">
-            <td colspan="5" class="px-5 py-8 text-center text-gray-500">No groups found.</td>
+            <td colspan="6" class="px-5 py-8 text-center text-gray-500">No groups found.</td>
           </tr>
           <template v-for="group in groups" :key="group.id">
             <!-- Main row -->
@@ -217,22 +237,27 @@ onMounted(() => {
                 editingId === group.id ? '' : 'last:border-0',
                 isDark ? 'border-gray-700/50 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50'
               ]">
-              <td class="px-5 py-3 font-medium" :class="isDark ? 'text-white' : 'text-gray-900'">{{ group.name }}</td>
+              <td class="px-5 py-3 font-medium" :class="isDark ? 'text-white' : 'text-gray-900'">
+                <div class="flex items-center gap-2">
+                  {{ group.name }}
+                  <span v-if="group.is_staff"
+                    class="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-400 font-medium">
+                    Staff
+                  </span>
+                </div>
+              </td>
               <td class="px-5 py-3">
-                <input v-if="editingId === group.id" v-model="editColor" type="color"
-                  class="w-8 h-8 rounded border cursor-pointer"
-                  :class="isDark ? 'border-gray-600 bg-gray-900' : 'border-gray-300 bg-white'" />
-                <span v-else class="inline-block w-6 h-6 rounded-full border-2"
+                <span class="inline-block w-6 h-6 rounded-full border-2"
                   :style="{ backgroundColor: group.color || '#6b7280', borderColor: (group.color || '#6b7280') + '60' }" />
               </td>
               <td class="px-5 py-3">
-                <input v-if="editingId === group.id" v-model="editLabel" type="text"
-                  class="px-2 py-1 rounded border text-sm w-full max-w-[200px] focus:outline-none focus:ring-2 focus:ring-violet-500"
-                  :class="isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'" />
-                <span v-else class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
+                <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full"
                   :style="{ backgroundColor: (group.color||'#6b7280')+'20', color: group.color||'#6b7280', border: `1px solid ${group.color||'#6b7280'}40` }">
                   {{ group.label || group.name }}
                 </span>
+              </td>
+              <td class="px-3 py-3 text-center">
+                <span class="text-xs font-mono" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ group.priority ?? 0 }}</span>
               </td>
               <td class="px-5 py-3 text-center" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ group.users_count ?? 0 }}</td>
               <td class="px-5 py-3 text-right">
@@ -258,29 +283,111 @@ onMounted(() => {
               </td>
             </tr>
 
-            <!-- Perks expansion row (shown while editing) -->
+            <!-- Tabbed edit panel (shown while editing) -->
             <tr v-if="editingId === group.id"
               class="border-b"
               :class="isDark ? 'border-gray-700/50 bg-gray-900/40' : 'border-gray-100 bg-violet-50/50'">
-              <td colspan="5" class="px-5 pt-2 pb-4">
-                <p class="text-xs font-semibold uppercase tracking-wider mb-3"
-                  :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  <i class="fa-solid fa-star mr-1.5 text-violet-400"></i>Perks for this group
-                </p>
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                  <label
-                    v-for="perk in ALL_PERKS"
-                    :key="perk.value"
-                    class="flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all text-xs font-medium select-none"
-                    :class="editPerks.includes(perk.value)
-                      ? 'bg-violet-600/15 border-violet-500 text-violet-300'
-                      : isDark ? 'border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-gray-800' : 'border-gray-200 text-gray-600 hover:border-violet-300 hover:bg-white'"
-                  >
-                    <input type="checkbox" :value="perk.value" v-model="editPerks" class="hidden" />
-                    <i class="fa-solid shrink-0"
-                      :class="editPerks.includes(perk.value) ? 'fa-square-check text-violet-400' : 'fa-square text-gray-500'"></i>
-                    {{ perk.label }}
+              <td colspan="6" class="px-5 pt-3 pb-4">
+                <!-- Tabs -->
+                <div class="flex gap-1 mb-4 border-b" :class="isDark ? 'border-gray-700' : 'border-gray-200'">
+                  <button v-for="tab in ['general', 'perks', 'staff']" :key="tab"
+                    @click="editTab = tab"
+                    class="px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors border-b-2 -mb-px capitalize"
+                    :class="editTab === tab
+                      ? 'border-violet-500 text-violet-400'
+                      : isDark ? 'border-transparent text-gray-500 hover:text-gray-300' : 'border-transparent text-gray-400 hover:text-gray-600'">
+                    <template v-if="tab === 'general'"><i class="fa-solid fa-sliders mr-1.5"></i>General</template>
+                    <template v-else-if="tab === 'perks'"><i class="fa-solid fa-star mr-1.5"></i>Perks</template>
+                    <template v-else><i class="fa-solid fa-shield-halved mr-1.5"></i>Staff Access</template>
+                  </button>
+                </div>
+
+                <!-- Tab: General -->
+                <div v-if="editTab === 'general'" class="space-y-4">
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label class="block text-xs font-medium mb-1" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Display Label</label>
+                      <input v-model="editLabel" type="text"
+                        class="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                        :class="isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium mb-1" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Color</label>
+                      <input v-model="editColor" type="color" class="w-full h-9 rounded-lg border cursor-pointer"
+                        :class="isDark ? 'border-gray-700 bg-gray-900' : 'border-gray-300 bg-white'" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium mb-1" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Priority (0-100)</label>
+                      <input v-model.number="editPriority" type="number" min="0" max="100"
+                        class="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                        :class="isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'" />
+                      <p class="text-[10px] mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Higher = more powerful. Admin should be highest.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tab: Perks -->
+                <div v-if="editTab === 'perks'">
+                  <p class="text-xs font-semibold uppercase tracking-wider mb-3"
+                    :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                    <i class="fa-solid fa-star mr-1.5 text-violet-400"></i>Perks for this group
+                  </p>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                    <label
+                      v-for="perk in ALL_PERKS"
+                      :key="perk.value"
+                      class="flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all text-xs font-medium select-none"
+                      :class="editPerks.includes(perk.value)
+                        ? 'bg-violet-600/15 border-violet-500 text-violet-300'
+                        : isDark ? 'border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-gray-800' : 'border-gray-200 text-gray-600 hover:border-violet-300 hover:bg-white'"
+                    >
+                      <input type="checkbox" :value="perk.value" v-model="editPerks" class="hidden" />
+                      <i class="fa-solid shrink-0"
+                        :class="editPerks.includes(perk.value) ? 'fa-square-check text-violet-400' : 'fa-square text-gray-500'"></i>
+                      {{ perk.label }}
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Tab: Staff Access -->
+                <div v-if="editTab === 'staff'" class="space-y-4">
+                  <!-- is_staff toggle -->
+                  <label class="flex items-center gap-3 cursor-pointer select-none">
+                    <div class="relative">
+                      <input type="checkbox" v-model="editIsStaff" class="sr-only" />
+                      <div class="w-10 h-5 rounded-full transition-colors"
+                        :class="editIsStaff ? 'bg-violet-600' : isDark ? 'bg-gray-700' : 'bg-gray-300'"></div>
+                      <div class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform"
+                        :class="editIsStaff ? 'translate-x-5' : ''"></div>
+                    </div>
+                    <span class="text-sm font-medium" :class="isDark ? 'text-gray-200' : 'text-gray-700'">
+                      Grant this group access to the Staff Panel
+                    </span>
                   </label>
+
+                  <!-- Staff permissions (shown when is_staff) -->
+                  <div v-if="editIsStaff" class="space-y-2">
+                    <p class="text-xs font-semibold uppercase tracking-wider"
+                      :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                      Staff Permissions
+                    </p>
+                    <label
+                      v-for="perm in ALL_STAFF_PERMISSIONS"
+                      :key="perm.value"
+                      class="flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-all select-none"
+                      :class="editStaffPermissions.includes(perm.value)
+                        ? 'bg-violet-600/15 border-violet-500'
+                        : isDark ? 'border-gray-700 hover:border-gray-500 hover:bg-gray-800' : 'border-gray-200 hover:border-violet-300 hover:bg-white'"
+                    >
+                      <input type="checkbox" :value="perm.value" v-model="editStaffPermissions" class="hidden" />
+                      <i class="fa-solid shrink-0"
+                        :class="editStaffPermissions.includes(perm.value) ? 'fa-square-check text-violet-400' : 'fa-square text-gray-500'"></i>
+                      <span class="text-sm font-medium"
+                        :class="editStaffPermissions.includes(perm.value) ? 'text-violet-300' : isDark ? 'text-gray-400' : 'text-gray-600'">
+                        {{ perm.label }}
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </td>
             </tr>

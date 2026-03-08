@@ -302,6 +302,22 @@ export const getAdminGithubSponsors = () => api.get('/admin/github-sponsors')
 export const grantSponsor = (userId) => api.post(`/admin/github-sponsors/${userId}/grant`)
 export const revokeSponsor = (userId) => api.post(`/admin/github-sponsors/${userId}/revoke`)
 
+// Staff Panel
+export const getStaffReports = (params) => api.get('/staffcp/reports', { params })
+export const updateStaffReport = (id, data) => api.put(`/staffcp/reports/${id}`, data)
+export const getStaffThreads = (params) => api.get('/staffcp/threads', { params })
+export const staffPinThread = (id) => api.put(`/staffcp/threads/${id}/pin`)
+export const staffLockThread = (id) => api.put(`/staffcp/threads/${id}/lock`)
+export const staffSolveThread = (id) => api.put(`/staffcp/threads/${id}/solve`)
+export const staffDeleteThread = (id) => api.delete(`/staffcp/threads/${id}`)
+export const staffDeletePost = (id) => api.delete(`/staffcp/posts/${id}`)
+export const getStaffUsers = (params) => api.get('/staffcp/users', { params })
+export const staffBanUser = (id, data) => api.post(`/staffcp/users/${id}/ban`, data)
+export const staffUnbanUser = (id) => api.delete(`/staffcp/users/${id}/ban`)
+export const getStaffAwards = () => api.get('/staffcp/awards')
+export const staffGrantAward = (userId, data) => api.post(`/staffcp/users/${userId}/awards`, data)
+export const staffRevokeAward = (userId, awardId) => api.delete(`/staffcp/users/${userId}/awards/${awardId}`)
+
 // Admin - Levels & XP
 export const getAdminLevels = () => api.get('/admin/levels')
 export const createAdminLevel = (data) => api.post('/admin/levels', data)

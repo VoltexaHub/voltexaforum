@@ -13,6 +13,8 @@ export const useAuthStore = defineStore('auth', {
     isLoggedIn: (state) => !!state.token && !!state.user,
     isAdmin: (state) => state.user?.roles?.some(r => r.name === 'admin') || false,
     isModerator: (state) => state.user?.roles?.some(r => r.name === 'moderator' || r.name === 'admin') || false,
+    isStaff: (state) => state.user?.is_staff === true,
+    staffPermissions: (state) => state.user?.staff_permissions ?? [],
     username: (state) => state.user?.username || '',
     credits: (state) => state.user?.credits || 0,
     avatarColor: (state) => state.user?.avatar_color || '#7c3aed',
@@ -60,6 +62,9 @@ export const useAuthStore = defineStore('auth', {
     },
     hasPerk(type) {
       return this.perks.includes(type)
+    },
+    hasStaffPermission(key) {
+      return this.staffPermissions.includes(key)
     },
     setAvatarUrl(url) {
       if (this.user) this.user = { ...this.user, avatar_url: url }
