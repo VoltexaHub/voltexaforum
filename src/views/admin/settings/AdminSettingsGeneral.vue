@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { getAdminConfig, updateAdminConfig, uploadLogo, removeLogo, getAdminGroups } from '../../../services/api'
 import { useToastStore } from '../../../stores/toast'
 import { useForumStore } from '../../../stores/forum'
@@ -48,6 +48,8 @@ async function fetchConfig() {
     if (d.logo_icon) logoIcon.value = d.logo_icon
     if (d.logo_icon_color) logoIconColor.value = d.logo_icon_color
     if (d.logo_image) logoImage.value = d.logo_image
+    await nextTick()
+    logoReady.value = true // enable logo watcher only after initial load
   } catch (e) {
     toast.show(e.response?.data?.message || 'Failed to load config', 'error')
   } finally {
@@ -71,9 +73,10 @@ async function saveLogoSettings() {
   }
 }
 
-// Auto-save logo type on change
+// Auto-save logo type on change (skip initial load)
+const logoReady = ref(false)
 watch(logoType, () => {
-  saveLogoSettings()
+  if (logoReady.value) saveLogoSettings()
 })
 
 async function handleLogoUpload(event) {
@@ -125,14 +128,16 @@ async function fetchLegendRoles() {
   try {
     const res = await getAdminGroups()
     const groups = res.data.data || res.data
-    legendRoles.value = (Array.isArray(groups) ? groups : []).map(g => ({
-      id: g.id,
-      name: g.name,
-      slug: g.role_name || g.slug || g.name.toLowerCase().replace(/\s+/g, '_'),
-      color: g.color || '#6b7280',
-      label: g.label || g.name,
-      show: true,
-    }))
+    legendRoles.value = (Array.isArray(groups) ? groups : [])
+      .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0)) // lowest priority first
+      .map(g => ({
+        id: g.id,
+        name: g.name,
+        color: g.color || '#6b7280',
+        label: g.label || g.name,
+        priority: g.priority ?? 0,
+        show: true,
+      }))
     // Restore saved legend config from fetched admin config
     const configRes = await getAdminConfig()
     const d = configRes.data.data || configRes.data

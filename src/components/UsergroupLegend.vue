@@ -23,8 +23,9 @@ const groups = computed(() => {
         .filter(Boolean)
     }
 
-    // Default: show all roles ordered by priority (highest first), excluding 'banned'
-    return forumStore.roles.filter(r => r.name !== 'banned')
+    // Default: show all roles ordered by priority (lowest first), excluding 'banned'
+    return [...forumStore.roles.filter(r => r.name !== 'banned')]
+      .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0))
   } catch {
     return forumStore.roles.filter(r => r.name !== 'banned')
   }
