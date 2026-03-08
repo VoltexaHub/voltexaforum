@@ -16,16 +16,17 @@ const groups = computed(() => {
     const raw = forumStore.config?.usergroup_legend_groups
     const names = raw ? JSON.parse(raw) : null
 
+    const byPriority = (a, b) => (a.priority ?? 0) - (b.priority ?? 0)
+
     if (names && Array.isArray(names)) {
-      // Admin configured a specific list — show those roles in that order (case-insensitive)
-      return names
-        .map(name => forumStore.roles.find(r => r.name.toLowerCase() === name.toLowerCase()))
-        .filter(Boolean)
+      // Admin configured a specific list — filter to those roles, sort by priority
+      return forumStore.roles
+        .filter(r => names.some(n => n.toLowerCase() === r.name.toLowerCase()))
+        .sort(byPriority)
     }
 
-    // Default: show all roles ordered by priority (lowest first), excluding 'banned'
-    return [...forumStore.roles.filter(r => r.name !== 'banned')]
-      .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0))
+    // Default: all roles except 'banned', sorted by priority ascending
+    return [...forumStore.roles.filter(r => r.name !== 'banned')].sort(byPriority)
   } catch {
     return forumStore.roles.filter(r => r.name !== 'banned')
   }
