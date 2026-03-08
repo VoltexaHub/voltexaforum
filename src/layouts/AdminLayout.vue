@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
 import { useNotificationsStore } from '../stores/notifications'
-import { getAdminDashboard } from '../services/api'
+import { getAdminDashboard, getAdminPlugins } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
 
 const route = useRoute()
@@ -14,6 +14,17 @@ const sidebarOpen = ref(false)
 const onlineCount = ref(0)
 const pendingReports = ref(0)
 const notificationStore = useNotificationsStore()
+const enabledPlugins = ref([])
+
+const pluginIcons = {
+  'announcements':   'fa-solid fa-bullhorn',
+  'status-page':     'fa-solid fa-heart-pulse',
+  'thread-polls':    'fa-solid fa-square-poll-vertical',
+  'code-paste':      'fa-solid fa-code',
+  'github-sponsors': 'fa-brands fa-github',
+  'bug-reports':     'fa-solid fa-bug',
+  'minecraft-sync':  'fa-solid fa-cubes',
+}
 
 onMounted(async () => {
   try {
@@ -22,11 +33,16 @@ onMounted(async () => {
     onlineCount.value = d.online_count ?? 0
     pendingReports.value = d.pending_reports ?? 0
   } catch {}
+
+  try {
+    const res = await getAdminPlugins()
+    enabledPlugins.value = (res.data.data || []).filter(p => p.installed && p.enabled)
+  } catch {}
 })
 
 const pageTitle = computed(() => route.meta?.title || 'Admin')
 
-const navSections = [
+const navSections = computed(() => [
   {
     label: 'Overview',
     items: [
@@ -76,7 +92,12 @@ const navSections = [
   {
     label: 'Plugins',
     items: [
-      { to: '/admin/plugins', label: 'Plugins', icon: 'fa-solid fa-puzzle-piece' },
+      { to: '/admin/plugins', label: 'Plugin Manager', icon: 'fa-solid fa-puzzle-piece' },
+      ...enabledPlugins.value.map(p => ({
+        to: `/admin/plugins?plugin=${p.slug}`,
+        label: p.name,
+        icon: pluginIcons[p.slug] || 'fa-solid fa-plug',
+      })),
     ],
   },
   {
@@ -87,12 +108,17 @@ const navSections = [
       { to: '/admin/settings/credits', label: 'Credits', icon: 'fa-solid fa-coins' },
     ],
   },
-]
+])
 
 function isActive(path) {
   if (path === '/admin/dashboard') return route.path === '/admin/dashboard' || route.path === '/admin'
-  // Exact match for paths that are prefixes of sibling nav items
-  if (path === '/admin/plugins') return route.path === '/admin/plugins'
+  // Plugin Manager — only active when no plugin query param
+  if (path === '/admin/plugins') return route.path === '/admin/plugins' && !route.query.plugin
+  // Plugin sub-items — match path + query param
+  if (path.startsWith('/admin/plugins?plugin=')) {
+    const slug = path.split('plugin=')[1]
+    return route.path === '/admin/plugins' && route.query.plugin === slug
+  }
   return route.path.startsWith(path)
 }
 </script>

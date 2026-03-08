@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getAdminPlugins, installPlugin, togglePlugin, uninstallPlugin } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
 
@@ -11,9 +12,11 @@ import AdminGithubSponsorsPlugin from './plugins/AdminGithubSponsorsPlugin.vue'
 import AdminBugReportsPlugin from './plugins/AdminBugReportsPlugin.vue'
 
 const toast = useToastStore()
+const route = useRoute()
+const router = useRouter()
 const plugins = ref([])
 const loading = ref(true)
-const selectedTab = ref('manager')
+const selectedTab = ref(route.query.plugin || 'manager')
 const showUploadModal = ref(false)
 const isDragging = ref(false)
 const showAvailable = ref(false)
@@ -96,7 +99,7 @@ async function doUninstall(slug) {
     await uninstallPlugin(slug)
     const idx = plugins.value.findIndex(p => p.slug === slug)
     if (idx !== -1) plugins.value[idx] = { ...plugins.value[idx], installed: false, enabled: false }
-    if (selectedTab.value === slug) selectedTab.value = 'manager'
+    if (selectedTab.value === slug) selectTab('manager')
     toast.success('Plugin uninstalled.')
   } catch {
     toast.error('Failed to uninstall plugin.')
@@ -104,7 +107,18 @@ async function doUninstall(slug) {
 }
 
 function selectPlugin(slug) {
+  selectTab(slug)
+}
+
+// Sync selectedTab with the ?plugin= query param (handles sidebar nav clicks)
+watch(() => route.query.plugin, (slug) => {
+  selectedTab.value = slug || 'manager'
+})
+
+// Keep URL in sync when tab is changed internally
+function selectTab(slug) {
   selectedTab.value = slug
+  router.replace({ path: '/admin/plugins', query: slug && slug !== 'manager' ? { plugin: slug } : {} })
 }
 
 onMounted(fetchPlugins)
@@ -138,7 +152,7 @@ onMounted(fetchPlugins)
           :class="selectedTab === 'manager'
             ? 'bg-violet-600/20 text-violet-300 border-violet-500'
             : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 border-transparent'"
-          @click="selectedTab = 'manager'"
+          @click="selectTab('manager')"
         >
           <i class="fa-solid fa-puzzle-piece text-xs"></i>
           Plugin Manager
