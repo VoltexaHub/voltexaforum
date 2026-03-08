@@ -29,11 +29,11 @@ export const useForumStore = defineStore('forum', {
   getters: {
     isMultiGame: (state) => state.config?.multi_game === true || state.config?.multi_game === 'true',
     isMaintenanceMode: (state) => state.config?.maintenance_mode === true || state.config?.maintenance_mode === 'true',
-    // Look up a role by name — returns {id, name, label, color, priority, is_staff}
-    roleByName: (state) => (name) => state.roles.find(r => r.name === name) || null,
-    roleColor: (state) => (name) => state.roles.find(r => r.name === name)?.color || '#6b7280',
+    // Look up a role by name — case-insensitive, returns {id, name, label, color, priority, is_staff}
+    roleByName: (state) => (name) => state.roles.find(r => r.name.toLowerCase() === (name || '').toLowerCase()) || null,
+    roleColor: (state) => (name) => state.roles.find(r => r.name.toLowerCase() === (name || '').toLowerCase())?.color || '#6b7280',
     roleLabel: (state) => (name) => {
-      const r = state.roles.find(r => r.name === name)
+      const r = state.roles.find(r => r.name.toLowerCase() === (name || '').toLowerCase())
       return r?.label || (name ? name.charAt(0).toUpperCase() + name.slice(1) : '')
     },
   },

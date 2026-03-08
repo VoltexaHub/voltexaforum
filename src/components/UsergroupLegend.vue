@@ -17,9 +17,9 @@ const groups = computed(() => {
     const names = raw ? JSON.parse(raw) : null
 
     if (names && Array.isArray(names)) {
-      // Admin configured a specific list — show those roles in that order
+      // Admin configured a specific list — show those roles in that order (case-insensitive)
       return names
-        .map(name => forumStore.roles.find(r => r.name === name))
+        .map(name => forumStore.roles.find(r => r.name.toLowerCase() === name.toLowerCase()))
         .filter(Boolean)
     }
 
