@@ -434,7 +434,6 @@ onMounted(async () => {
             >
               <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="role.show ? 'translate-x-6' : 'translate-x-1'" />
             </button>
-            </label>
           </div>
         </div>
       </div>
