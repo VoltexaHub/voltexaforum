@@ -67,6 +67,7 @@ const year = new Date().getFullYear()
           </h4>
           <ul class="space-y-2">
             <li><router-link to="/search" class="text-sm transition-colors hover:text-purple-accent" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Search</router-link></li>
+            <li><router-link to="/bugs" class="text-sm transition-colors hover:text-purple-accent" :class="isDark ? 'text-gray-500' : 'text-gray-400'"><i class="fa-solid fa-bug mr-1 text-xs"></i>Bug Reports</router-link></li>
             <li><a href="#" class="text-sm transition-colors hover:text-purple-accent" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Rules</a></li>
             <li><a href="#" class="text-sm transition-colors hover:text-purple-accent" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Privacy Policy</a></li>
             <li><a href="#" class="text-sm transition-colors hover:text-purple-accent" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Terms of Service</a></li>
