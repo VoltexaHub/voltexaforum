@@ -2,9 +2,11 @@
 import { ref, onMounted, inject } from 'vue'
 import { getAdminGroups, createAdminGroup, updateAdminGroup, deleteAdminGroup } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
+import { useForumStore } from '../../stores/forum'
 
 const isDark = inject('isDark')
 const toast = useToastStore()
+const forumStore = useForumStore()
 
 const groups = ref([])
 const loading = ref(true)
@@ -135,6 +137,7 @@ async function saveEdit(group) {
     if (idx !== -1) groups.value[idx] = { ...groups.value[idx], ...updated }
     cancelEdit()
     toast.show('Group saved.')
+    forumStore.fetchRoles() // keep legend + colors in sync
   } catch {
     toast.show('Failed to save group.', 'error')
   } finally {

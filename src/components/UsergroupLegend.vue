@@ -8,27 +8,32 @@ const forumStore = useForumStore()
 
 const show = computed(() => forumStore.config?.show_usergroup_legend === 'true')
 
+// Use role objects from the store, filtered/ordered by the config list if set
 const groups = computed(() => {
+  if (!forumStore.roles.length) return []
+
   try {
     const raw = forumStore.config?.usergroup_legend_groups
-    return raw ? JSON.parse(raw) : ['admin', 'moderator', 'vip', 'elite', 'member']
+    const names = raw ? JSON.parse(raw) : null
+
+    if (names && Array.isArray(names)) {
+      // Admin configured a specific list — show those roles in that order
+      return names
+        .map(name => forumStore.roles.find(r => r.name === name))
+        .filter(Boolean)
+    }
+
+    // Default: show all roles ordered by priority (highest first), excluding 'banned'
+    return forumStore.roles.filter(r => r.name !== 'banned')
   } catch {
-    return ['admin', 'moderator', 'vip', 'elite', 'member']
+    return forumStore.roles.filter(r => r.name !== 'banned')
   }
 })
-
-function groupColor(role) {
-  return forumStore.config?.[`group_color_${role}`] || '#6b7280'
-}
-
-function groupLabel(role) {
-  return forumStore.config?.[`group_label_${role}`] || role.charAt(0).toUpperCase() + role.slice(1)
-}
 </script>
 
 <template>
   <div
-    v-if="show"
+    v-if="show && groups.length"
     class="rounded-xl p-4 transition-colors duration-300"
     :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
   >
@@ -41,13 +46,13 @@ function groupLabel(role) {
         Groups
       </span>
       <div class="flex items-center gap-4 flex-wrap">
-        <div v-for="role in groups" :key="role" class="flex items-center gap-1.5">
+        <div v-for="role in groups" :key="role.id" class="flex items-center gap-1.5">
           <span
             class="w-2.5 h-2.5 rounded-full shrink-0"
-            :style="{ backgroundColor: groupColor(role) }"
+            :style="{ backgroundColor: role.color }"
           ></span>
-          <span class="text-sm font-medium" :style="{ color: groupColor(role) }">
-            {{ groupLabel(role) }}
+          <span class="text-sm font-medium" :style="{ color: role.color }">
+            {{ role.label }}
           </span>
         </div>
       </div>

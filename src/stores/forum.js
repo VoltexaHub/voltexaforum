@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
-import { getForumConfig, getForums } from '../services/api'
+import { getForumConfig, getForums, getRoles } from '../services/api'
 
 const CACHE_KEY = 'voltexahub_forum_config'
+const ROLES_CACHE_KEY = 'voltexahub_roles'
 
 function loadCachedConfig() {
   try {
@@ -10,9 +11,17 @@ function loadCachedConfig() {
   } catch { return null }
 }
 
+function loadCachedRoles() {
+  try {
+    const cached = localStorage.getItem(ROLES_CACHE_KEY)
+    return cached ? JSON.parse(cached) : []
+  } catch { return [] }
+}
+
 export const useForumStore = defineStore('forum', {
   state: () => ({
-    config: loadCachedConfig(), // load from cache instantly — no flash
+    config: loadCachedConfig(),
+    roles: loadCachedRoles(),
     categories: [],
     forums: [],
     loading: false,
@@ -20,6 +29,13 @@ export const useForumStore = defineStore('forum', {
   getters: {
     isMultiGame: (state) => state.config?.multi_game === true || state.config?.multi_game === 'true',
     isMaintenanceMode: (state) => state.config?.maintenance_mode === true || state.config?.maintenance_mode === 'true',
+    // Look up a role by name — returns {id, name, label, color, priority, is_staff}
+    roleByName: (state) => (name) => state.roles.find(r => r.name === name) || null,
+    roleColor: (state) => (name) => state.roles.find(r => r.name === name)?.color || '#6b7280',
+    roleLabel: (state) => (name) => {
+      const r = state.roles.find(r => r.name === name)
+      return r?.label || (name ? name.charAt(0).toUpperCase() + name.slice(1) : '')
+    },
   },
   actions: {
     async fetchConfig() {
@@ -29,6 +45,15 @@ export const useForumStore = defineStore('forum', {
         localStorage.setItem(CACHE_KEY, JSON.stringify(this.config))
       } catch {
         // silently fail — cached value still shown
+      }
+    },
+    async fetchRoles() {
+      try {
+        const res = await getRoles()
+        this.roles = res.data.data || []
+        localStorage.setItem(ROLES_CACHE_KEY, JSON.stringify(this.roles))
+      } catch {
+        // silently fail — cached roles still used
       }
     },
     async fetchForums() {

@@ -52,6 +52,7 @@ export const resetPassword = (data) => api.post('/auth/reset-password', data)
 
 // Forum
 export const getForumConfig = () => api.get('/forum/config')
+export const getRoles = () => api.get('/roles')
 export const getCategories = () => api.get('/categories')
 export const getForums = () => api.get('/forums')
 export const getForumThreads = (slug, page = 1, search = '') => api.get('/forums/' + slug + '/threads', { params: { page, ...(search ? { search } : {}) } })

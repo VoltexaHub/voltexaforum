@@ -43,6 +43,7 @@ async function injectCustomCode() {
 // Load forum config once on app boot — makes it available on any page/refresh
 onMounted(() => {
   forumStore.fetchConfig()
+  forumStore.fetchRoles()
   injectCustomCode()
 })
 
