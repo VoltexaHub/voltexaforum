@@ -34,17 +34,18 @@ async function fetchConfig() {
     groups.value.forEach(g => { defaults[g.name] = 1.0 })
     roleMultipliers.value = defaults
 
-    if (d.credits) {
-      Object.assign(creditsSettings.value, d.credits)
-      if (d.credits.role_credit_multipliers) {
-        try {
-          const parsed = typeof d.credits.role_credit_multipliers === 'string'
-            ? JSON.parse(d.credits.role_credit_multipliers)
-            : d.credits.role_credit_multipliers
-          // Merge saved values over defaults
-          Object.assign(roleMultipliers.value, parsed)
-        } catch {}
-      }
+    // Config is a flat key/value object — load each credits field directly
+    Object.keys(creditsSettings.value).forEach(key => {
+      if (d[key] !== undefined) creditsSettings.value[key] = Number(d[key])
+    })
+
+    if (d.role_credit_multipliers) {
+      try {
+        const parsed = typeof d.role_credit_multipliers === 'string'
+          ? JSON.parse(d.role_credit_multipliers)
+          : d.role_credit_multipliers
+        Object.assign(roleMultipliers.value, parsed)
+      } catch {}
     }
   } catch (e) {
     toast.show(e.response?.data?.message || 'Failed to load config', 'error')
