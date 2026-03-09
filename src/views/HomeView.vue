@@ -74,7 +74,7 @@ onMounted(async () => {
             <!-- Colored header bar -->
             <div
               class="py-3 px-4"
-              :class="cardColors[catIdx % cardColors.length] + ' opacity-90'"
+              :class="[cardColors[catIdx % cardColors.length], 'category-card-header']"
             >
               <h3 class="font-semibold text-sm uppercase tracking-wider text-white">
                 {{ category.name }}
