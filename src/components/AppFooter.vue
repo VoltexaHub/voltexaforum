@@ -63,9 +63,10 @@ const year = new Date().getFullYear()
           <h4 class="text-xs font-semibold uppercase tracking-wider mb-3" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Support</h4>
           <ul class="space-y-2">
             <li><router-link to="/search" class="text-sm transition-colors hover:text-purple-accent flex items-center gap-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'"><i class="fa-solid fa-magnifying-glass w-3.5 text-center text-xs"></i>Search</router-link></li>
-            <li><a href="#" class="text-sm transition-colors hover:text-purple-accent flex items-center gap-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'"><i class="fa-solid fa-scale-balanced w-3.5 text-center text-xs"></i>Rules</a></li>
-            <li><a href="#" class="text-sm transition-colors hover:text-purple-accent flex items-center gap-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'"><i class="fa-solid fa-lock w-3.5 text-center text-xs"></i>Privacy Policy</a></li>
-            <li><a href="#" class="text-sm transition-colors hover:text-purple-accent flex items-center gap-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'"><i class="fa-solid fa-file-lines w-3.5 text-center text-xs"></i>Terms of Service</a></li>
+            <li><router-link to="/help" class="text-sm transition-colors hover:text-purple-accent flex items-center gap-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'"><i class="fa-solid fa-circle-question w-3.5 text-center text-xs"></i>Help Center</router-link></li>
+            <li><router-link to="/rules" class="text-sm transition-colors hover:text-purple-accent flex items-center gap-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'"><i class="fa-solid fa-scale-balanced w-3.5 text-center text-xs"></i>Rules</router-link></li>
+            <li><router-link to="/privacy" class="text-sm transition-colors hover:text-purple-accent flex items-center gap-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'"><i class="fa-solid fa-lock w-3.5 text-center text-xs"></i>Privacy Policy</router-link></li>
+            <li><router-link to="/terms" class="text-sm transition-colors hover:text-purple-accent flex items-center gap-2" :class="isDark ? 'text-gray-500' : 'text-gray-400'"><i class="fa-solid fa-file-lines w-3.5 text-center text-xs"></i>Terms of Service</router-link></li>
           </ul>
         </div>
 
