@@ -28,7 +28,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
     <h1 class="text-2xl font-bold mb-6" :class="isDark ? 'text-white' : 'text-gray-900'">Rules</h1>
     <div class="rounded-xl p-8" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
       <div v-if="loading" class="animate-pulse space-y-3">
