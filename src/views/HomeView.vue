@@ -73,7 +73,8 @@ onMounted(async () => {
           >
             <!-- Colored header bar -->
             <div
-              class="px-4 py-3 flex items-center justify-between relative overflow-hidden category-card-header"
+              class="px-4 flex items-center justify-between relative overflow-hidden category-card-header"
+              :style="category.header_image ? 'min-height: 120px' : 'min-height: 56px'"
               :class="!category.header_image ? cardColors[catIdx % cardColors.length] : ''"
               :style="category.header_image ? { backgroundImage: `url(${category.header_image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}"
             >

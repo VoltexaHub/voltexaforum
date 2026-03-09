@@ -231,7 +231,7 @@ async function saveEdit() {
       if (editModal.headerImageFile || editModal.removeHeaderImage) {
         const fd = new FormData()
         for (const [key, val] of Object.entries(payload)) {
-          if (val !== null && val !== undefined) fd.append(key, val)
+          if (val !== null && val !== undefined) fd.append(key, typeof val === 'boolean' ? (val ? '1' : '0') : val)
         }
         if (editModal.headerImageFile) {
           fd.append('header_image', editModal.headerImageFile)
