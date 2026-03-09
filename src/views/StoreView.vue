@@ -163,7 +163,7 @@ async function handleMoneyPurchase(item) {
       payload.plisio_currency = selectedCrypto.value
     }
     const res = await createCheckout(payload)
-    const url = res.data?.url || res.data?.checkout_url
+    const url = res.data?.data?.url || res.data?.url || res.data?.checkout_url
     if (url) window.location.href = url
     else purchaseError.value = 'Could not start checkout. Please try again.'
   } catch (e) {
