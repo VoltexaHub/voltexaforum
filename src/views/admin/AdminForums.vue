@@ -35,6 +35,10 @@ const editModal = reactive({
     parent_forum_id: null,
     category_id: null,
   },
+  headerImageFile: null,
+  headerImagePreview: null,
+  existingHeaderImage: null,
+  removeHeaderImage: false,
 })
 
 // Flatten top-level forums for parent selection
@@ -178,6 +182,10 @@ function openEditModal(type, item, categoryId = null) {
   editModal.form.is_active = item.is_active !== false
   editModal.form.parent_forum_id = item.parent_forum_id || null
   editModal.form.category_id = categoryId || item.category_id || null
+  editModal.headerImageFile = null
+  editModal.headerImagePreview = null
+  editModal.existingHeaderImage = item.header_image || null
+  editModal.removeHeaderImage = false
   editModal.saving = false
   editModal.open = true
 }
@@ -196,6 +204,22 @@ function onEditParentChange() {
   }
 }
 
+function onHeaderImageChange(e) {
+  const file = e.target.files[0]
+  if (file) {
+    editModal.headerImageFile = file
+    editModal.headerImagePreview = URL.createObjectURL(file)
+    editModal.removeHeaderImage = false
+  }
+}
+
+function removeHeaderImage() {
+  editModal.headerImageFile = null
+  editModal.headerImagePreview = null
+  editModal.existingHeaderImage = null
+  editModal.removeHeaderImage = true
+}
+
 async function saveEdit() {
   editModal.saving = true
   try {
@@ -203,7 +227,22 @@ async function saveEdit() {
     if (editModal.type === 'category') {
       delete payload.parent_forum_id
       delete payload.category_id
-      await updateAdminCategory(editModal.id, payload)
+
+      if (editModal.headerImageFile || editModal.removeHeaderImage) {
+        const fd = new FormData()
+        for (const [key, val] of Object.entries(payload)) {
+          if (val !== null && val !== undefined) fd.append(key, val)
+        }
+        if (editModal.headerImageFile) {
+          fd.append('header_image', editModal.headerImageFile)
+        }
+        if (editModal.removeHeaderImage) {
+          fd.append('remove_header_image', '1')
+        }
+        await updateAdminCategory(editModal.id, fd)
+      } else {
+        await updateAdminCategory(editModal.id, payload)
+      }
     } else {
       await updateAdminForum(editModal.id, payload)
     }
@@ -472,6 +511,27 @@ onMounted(fetchTree)
             <div>
               <label class="block text-xs font-medium text-gray-400 mb-1">Description</label>
               <textarea v-model="editModal.form.description" rows="3" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none resize-none"></textarea>
+            </div>
+            <!-- Header Image (category only) -->
+            <div v-if="editModal.type === 'category'">
+              <label class="block text-xs font-medium text-gray-400 mb-1">Header Image</label>
+              <div v-if="editModal.headerImagePreview || editModal.existingHeaderImage" class="mb-2 flex items-center gap-3">
+                <img
+                  :src="editModal.headerImagePreview || editModal.existingHeaderImage"
+                  class="h-16 w-28 object-cover rounded-lg border border-gray-600"
+                />
+                <button
+                  @click="removeHeaderImage"
+                  type="button"
+                  class="px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                >Remove</button>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                @change="onHeaderImageChange"
+                class="block w-full text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-violet-600 file:text-white hover:file:bg-violet-700 file:cursor-pointer"
+              />
             </div>
             <!-- Display Order -->
             <div>

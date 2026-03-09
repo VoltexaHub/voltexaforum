@@ -73,15 +73,28 @@ onMounted(async () => {
           >
             <!-- Colored header bar -->
             <div
-              class="py-3 px-4"
-              :class="[cardColors[catIdx % cardColors.length], 'category-card-header']"
+              class="px-4 py-3 flex items-center justify-between relative overflow-hidden category-card-header"
+              :class="!category.header_image ? cardColors[catIdx % cardColors.length] : ''"
+              :style="category.header_image ? { backgroundImage: `url(${category.header_image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}"
             >
-              <h3 class="font-semibold text-sm uppercase tracking-wider text-white">
-                {{ category.name }}
-              </h3>
-              <p v-if="category.description" class="text-xs mt-0.5 text-white/70">
-                {{ category.description }}
-              </p>
+              <div v-if="category.header_image" class="absolute inset-0 bg-black/50" />
+              <div class="relative z-10 flex items-center justify-between w-full">
+                <div class="min-w-0">
+                  <h3 class="font-semibold text-sm uppercase tracking-wider text-white">
+                    {{ category.name }}
+                  </h3>
+                  <p v-if="category.description" class="text-xs mt-0.5 text-white/70 truncate">
+                    {{ category.description }}
+                  </p>
+                </div>
+                <span
+                  v-if="category.total_posts"
+                  class="shrink-0 ml-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-white/90 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1"
+                >
+                  <i class="fa-solid fa-comments text-[10px]"></i>
+                  {{ category.total_posts.toLocaleString() }} posts
+                </span>
+              </div>
             </div>
 
             <!-- Forum list (2-col grid) -->
