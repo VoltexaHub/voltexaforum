@@ -1,0 +1,178 @@
+<script setup>
+import { ref, inject, computed } from 'vue'
+import { createUpgradeCheckout, activateUpgradePlan } from '../services/api'
+
+const props = defineProps({
+  plan: Object,
+  show: Boolean,
+})
+
+const emit = defineEmits(['close'])
+
+const isDark = inject('isDark')
+const loading = ref(false)
+const error = ref('')
+const success = ref(false)
+
+const topFeatures = computed(() => {
+  if (!props.plan?.features) return []
+  return props.plan.features.filter(f => f.type === 'check').slice(0, 3)
+})
+
+const termBadge = computed(() => {
+  if (!props.plan) return ''
+  return { lifetime: 'One-time', monthly: 'Monthly', yearly: 'Yearly' }[props.plan.term] || props.plan.term
+})
+
+const isFree = computed(() => props.plan && Number(props.plan.price) === 0)
+
+async function handlePaid() {
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await createUpgradeCheckout(props.plan.id)
+    window.location.href = res.data.data.url
+  } catch (e) {
+    error.value = e.response?.data?.message || 'Failed to create checkout session.'
+    loading.value = false
+  }
+}
+
+async function handleFree() {
+  loading.value = true
+  error.value = ''
+  try {
+    await activateUpgradePlan(props.plan.id)
+    success.value = true
+    setTimeout(() => {
+      success.value = false
+      emit('close')
+      window.location.reload()
+    }, 2000)
+  } catch (e) {
+    error.value = e.response?.data?.message || 'Failed to activate plan.'
+  } finally {
+    loading.value = false
+  }
+}
+
+function close() {
+  if (!loading.value) {
+    error.value = ''
+    success.value = false
+    emit('close')
+  }
+}
+</script>
+
+<template>
+  <Teleport to="body">
+    <Transition name="modal">
+      <div v-if="show && plan" class="fixed inset-0 z-[9999] flex items-center justify-center p-4" @click.self="close">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close" />
+
+        <!-- Modal -->
+        <div
+          class="relative w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transform transition-all"
+          :class="isDark ? 'bg-gray-800' : 'bg-white'"
+        >
+          <!-- Close button -->
+          <button
+            @click="close"
+            class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+            :class="isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100'"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+
+          <!-- Header -->
+          <div class="px-6 pt-6 pb-5" :style="{ backgroundColor: plan.color + '18', borderBottom: '2px solid ' + plan.color + '30' }">
+            <h3 class="text-xl font-black" :style="{ color: plan.color }">{{ plan.name }}</h3>
+            <div class="flex items-end gap-2 mt-2">
+              <span class="text-3xl font-black" :class="isDark ? 'text-white' : 'text-gray-900'">
+                {{ isFree ? 'Free' : '$' + Number(plan.price).toFixed(2) }}
+              </span>
+              <span v-if="!isFree" class="text-sm pb-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                {{ { lifetime: 'Lifetime', monthly: '/ month', yearly: '/ year' }[plan.term] || plan.term }}
+              </span>
+            </div>
+            <span class="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+              :style="{ backgroundColor: plan.color + '25', color: plan.color }">
+              {{ termBadge }}
+            </span>
+          </div>
+
+          <!-- Content -->
+          <div class="px-6 py-5 space-y-4">
+            <!-- Top features -->
+            <div v-if="topFeatures.length">
+              <ul class="space-y-2">
+                <li v-for="(feat, i) in topFeatures" :key="i" class="flex items-center gap-2 text-sm">
+                  <i class="fa-solid fa-circle-check text-green-400 shrink-0"></i>
+                  <span :class="isDark ? 'text-gray-200' : 'text-gray-700'">{{ feat.label }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- One-time bonus -->
+            <div v-if="plan.one_time_bonus && plan.one_time_bonus.credits"
+              class="p-3 rounded-xl"
+              :class="isDark ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'">
+              <div class="flex items-center justify-between text-sm">
+                <span :class="isDark ? 'text-gray-300' : 'text-gray-600'">
+                  <i class="fa-solid fa-gift text-green-400 mr-1.5"></i>Bonus Credits
+                </span>
+                <span class="font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">+{{ plan.one_time_bonus.credits }}</span>
+              </div>
+            </div>
+
+            <!-- Error -->
+            <div v-if="error" class="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              {{ error }}
+            </div>
+
+            <!-- Success -->
+            <div v-if="success" class="p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center">
+              <i class="fa-solid fa-circle-check mr-1"></i> Upgrade activated successfully!
+            </div>
+
+            <!-- Action button -->
+            <button
+              v-if="!success"
+              @click="isFree ? handleFree() : handlePaid()"
+              :disabled="loading"
+              class="w-full py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+              :style="{ backgroundColor: isFree ? plan.color : '#22c55e' }"
+            >
+              <i v-if="loading" class="fa-solid fa-spinner fa-spin"></i>
+              <template v-else>
+                <i :class="isFree ? 'fa-solid fa-bolt' : 'fa-solid fa-lock'"></i>
+                {{ isFree ? 'Activate Now' : 'Continue to Payment' }}
+              </template>
+            </button>
+
+            <p v-if="!isFree && !success" class="text-center text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+              <i class="fa-solid fa-shield-halved mr-1"></i>Secure checkout powered by Stripe
+            </p>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<style scoped>
+.modal-enter-active, .modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+.modal-enter-active .relative, .modal-leave-active .relative {
+  transition: transform 0.2s ease;
+}
+.modal-enter-from, .modal-leave-to {
+  opacity: 0;
+}
+.modal-enter-from .relative {
+  transform: scale(0.95) translateY(10px);
+}
+</style>
