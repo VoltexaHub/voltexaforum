@@ -112,7 +112,7 @@ function truncate(str, len = 120) {
         <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-6" :class="isDark ? 'bg-violet-500/10 text-violet-400' : 'bg-violet-50 text-violet-600'">
           {{ article.category }}
         </span>
-        <div v-html="renderedMarkdown(article.content)" class="prose max-w-none" :class="isDark ? 'text-gray-300' : 'text-gray-700'" />
+        <div v-html="renderedMarkdown(article.content)" class="markdown-body" :class="isDark ? 'text-gray-300' : 'text-gray-700'" />
       </div>
 
       <router-link to="/help" class="inline-flex items-center gap-2 mt-6 text-sm text-violet-400 hover:text-violet-300 transition-colors">

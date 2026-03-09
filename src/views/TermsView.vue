@@ -36,7 +36,7 @@ onMounted(async () => {
         <div class="h-4 rounded w-1/2" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'" />
         <div class="h-4 rounded w-5/6" :class="isDark ? 'bg-gray-800' : 'bg-gray-200'" />
       </div>
-      <div v-else-if="content" v-html="renderedContent" class="prose max-w-none" :class="isDark ? 'text-gray-300' : 'text-gray-700'" />
+      <div v-else-if="content" v-html="renderedContent" class="markdown-body" :class="isDark ? 'text-gray-300' : 'text-gray-700'" />
       <div v-else class="text-center py-12" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
         No terms of service have been set yet.
       </div>
