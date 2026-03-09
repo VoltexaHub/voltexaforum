@@ -1,6 +1,6 @@
 <script setup>
-import { ref, inject, computed } from 'vue'
-import { createUpgradeCheckout, activateUpgradePlan } from '../services/api'
+import { ref, inject, computed, watch } from 'vue'
+import { createUpgradeCheckout, activateUpgradePlan, getEnabledPaymentProviders } from '../services/api'
 
 const props = defineProps({
   plan: Object,
@@ -13,6 +13,38 @@ const isDark = inject('isDark')
 const loading = ref(false)
 const error = ref('')
 const success = ref(false)
+
+const providers = ref([])
+const selectedProvider = ref(null)
+const providersLoading = ref(false)
+
+const providerMeta = {
+  stripe: { icon: 'fa-solid fa-credit-card', label: 'Credit / Debit Card' },
+  paypal: { icon: 'fa-brands fa-paypal', label: 'PayPal' },
+  coinbase: { icon: 'fa-solid fa-coins', label: 'Coinbase (Crypto)' },
+  lemonsqueezy: { icon: 'fa-solid fa-lemon', label: 'LemonSqueezy' },
+}
+
+function getProviderMeta(slug) {
+  return providerMeta[slug] || { icon: 'fa-solid fa-wallet', label: slug.charAt(0).toUpperCase() + slug.slice(1) }
+}
+
+watch(() => props.show, async (val) => {
+  if (val && providers.value.length === 0) {
+    providersLoading.value = true
+    try {
+      const res = await getEnabledPaymentProviders()
+      providers.value = res.data.data || res.data
+      if (providers.value.length > 0) selectedProvider.value = providers.value[0]
+    } catch {
+      // Fall back to stripe if endpoint unavailable
+      providers.value = ['stripe']
+      selectedProvider.value = 'stripe'
+    } finally {
+      providersLoading.value = false
+    }
+  }
+}, { immediate: true })
 
 const topFeatures = computed(() => {
   if (!props.plan?.features) return []
@@ -30,7 +62,7 @@ async function handlePaid() {
   loading.value = true
   error.value = ''
   try {
-    const res = await createUpgradeCheckout(props.plan.id)
+    const res = await createUpgradeCheckout(props.plan.id, selectedProvider.value)
     window.location.href = res.data.data.url
   } catch (e) {
     error.value = e.response?.data?.message || 'Failed to create checkout session.'
@@ -127,6 +159,26 @@ function close() {
               </div>
             </div>
 
+            <!-- Payment method selector (multiple providers) -->
+            <div v-if="!isFree && !success && providers.length > 1">
+              <p class="text-xs font-semibold uppercase tracking-wider mb-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Payment Method</p>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="p in providers"
+                  :key="p"
+                  @click="selectedProvider = p"
+                  class="px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-colors flex items-center gap-2"
+                  :class="selectedProvider === p
+                    ? 'border-purple-accent text-purple-accent'
+                    : isDark ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600' : 'bg-gray-100 border-gray-200 text-gray-600 hover:border-gray-300'"
+                  :style="selectedProvider === p ? { backgroundColor: 'rgb(139 92 246 / 0.15)' } : {}"
+                >
+                  <i :class="getProviderMeta(p).icon"></i>
+                  {{ getProviderMeta(p).label }}
+                </button>
+              </div>
+            </div>
+
             <!-- Error -->
             <div v-if="error" class="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
               {{ error }}
@@ -141,7 +193,7 @@ function close() {
             <button
               v-if="!success"
               @click="isFree ? handleFree() : handlePaid()"
-              :disabled="loading"
+              :disabled="loading || (!isFree && !selectedProvider)"
               class="w-full py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
               :style="{ backgroundColor: isFree ? plan.color : '#22c55e' }"
             >
@@ -153,7 +205,7 @@ function close() {
             </button>
 
             <p v-if="!isFree && !success" class="text-center text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-              <i class="fa-solid fa-shield-halved mr-1"></i>Secure checkout powered by Stripe
+              <i class="fa-solid fa-shield-halved mr-1"></i>Secure checkout
             </p>
           </div>
         </div>

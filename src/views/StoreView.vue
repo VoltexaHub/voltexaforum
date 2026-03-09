@@ -1,7 +1,7 @@
 <script setup>
 import { inject, ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import { getStoreItems, purchaseWithCredits, createCheckout } from '../services/api'
+import { getStoreItems, purchaseWithCredits, createCheckout, getEnabledPaymentProviders } from '../services/api'
 
 const isDark = inject('isDark')
 const authStore = useAuthStore()
@@ -14,6 +14,31 @@ const purchaseError = ref(null)
 const purchasingId = ref(null)
 
 const activeSection = ref('all')
+
+const availableProviders = ref([])
+const selectedProvider = ref(null)
+
+const providerMeta = {
+  stripe: { icon: 'fa-solid fa-credit-card', label: 'Credit / Debit Card' },
+  paypal: { icon: 'fa-brands fa-paypal', label: 'PayPal' },
+  coinbase: { icon: 'fa-solid fa-coins', label: 'Coinbase (Crypto)' },
+  lemonsqueezy: { icon: 'fa-solid fa-lemon', label: 'LemonSqueezy' },
+}
+
+function getProviderMeta(slug) {
+  return providerMeta[slug] || { icon: 'fa-solid fa-wallet', label: slug.charAt(0).toUpperCase() + slug.slice(1) }
+}
+
+async function fetchProviders() {
+  try {
+    const res = await getEnabledPaymentProviders()
+    availableProviders.value = res.data.data || res.data
+    if (availableProviders.value.length > 0) selectedProvider.value = availableProviders.value[0]
+  } catch {
+    availableProviders.value = ['stripe']
+    selectedProvider.value = 'stripe'
+  }
+}
 
 async function fetchStore() {
   loading.value = true
@@ -28,7 +53,10 @@ async function fetchStore() {
   }
 }
 
-onMounted(fetchStore)
+onMounted(() => {
+  fetchStore()
+  fetchProviders()
+})
 
 // Build sidebar nav: All + dynamic categories + Owned (if logged in)
 const sidebarLinks = computed(() => {
@@ -99,7 +127,7 @@ async function handleMoneyPurchase(item) {
   clearMessages()
   purchasingId.value = item.id
   try {
-    const res = await createCheckout({ store_item_id: item.id })
+    const res = await createCheckout({ store_item_id: item.id, provider: selectedProvider.value })
     const url = res.data?.url || res.data?.checkout_url
     if (url) window.location.href = url
     else purchaseError.value = 'Could not start checkout. Please try again.'
@@ -251,6 +279,23 @@ async function handleMoneyPurchase(item) {
                 </button>
               </div>
             </div>
+          </div>
+
+          <!-- Payment method selector (multiple providers) -->
+          <div v-if="availableProviders.length > 1" class="mb-4 flex flex-wrap items-center gap-2">
+            <span class="text-xs font-semibold uppercase tracking-wider mr-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Pay with:</span>
+            <button
+              v-for="p in availableProviders"
+              :key="p"
+              @click="selectedProvider = p"
+              class="px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-colors flex items-center gap-2"
+              :class="selectedProvider === p
+                ? 'bg-purple-accent/15 border-purple-accent text-purple-accent'
+                : isDark ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600' : 'bg-gray-100 border-gray-200 text-gray-600 hover:border-gray-300'"
+            >
+              <i :class="getProviderMeta(p).icon"></i>
+              {{ getProviderMeta(p).label }}
+            </button>
           </div>
 
           <!-- Empty state -->
