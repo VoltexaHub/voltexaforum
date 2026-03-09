@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, inject } from 'vue'
-import { getUpgradePlans } from '../services/api'
+import { getUpgradePlans, createUpgradeCheckout } from '../services/api'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 
@@ -10,6 +10,10 @@ const router = useRouter()
 
 const plans = ref([])
 const loading = ref(true)
+
+const checkoutPlan = ref(null)
+const checkoutLoading = ref(false)
+const checkoutError = ref(null)
 
 onMounted(async () => {
   try {
@@ -30,8 +34,29 @@ function termBadge(term) {
 
 function handlePurchase(plan) {
   if (!auth.isLoggedIn) { router.push('/login'); return }
-  // Will wire to Stripe checkout — for now route to store
-  router.push('/store')
+  checkoutPlan.value = plan
+  checkoutError.value = null
+}
+
+function closeCheckout() {
+  checkoutPlan.value = null
+  checkoutError.value = null
+  checkoutLoading.value = false
+}
+
+async function confirmCheckout() {
+  checkoutLoading.value = true
+  checkoutError.value = null
+  try {
+    const res = await createUpgradeCheckout(checkoutPlan.value.id)
+    const url = res.data?.data?.url
+    if (url) window.location.href = url
+    else checkoutError.value = 'Could not start checkout. Please try again.'
+  } catch (e) {
+    checkoutError.value = e.response?.data?.message || 'Checkout failed. Please try again.'
+  } finally {
+    checkoutLoading.value = false
+  }
 }
 </script>
 
@@ -181,5 +206,55 @@ function handlePurchase(plan) {
         </div>
       </div>
     </div>
+
+    <!-- Checkout confirmation modal -->
+    <Teleport to="body">
+      <div v-if="checkoutPlan" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="closeCheckout()">
+        <div class="fixed inset-0 bg-black/60" @click="closeCheckout()"></div>
+        <div class="relative z-10 w-full max-w-md rounded-2xl shadow-xl p-6"
+          :class="isDark ? 'bg-gray-800' : 'bg-white'">
+          <h3 class="text-xl font-bold mb-1" :style="{ color: checkoutPlan.color }">
+            {{ checkoutPlan.name }}
+          </h3>
+          <div class="flex items-baseline gap-2 mb-4">
+            <span class="text-2xl font-black" :class="isDark ? 'text-white' : 'text-gray-900'">
+              ${{ Number(checkoutPlan.price).toFixed(2) }}
+            </span>
+            <span class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+              {{ termLabel(checkoutPlan.term) }}
+            </span>
+          </div>
+
+          <div v-if="checkoutPlan.one_time_bonus && checkoutPlan.one_time_bonus.credits"
+            class="mb-4 px-3 py-2 rounded-lg text-sm flex items-center gap-2"
+            :class="isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-600'">
+            <i class="fa-solid fa-coins text-yellow-400"></i>
+            +{{ checkoutPlan.one_time_bonus.credits }} bonus credits
+          </div>
+
+          <div class="flex gap-3">
+            <button
+              @click="confirmCheckout()"
+              :disabled="checkoutLoading"
+              class="flex-1 py-2.5 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90 disabled:opacity-60"
+              :style="{ backgroundColor: checkoutPlan.color }">
+              <template v-if="checkoutLoading">
+                <i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Processing...
+              </template>
+              <template v-else>Confirm & Pay</template>
+            </button>
+            <button
+              @click="closeCheckout()"
+              :disabled="checkoutLoading"
+              class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-80"
+              :class="isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'">
+              Cancel
+            </button>
+          </div>
+
+          <p v-if="checkoutError" class="mt-3 text-sm text-red-400">{{ checkoutError }}</p>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

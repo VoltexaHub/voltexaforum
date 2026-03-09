@@ -43,6 +43,8 @@ const routes = [
   { path: '/forgot-password', name: 'ForgotPassword', component: ForgotPasswordView },
   { path: '/reset-password', name: 'ResetPassword', component: ResetPasswordView },
   { path: '/verify-email', name: 'VerifyEmail', component: () => import('../views/EmailVerifyView.vue') },
+  { path: '/upgrade/success', name: 'UpgradeSuccess', component: () => import('../views/UpgradeSuccessView.vue') },
+  { path: '/upgrade/cancel', name: 'UpgradeCancel', component: () => import('../views/UpgradeCancelView.vue') },
   { path: '/upgrade', name: 'Upgrade', component: () => import('../views/UpgradeView.vue') },
   { path: '/leaderboard', name: 'Leaderboard', component: () => import('../views/LeaderboardView.vue') },
   { path: '/tags/:slug', name: 'TagView', component: () => import('../views/TagView.vue') },
