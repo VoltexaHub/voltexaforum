@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import { getAdminUsers, banUser as banUserApi, unbanUser } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
 import UserAvatar from '../../components/UserAvatar.vue'
+import { formatRelative } from '../../utils/date'
 
 const toast = useToastStore()
 const loading = ref(true)
@@ -177,7 +178,7 @@ onMounted(fetchUsers)
                 <td class="px-5 py-3 text-gray-400">{{ (user.post_count || user.postCount || 0).toLocaleString() }}</td>
                 <td class="px-5 py-3 text-gray-400"><i class="fa-solid fa-coins mr-1"></i>{{ (user.credits || 0).toLocaleString() }}</td>
                 <td class="px-5 py-3 text-gray-400">{{ user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—' }}</td>
-                <td class="px-5 py-3 text-gray-400">{{ user.last_active || user.lastActive }}</td>
+                <td class="px-5 py-3 text-gray-400">{{ user.last_active_at ? formatRelative(user.last_active_at) : '—' }}</td>
                 <td class="px-5 py-3">
                   <div class="flex items-center gap-1">
                     <router-link
