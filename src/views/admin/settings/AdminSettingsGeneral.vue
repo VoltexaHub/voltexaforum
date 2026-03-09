@@ -14,10 +14,16 @@ const removingLogo = ref(false)
 const settings = ref({
   forum_name: 'My Forum',
   accent_color: '#7c3aed',
+  home_layout: 'classic',
   maintenance_mode: false,
   multi_game: false,
   show_usergroup_legend: false,
 })
+
+const homeLayoutOptions = [
+  { value: 'classic', label: 'Forum List' },
+  { value: 'card', label: 'Category Cards' },
+]
 
 const logoType = ref('both')
 const logoIcon = ref('fa-solid fa-bolt')
@@ -42,6 +48,7 @@ async function fetchConfig() {
     if (d.accent_color) settings.value.accent_color = d.accent_color
     if (d.maintenance_mode !== undefined) settings.value.maintenance_mode = d.maintenance_mode === true || d.maintenance_mode === 'true'
     if (d.show_usergroup_legend !== undefined) settings.value.show_usergroup_legend = d.show_usergroup_legend === true || d.show_usergroup_legend === 'true'
+    if (d.home_layout) settings.value.home_layout = d.home_layout
 
     // Logo settings
     if (d.logo_type) logoType.value = d.logo_type
@@ -346,6 +353,15 @@ onMounted(async () => {
               <input v-model="settings.accent_color" type="text" class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none font-mono" />
               <div class="w-9 h-9 rounded-lg border border-gray-600 shrink-0" :style="{ backgroundColor: settings.accent_color }" />
             </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-1.5">Home Layout</label>
+            <select
+              v-model="settings.home_layout"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none"
+            >
+              <option v-for="opt in homeLayoutOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+            </select>
           </div>
         </div>
 
