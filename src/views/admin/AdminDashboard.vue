@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { getAdminDashboard } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
 import UserAvatar from '../../components/UserAvatar.vue'
+import { formatRelative } from '../../utils/date'
 
 const toast = useToastStore()
 const loading = ref(true)
@@ -177,12 +178,12 @@ function activityIcon(type) {
                 <tr v-for="user in recentRegistrations" :key="user.username || user.id" class="hover:bg-gray-700/30 transition-colors">
                   <td class="px-5 py-3">
                     <div class="flex items-center gap-2">
-                      <UserAvatar :name="user.username" :color="user.avatar_color || user.color || 'bg-violet-500'" size="sm" />
+                      <UserAvatar :name="user.username" :color="user.avatar_color || '#7c3aed'" :avatar-url="user.avatar_path" size="sm" />
                       <span class="font-medium text-gray-200">{{ user.username }}</span>
                     </div>
                   </td>
                   <td class="px-5 py-3 text-gray-400">{{ user.email }}</td>
-                  <td class="px-5 py-3 text-gray-400">{{ user.joined || user.created_at }}</td>
+                  <td class="px-5 py-3 text-gray-400">{{ formatRelative(user.joined || user.created_at) }}</td>
                 </tr>
               </template>
             </tbody>
