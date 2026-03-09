@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getAdminConfig, updateAdminConfig, getPaymentProviders, updatePaymentProvider, uploadCustomGateway, deleteCustomGateway } from '../../../services/api'
+import { getAdminConfig, updateAdminConfig, getPaymentProviders, updatePaymentProvider, uploadCustomGateway, deleteCustomGateway, getStoreCurrency, updateStoreCurrency } from '../../../services/api'
 import { useToastStore } from '../../../stores/toast'
 
 const toast = useToastStore()
@@ -9,8 +9,26 @@ const saving = ref(false)
 
 const storeSettings = ref({
   store_enabled: true,
-  currency: 'USD',
 })
+
+const storeCurrency = ref('USD')
+const currencySaving = ref(false)
+
+const cryptoOptions = [
+  { code: 'BTC',  label: 'Bitcoin',      icon: 'fa-brands fa-bitcoin' },
+  { code: 'ETH',  label: 'Ethereum',     icon: 'fa-brands fa-ethereum' },
+  { code: 'LTC',  label: 'Litecoin',     icon: 'fa-solid fa-coins' },
+  { code: 'USDT', label: 'Tether',       icon: 'fa-solid fa-dollar-sign' },
+  { code: 'TRX',  label: 'TRON',         icon: 'fa-solid fa-bolt' },
+  { code: 'DOGE', label: 'Dogecoin',     icon: 'fa-solid fa-dog' },
+  { code: 'BCH',  label: 'Bitcoin Cash', icon: 'fa-solid fa-money-bill' },
+  { code: 'XMR',  label: 'Monero',       icon: 'fa-solid fa-eye-slash' },
+  { code: 'BNB',  label: 'BNB',          icon: 'fa-solid fa-cube' },
+  { code: 'SOL',  label: 'Solana',       icon: 'fa-solid fa-sun' },
+  { code: 'USDC', label: 'USD Coin',     icon: 'fa-solid fa-circle-dollar-to-slot' },
+  { code: 'DAI',  label: 'Dai',          icon: 'fa-solid fa-d' },
+  { code: 'MATIC',label: 'Polygon',      icon: 'fa-solid fa-hexagon-nodes' },
+]
 
 const providers = ref({})
 const configModal = ref(null)
@@ -62,6 +80,7 @@ const builtInProviders = {
     docsLabel: 'Get API Key →',
     fields: [
       { key: 'api_key', label: 'Secret Key', type: 'password' },
+      { key: 'currencies', label: 'Accepted Cryptocurrencies', type: 'cryptoselect' },
       { key: 'sandbox', label: 'Test Mode', type: 'toggle' },
     ],
   },
@@ -96,16 +115,45 @@ function getProviderMeta(key) {
 async function fetchConfig() {
   loading.value = true
   try {
-    const [configRes, provRes] = await Promise.all([getAdminConfig(), getPaymentProviders()])
+    const [configRes, provRes, currRes] = await Promise.all([getAdminConfig(), getPaymentProviders(), getStoreCurrency()])
     const d = configRes.data.data || configRes.data
     if (d.store_enabled !== undefined) storeSettings.value.store_enabled = d.store_enabled === 'true' || d.store_enabled === true
-    if (d.currency) storeSettings.value.currency = d.currency
     providers.value = provRes.data.data || {}
+    storeCurrency.value = currRes.data.data || 'USD'
   } catch (e) {
     toast.show(e.response?.data?.message || 'Failed to load config', 'error')
   } finally {
     loading.value = false
   }
+}
+
+async function saveStoreCurrency() {
+  currencySaving.value = true
+  try {
+    await updateStoreCurrency(storeCurrency.value.toUpperCase())
+    storeCurrency.value = storeCurrency.value.toUpperCase()
+    toast.show('Store currency saved')
+  } catch (e) {
+    toast.show(e.response?.data?.message || 'Failed to save currency', 'error')
+  } finally {
+    currencySaving.value = false
+  }
+}
+
+function toggleCrypto(code) {
+  const current = (modalForm.value.currencies || '').split(',').map(s => s.trim()).filter(Boolean)
+  const idx = current.indexOf(code)
+  if (idx >= 0) {
+    current.splice(idx, 1)
+  } else {
+    current.push(code)
+  }
+  modalForm.value.currencies = current.join(',')
+}
+
+function isCryptoSelected(code) {
+  const current = (modalForm.value.currencies || '').split(',').map(s => s.trim())
+  return current.includes(code)
 }
 
 async function saveStoreSettings() {
@@ -232,13 +280,21 @@ onMounted(fetchConfig)
           </button>
         </div>
 
-        <div class="max-w-xs">
-          <label class="block text-sm font-medium text-gray-400 mb-1.5">Currency</label>
-          <select v-model="storeSettings.currency" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none">
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR</option>
-            <option value="GBP">GBP</option>
-          </select>
+        <div class="flex items-end gap-3 max-w-sm">
+          <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-400 mb-1.5">Store Currency</label>
+            <div class="text-xs text-gray-500 mb-1.5">ISO 4217 code used for all prices (e.g. USD, EUR, GBP)</div>
+            <input
+              v-model="storeCurrency"
+              type="text"
+              maxlength="3"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none font-mono uppercase"
+              @input="storeCurrency = storeCurrency.toUpperCase().replace(/[^A-Z]/g, '')"
+            />
+          </div>
+          <button @click="saveStoreCurrency" :disabled="currencySaving || storeCurrency.length !== 3" class="px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+            {{ currencySaving ? 'Saving...' : 'Save' }}
+          </button>
         </div>
       </div>
 
@@ -432,6 +488,24 @@ onMounted(fetchConfig)
                 >
                   <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="modalForm[field.key] ? 'translate-x-6' : 'translate-x-1'" />
                 </button>
+              </div>
+              <div v-else-if="field.type === 'cryptoselect'">
+                <label class="block text-sm font-medium text-gray-400 mb-2">{{ field.label }}</label>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="opt in cryptoOptions"
+                    :key="opt.code"
+                    @click="toggleCrypto(opt.code)"
+                    class="px-3 py-1.5 rounded-lg border text-xs font-medium transition-all flex items-center gap-1.5"
+                    :class="isCryptoSelected(opt.code)
+                      ? 'bg-violet-600/20 border-violet-500 text-violet-300'
+                      : 'bg-gray-700 border-gray-600 text-gray-400 hover:border-gray-500'"
+                  >
+                    <i :class="opt.icon" class="text-sm"></i>
+                    {{ opt.code }}
+                  </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Selected: {{ modalForm[field.key] || 'None' }}</p>
               </div>
               <div v-else>
                 <label class="block text-sm font-medium text-gray-400 mb-1.5">{{ field.label }}</label>

@@ -170,7 +170,8 @@ onMounted(fetchItems)
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-400 mb-1">Icon (emoji)</label>
-          <input v-model="newItem.icon" type="text" placeholder="🎁" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+          <input v-model="newItem.icon" type="text" placeholder="🎁 or fa-solid fa-coins" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+          <p class="text-xs text-gray-500 mt-1">Emoji (🎁) or Font Awesome class (fa-solid fa-coins)</p>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-400 mb-1">Category</label>
@@ -284,7 +285,8 @@ onMounted(fetchItems)
               <tr v-for="item in items" :key="item.id" class="hover:bg-gray-700/30 transition-colors">
                 <td class="px-5 py-3">
                   <div class="flex items-center gap-2">
-                    <span class="text-base">{{ item.icon }}</span>
+                    <i v-if="item.icon?.startsWith('fa-')" :class="item.icon" class="text-base"></i>
+                    <span v-else class="text-base">{{ item.icon }}</span>
                     <span class="font-medium text-gray-200">{{ item.name }}</span>
                   </div>
                 </td>
@@ -352,7 +354,8 @@ onMounted(fetchItems)
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-400 mb-1">Icon (emoji)</label>
-                <input v-model="editForm.icon" type="text" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+                <input v-model="editForm.icon" type="text" placeholder="🎁 or fa-solid fa-coins" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+                <p class="text-xs text-gray-500 mt-1">Emoji (🎁) or Font Awesome class (fa-solid fa-coins)</p>
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-400 mb-1">Category</label>

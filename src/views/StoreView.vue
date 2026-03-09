@@ -1,7 +1,7 @@
 <script setup>
-import { inject, ref, computed, onMounted } from 'vue'
+import { inject, ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import { getStoreItems, purchaseWithCredits, createCheckout, getEnabledPaymentProviders } from '../services/api'
+import { getStoreItems, purchaseWithCredits, createCheckout, getEnabledPaymentProviders, getPlisioCurrencies } from '../services/api'
 
 const isDark = inject('isDark')
 const authStore = useAuthStore()
@@ -18,11 +18,29 @@ const activeSection = ref('all')
 const availableProviders = ref([])
 const selectedProvider = ref(null)
 
+const plisioCurrencies = ref([])
+const selectedCrypto = ref(null)
+
+const cryptoMeta = {
+  BTC:  { label: 'Bitcoin',      icon: 'fa-brands fa-bitcoin' },
+  ETH:  { label: 'Ethereum',     icon: 'fa-brands fa-ethereum' },
+  LTC:  { label: 'Litecoin',     icon: 'fa-solid fa-coins' },
+  USDT: { label: 'Tether',       icon: 'fa-solid fa-dollar-sign' },
+  TRX:  { label: 'TRON',         icon: 'fa-solid fa-bolt' },
+  DOGE: { label: 'Dogecoin',     icon: 'fa-solid fa-dog' },
+  BCH:  { label: 'Bitcoin Cash', icon: 'fa-solid fa-money-bill' },
+  XMR:  { label: 'Monero',       icon: 'fa-solid fa-eye-slash' },
+  BNB:  { label: 'BNB',          icon: 'fa-solid fa-cube' },
+  SOL:  { label: 'Solana',       icon: 'fa-solid fa-sun' },
+  USDC: { label: 'USD Coin',     icon: 'fa-solid fa-circle-dollar-to-slot' },
+  DAI:  { label: 'Dai',          icon: 'fa-solid fa-d' },
+  MATIC:{ label: 'Polygon',      icon: 'fa-solid fa-hexagon-nodes' },
+}
+
 const providerMeta = {
   stripe: { icon: 'fa-brands fa-stripe', label: 'Stripe' },
   paypal: { icon: 'fa-brands fa-paypal', label: 'PayPal' },
-  coinbase: { icon: 'fa-solid fa-coins', label: 'Coinbase (Crypto)' },
-  lemonsqueezy: { icon: 'fa-solid fa-lemon', label: 'LemonSqueezy' },
+  plisio: { icon: 'fa-solid fa-coins', label: 'Crypto (Plisio)' },
 }
 
 function getProviderMeta(slug) {
@@ -56,6 +74,19 @@ async function fetchStore() {
 onMounted(() => {
   fetchStore()
   fetchProviders()
+})
+
+watch(selectedProvider, async (val) => {
+  if (val === 'plisio' && plisioCurrencies.value.length === 0) {
+    try {
+      const res = await getPlisioCurrencies()
+      plisioCurrencies.value = res.data.data || []
+      if (plisioCurrencies.value.length > 0) selectedCrypto.value = plisioCurrencies.value[0]
+    } catch {
+      plisioCurrencies.value = ['BTC']
+      selectedCrypto.value = 'BTC'
+    }
+  }
 })
 
 // Build sidebar nav: All + dynamic categories + Owned (if logged in)
@@ -127,7 +158,11 @@ async function handleMoneyPurchase(item) {
   clearMessages()
   purchasingId.value = item.id
   try {
-    const res = await createCheckout({ store_item_id: item.id, provider: selectedProvider.value })
+    const payload = { store_item_id: item.id, provider: selectedProvider.value }
+    if (selectedProvider.value === 'plisio' && selectedCrypto.value) {
+      payload.plisio_currency = selectedCrypto.value
+    }
+    const res = await createCheckout(payload)
     const url = res.data?.url || res.data?.checkout_url
     if (url) window.location.href = url
     else purchaseError.value = 'Could not start checkout. Please try again.'
@@ -260,7 +295,8 @@ async function handleMoneyPurchase(item) {
           >
             <div class="bg-gradient-to-r from-purple-accent to-purple-700 h-1" />
             <div class="p-6 flex flex-col sm:flex-row items-center gap-6">
-              <span class="text-6xl">{{ featuredItem.icon }}</span>
+              <i v-if="featuredItem.icon?.startsWith('fa-')" :class="featuredItem.icon" class="text-6xl"></i>
+              <span v-else class="text-6xl">{{ featuredItem.icon }}</span>
               <div class="flex-1 text-center sm:text-left">
                 <div class="text-xs font-semibold uppercase tracking-wider text-purple-accent mb-1">Most Popular</div>
                 <h2 class="text-xl font-bold">{{ featuredItem.name }}</h2>
@@ -301,6 +337,25 @@ async function handleMoneyPurchase(item) {
             </button>
           </div>
 
+          <!-- Plisio crypto picker -->
+          <div v-if="selectedProvider === 'plisio' && plisioCurrencies.length > 0" class="mb-4 flex flex-wrap items-center gap-2">
+            <span class="text-xs font-semibold uppercase tracking-wider mr-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Crypto:</span>
+            <button
+              v-for="code in plisioCurrencies"
+              :key="code"
+              @click="selectedCrypto = code"
+              class="px-3 py-1.5 rounded-lg border text-xs font-medium transition-all flex items-center gap-1.5"
+              :class="[
+                selectedCrypto === code
+                  ? 'bg-purple-accent/15 border-purple-accent text-purple-accent'
+                  : isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-500'
+              ]"
+            >
+              <i :class="(cryptoMeta[code] || {}).icon || 'fa-solid fa-coins'" class="text-sm"></i>
+              {{ code }}
+            </button>
+          </div>
+
           <!-- Empty state -->
           <div
             v-if="filteredItems.length === 0"
@@ -338,7 +393,8 @@ async function handleMoneyPurchase(item) {
 
               <div class="p-5">
                 <div class="text-center mb-4">
-                  <span class="text-5xl">{{ item.icon }}</span>
+                  <i v-if="item.icon?.startsWith('fa-')" :class="item.icon" class="text-5xl"></i>
+                  <span v-else class="text-5xl">{{ item.icon }}</span>
                 </div>
                 <h3 class="font-bold text-center text-lg">{{ item.name }}</h3>
                 <div v-if="item.item_type === 'xp_boost'" class="flex justify-center mt-1">

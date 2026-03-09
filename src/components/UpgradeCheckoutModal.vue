@@ -1,6 +1,6 @@
 <script setup>
 import { ref, inject, computed, watch } from 'vue'
-import { createUpgradeCheckout, activateUpgradePlan, getEnabledPaymentProviders } from '../services/api'
+import { createUpgradeCheckout, activateUpgradePlan, getEnabledPaymentProviders, getPlisioCurrencies } from '../services/api'
 
 const props = defineProps({
   plan: Object,
@@ -18,11 +18,29 @@ const providers = ref([])
 const selectedProvider = ref(null)
 const providersLoading = ref(false)
 
+const plisioCurrencies = ref([])
+const selectedCrypto = ref(null)
+
+const cryptoMeta = {
+  BTC:  { label: 'Bitcoin',      icon: 'fa-brands fa-bitcoin' },
+  ETH:  { label: 'Ethereum',     icon: 'fa-brands fa-ethereum' },
+  LTC:  { label: 'Litecoin',     icon: 'fa-solid fa-coins' },
+  USDT: { label: 'Tether',       icon: 'fa-solid fa-dollar-sign' },
+  TRX:  { label: 'TRON',         icon: 'fa-solid fa-bolt' },
+  DOGE: { label: 'Dogecoin',     icon: 'fa-solid fa-dog' },
+  BCH:  { label: 'Bitcoin Cash', icon: 'fa-solid fa-money-bill' },
+  XMR:  { label: 'Monero',       icon: 'fa-solid fa-eye-slash' },
+  BNB:  { label: 'BNB',          icon: 'fa-solid fa-cube' },
+  SOL:  { label: 'Solana',       icon: 'fa-solid fa-sun' },
+  USDC: { label: 'USD Coin',     icon: 'fa-solid fa-circle-dollar-to-slot' },
+  DAI:  { label: 'Dai',          icon: 'fa-solid fa-d' },
+  MATIC:{ label: 'Polygon',      icon: 'fa-solid fa-hexagon-nodes' },
+}
+
 const providerMeta = {
   stripe: { icon: 'fa-brands fa-stripe', label: 'Stripe' },
   paypal: { icon: 'fa-brands fa-paypal', label: 'PayPal' },
-  coinbase: { icon: 'fa-solid fa-coins', label: 'Coinbase (Crypto)' },
-  lemonsqueezy: { icon: 'fa-solid fa-lemon', label: 'LemonSqueezy' },
+  plisio: { icon: 'fa-solid fa-coins', label: 'Crypto (Plisio)' },
 }
 
 function getProviderMeta(slug) {
@@ -37,14 +55,30 @@ watch(() => props.show, async (val) => {
       providers.value = res.data.data || res.data
       if (providers.value.length > 0) selectedProvider.value = providers.value[0]
     } catch {
-      // Fall back to stripe if endpoint unavailable
       providers.value = ['stripe']
       selectedProvider.value = 'stripe'
     } finally {
       providersLoading.value = false
     }
   }
+  if (val) {
+    selectedCrypto.value = null
+    plisioCurrencies.value = []
+  }
 }, { immediate: true })
+
+watch(selectedProvider, async (val) => {
+  if (val === 'plisio' && plisioCurrencies.value.length === 0) {
+    try {
+      const res = await getPlisioCurrencies()
+      plisioCurrencies.value = res.data.data || []
+      if (plisioCurrencies.value.length > 0) selectedCrypto.value = plisioCurrencies.value[0]
+    } catch {
+      plisioCurrencies.value = ['BTC']
+      selectedCrypto.value = 'BTC'
+    }
+  }
+})
 
 const topFeatures = computed(() => {
   if (!props.plan?.features) return []
@@ -62,7 +96,11 @@ async function handlePaid() {
   loading.value = true
   error.value = ''
   try {
-    const res = await createUpgradeCheckout(props.plan.id, selectedProvider.value)
+    const payload = { provider: selectedProvider.value }
+    if (selectedProvider.value === 'plisio' && selectedCrypto.value) {
+      payload.plisio_currency = selectedCrypto.value
+    }
+    const res = await createUpgradeCheckout(props.plan.id, payload)
     window.location.href = res.data.data.url
   } catch (e) {
     error.value = e.response?.data?.message || 'Failed to create checkout session.'
@@ -178,6 +216,26 @@ function close() {
                 >
                   <i :class="getProviderMeta(p).icon"></i>
                   {{ getProviderMeta(p).label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Plisio crypto picker -->
+            <div v-if="!isFree && !success && selectedProvider === 'plisio' && plisioCurrencies.length > 0">
+              <p class="text-xs font-semibold uppercase tracking-wider mb-2" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Pay with</p>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="code in plisioCurrencies"
+                  :key="code"
+                  @click="selectedCrypto = code"
+                  class="px-3 py-1.5 rounded-lg border text-xs font-medium transition-all flex items-center gap-1.5"
+                  :class="selectedCrypto === code
+                    ? 'border-current text-current'
+                    : isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-500'"
+                  :style="selectedCrypto === code ? { color: plan.color, backgroundColor: plan.color + '18', borderColor: plan.color } : {}"
+                >
+                  <i :class="(cryptoMeta[code] || {}).icon || 'fa-solid fa-coins'" class="text-sm"></i>
+                  {{ code }}
                 </button>
               </div>
             </div>

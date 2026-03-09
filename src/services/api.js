@@ -93,7 +93,7 @@ export const deleteSession = (id) => api.delete('/user/sessions/' + id)
 export const getStoreItems = (params) => api.get('/store/items', { params })
 
 // Upgrade Plans
-export const createUpgradeCheckout = (planId, provider) => api.post(`/upgrade-plans/${planId}/checkout`, provider ? { provider } : {})
+export const createUpgradeCheckout = (planId, data) => api.post(`/upgrade-plans/${planId}/checkout`, data || {})
 export const activateUpgradePlan = (planId) => api.post(`/upgrade-plans/${planId}/activate`)
 export const verifyUpgradeCheckout = (sessionId) => api.get("/upgrade-plans/checkout/verify", { params: { session_id: sessionId } })
 export const purchaseWithCredits = (data) => api.post('/store/purchase', data)
@@ -101,6 +101,9 @@ export const createCheckout = (data) => api.post('/store/checkout', data)
 
 // Payment Providers (public)
 export const getEnabledPaymentProviders = () => api.get('/payment-providers')
+export const getPlisioCurrencies = () => api.get('/payment-providers/plisio/currencies')
+export const getStoreCurrency = () => api.get('/store/currency')
+export const updateStoreCurrency = (currency) => api.put('/admin/store/currency', { currency })
 
 // Notifications
 export const getNotifications = () => api.get('/notifications')
