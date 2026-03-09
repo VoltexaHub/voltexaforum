@@ -55,7 +55,7 @@ async function handleUpload() {
   uploadError.value = ''
   try {
     const fd = new FormData()
-    fd.append('theme', uploadFile.value)
+    fd.append('file', uploadFile.value)
     await uploadTheme(fd)
     toast.success('Theme installed.')
     showUploadModal.value = false
