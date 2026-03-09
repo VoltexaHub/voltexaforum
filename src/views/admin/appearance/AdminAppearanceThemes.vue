@@ -128,13 +128,13 @@ onMounted(fetchThemes)
           <button
             v-if="!theme.active"
             class="px-3 py-1.5 text-xs font-medium rounded-lg bg-violet-600 hover:bg-violet-500 text-white transition-colors"
-            @click="handleActivate(theme.slug)"
+            @click="handleActivate(theme.id)"
           >Activate</button>
           <span v-else class="text-xs text-violet-400 font-medium">Currently active</span>
           <button
             v-if="!theme.built_in"
             class="ml-auto p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
-            @click="handleDelete(theme.slug)"
+            @click="handleDelete(theme.id)"
             title="Delete theme"
           >
             <i class="fa-solid fa-trash text-xs"></i>
