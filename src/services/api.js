@@ -281,6 +281,8 @@ export const reportContent = (hash, status) => api.post(`/locked-content/${hash}
 // Admin - Payment Providers
 export const getPaymentProviders = () => api.get('/admin/payment-providers')
 export const updatePaymentProvider = (provider, data) => api.put(`/admin/payment-providers/${provider}`, data)
+export const uploadCustomGateway = (formData) => api.post('/admin/payment-gateways/upload', formData)
+export const deleteCustomGateway = (slug) => api.delete(`/admin/payment-gateways/${slug}`)
 
 // Admin - Advertisements
 export const getAdminAds = () => api.get('/admin/advertisements')

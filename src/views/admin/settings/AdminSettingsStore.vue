@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { getAdminConfig, updateAdminConfig, getPaymentProviders, updatePaymentProvider } from '../../../services/api'
+import { ref, computed, onMounted } from 'vue'
+import { getAdminConfig, updateAdminConfig, getPaymentProviders, updatePaymentProvider, uploadCustomGateway, deleteCustomGateway } from '../../../services/api'
 import { useToastStore } from '../../../stores/toast'
 
 const toast = useToastStore()
@@ -13,66 +13,78 @@ const storeSettings = ref({
 })
 
 const providers = ref({})
-const configModal = ref(null) // provider key or null
+const configModal = ref(null)
 const modalForm = ref({})
 const modalSaving = ref(false)
 
-const providerMeta = {
+// Upload modal
+const uploadModal = ref(false)
+const uploadForm = ref({ file: null, slug: '', name: '' })
+const uploading = ref(false)
+
+// Delete confirm
+const deleteConfirm = ref(null)
+
+const builtInProviders = {
   stripe: {
     name: 'Stripe',
     icon: 'fa-brands fa-stripe',
     color: '#635bff',
-    description: 'Credit card payments via Stripe',
+    description: 'Credit card and debit card payments via Stripe',
     fields: [
-      { key: 'public_key', label: 'Public Key', type: 'text' },
+      { key: 'public_key', label: 'Publishable Key', type: 'text' },
       { key: 'secret_key', label: 'Secret Key', type: 'password' },
       { key: 'webhook_secret', label: 'Webhook Secret', type: 'password' },
-      { key: 'sandbox', label: 'Sandbox Mode', type: 'toggle' },
+      { key: 'sandbox', label: 'Test Mode', type: 'toggle' },
     ],
   },
   paypal: {
     name: 'PayPal',
     icon: 'fa-brands fa-paypal',
     color: '#003087',
-    description: 'PayPal checkout integration',
+    description: 'PayPal checkout for buyers worldwide',
     fields: [
       { key: 'client_id', label: 'Client ID', type: 'text' },
       { key: 'client_secret', label: 'Client Secret', type: 'password' },
       { key: 'sandbox', label: 'Sandbox Mode', type: 'toggle' },
     ],
   },
-  coinbase: {
-    name: 'Coinbase Commerce',
-    icon: 'fa-solid fa-bitcoin-sign',
-    color: '#0052ff',
-    description: 'Crypto payments via Coinbase',
+  plisio: {
+    name: 'Plisio',
+    icon: 'fa-solid fa-coins',
+    color: '#4f46e5',
+    description: 'Accept cryptocurrency payments via Plisio',
     fields: [
-      { key: 'api_key', label: 'API Key', type: 'text' },
-      { key: 'webhook_secret', label: 'Webhook Secret', type: 'password' },
+      { key: 'api_key', label: 'Secret Key', type: 'password' },
+      { key: 'sandbox', label: 'Test Mode', type: 'toggle' },
     ],
   },
-  lemonsqueezy: {
-    name: 'LemonSqueezy',
-    icon: 'fa-solid fa-lemon',
-    color: '#FFC233',
-    description: 'Digital product payments',
-    fields: [
-      { key: 'api_key', label: 'API Key', type: 'text' },
-      { key: 'store_id', label: 'Store ID', type: 'text' },
-      { key: 'webhook_secret', label: 'Webhook Secret', type: 'password' },
-    ],
-  },
-  philio: {
-    name: 'Philio',
+}
+
+const customGateways = computed(() => {
+  const result = {}
+  for (const [slug, data] of Object.entries(providers.value)) {
+    if (data.is_custom) {
+      result[slug] = data
+    }
+  }
+  return result
+})
+
+function getProviderMeta(key) {
+  if (builtInProviders[key]) return builtInProviders[key]
+  const data = providers.value[key] || {}
+  return {
+    name: data.name || key,
     icon: null,
     color: '#6366f1',
-    description: 'Philio merchant payments',
+    description: 'Custom payment gateway',
     fields: [
-      { key: 'api_key', label: 'API Key', type: 'text' },
-      { key: 'merchant_id', label: 'Merchant ID', type: 'text' },
+      { key: 'api_key', label: 'API Key', type: 'password' },
+      { key: 'webhook_secret', label: 'Webhook Secret', type: 'password' },
       { key: 'sandbox', label: 'Sandbox Mode', type: 'toggle' },
     ],
-  },
+  }
 }
 
 async function fetchConfig() {
@@ -128,12 +140,52 @@ async function saveConfig() {
     const key = configModal.value
     await updatePaymentProvider(key, modalForm.value)
     providers.value[key] = { ...providers.value[key], ...modalForm.value }
-    toast.show(`${providerMeta[key].name} settings saved`)
+    toast.show(`${getProviderMeta(key).name} settings saved`)
     closeConfig()
   } catch (e) {
     toast.show(e.response?.data?.message || 'Failed to save', 'error')
   } finally {
     modalSaving.value = false
+  }
+}
+
+function onFileChange(e) {
+  uploadForm.value.file = e.target.files[0] || null
+}
+
+async function submitUpload() {
+  if (!uploadForm.value.file || !uploadForm.value.slug || !uploadForm.value.name) return
+  uploading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', uploadForm.value.file)
+    fd.append('slug', uploadForm.value.slug)
+    fd.append('name', uploadForm.value.name)
+    await uploadCustomGateway(fd)
+    toast.show('Gateway uploaded successfully')
+    uploadModal.value = false
+    uploadForm.value = { file: null, slug: '', name: '' }
+    await fetchConfig()
+  } catch (e) {
+    toast.show(e.response?.data?.message || 'Upload failed', 'error')
+  } finally {
+    uploading.value = false
+  }
+}
+
+async function confirmDelete(slug) {
+  deleteConfirm.value = slug
+}
+
+async function doDelete() {
+  const slug = deleteConfirm.value
+  deleteConfirm.value = null
+  try {
+    await deleteCustomGateway(slug)
+    delete providers.value[slug]
+    toast.show('Gateway removed')
+  } catch (e) {
+    toast.show(e.response?.data?.message || 'Failed to delete', 'error')
   }
 }
 
@@ -184,7 +236,7 @@ onMounted(fetchConfig)
         </div>
       </div>
 
-      <!-- Payment Providers -->
+      <!-- Built-in Payment Providers -->
       <div class="space-y-4">
         <div class="flex items-center gap-3">
           <h3 class="text-base font-semibold text-white">Payment Providers</h3>
@@ -195,26 +247,17 @@ onMounted(fetchConfig)
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div
-            v-for="(meta, key) in providerMeta"
+            v-for="(meta, key) in builtInProviders"
             :key="key"
             class="bg-gray-800 rounded-xl border border-gray-700/50 p-5 flex flex-col gap-4"
           >
             <div class="flex items-start justify-between">
               <div class="flex items-center gap-3">
-                <!-- Icon / badge -->
                 <div
-                  v-if="meta.icon"
                   class="w-10 h-10 rounded-lg flex items-center justify-center"
                   :style="{ backgroundColor: meta.color + '15' }"
                 >
                   <i :class="meta.icon" class="text-lg" :style="{ color: meta.color }"></i>
-                </div>
-                <div
-                  v-else
-                  class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                  :style="{ backgroundColor: meta.color }"
-                >
-                  P
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
@@ -250,6 +293,96 @@ onMounted(fetchConfig)
           </div>
         </div>
       </div>
+
+      <!-- Custom Gateways -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h3 class="text-base font-semibold text-white">Custom Gateways</h3>
+            <span class="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-400 rounded-full text-xs font-semibold">
+              {{ Object.keys(customGateways).length }} uploaded
+            </span>
+          </div>
+          <button
+            @click="uploadModal = true"
+            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <i class="fa-solid fa-upload mr-1.5"></i> Upload Gateway
+          </button>
+        </div>
+
+        <!-- Gateway SDK info box -->
+        <div class="bg-gray-800/50 rounded-xl border border-indigo-500/20 p-4 space-y-2">
+          <div class="flex items-center gap-2 text-indigo-400 text-sm font-medium">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>Gateway SDK</span>
+          </div>
+          <p class="text-xs text-gray-400">Custom gateways must implement the <code class="text-indigo-300 bg-gray-700/50 px-1 py-0.5 rounded">PaymentGatewayInterface</code>. Download the example gateway to get started.</p>
+          <pre class="text-xs text-gray-500 bg-gray-900/50 rounded-lg p-3 overflow-x-auto font-mono leading-relaxed">interface PaymentGatewayInterface {
+  getName(): string
+  createCheckout(array $params): array  // ["url" => ..., "session_id" => ...]
+  verifyPayment(string $sessionId): bool
+}</pre>
+        </div>
+
+        <!-- Custom gateway list -->
+        <div v-if="Object.keys(customGateways).length" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            v-for="(data, slug) in customGateways"
+            :key="slug"
+            class="bg-gray-800 rounded-xl border border-gray-700/50 p-5 flex flex-col gap-4"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm bg-indigo-600">
+                  {{ (data.name || slug).charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-white">{{ data.name || slug }}</span>
+                    <span class="px-1.5 py-0.5 bg-indigo-500/10 text-indigo-400 rounded text-[10px] font-semibold uppercase">Custom</span>
+                    <span
+                      class="w-2 h-2 rounded-full"
+                      :class="data.enabled ? 'bg-green-500' : 'bg-gray-600'"
+                    ></span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-0.5">{{ slug }}</p>
+                </div>
+              </div>
+              <button
+                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+                :class="data.enabled ? 'bg-green-500' : 'bg-gray-600'"
+                @click="toggleProvider(slug)"
+              >
+                <span
+                  class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200"
+                  :class="data.enabled ? 'translate-x-5' : 'translate-x-0'"
+                ></span>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button
+                class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-medium rounded-lg transition-colors"
+                @click="openConfig(slug)"
+              >
+                <i class="fa-solid fa-gear mr-1"></i> Configure
+              </button>
+              <button
+                class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium rounded-lg transition-colors"
+                @click="confirmDelete(slug)"
+              >
+                <i class="fa-solid fa-trash mr-1"></i> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="bg-gray-800 rounded-xl border border-gray-700/50 p-8 text-center">
+          <i class="fa-solid fa-plug text-2xl text-gray-600 mb-2"></i>
+          <p class="text-sm text-gray-500">No custom gateways uploaded yet.</p>
+        </div>
+      </div>
     </template>
 
     <!-- Config Modal -->
@@ -258,15 +391,14 @@ onMounted(fetchConfig)
         <div class="absolute inset-0 bg-black/60" @click="closeConfig"></div>
         <div class="relative bg-gray-800 rounded-xl border border-gray-700/50 w-full max-w-lg p-6 space-y-5">
           <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold text-white">{{ providerMeta[configModal]?.name }} Settings</h3>
+            <h3 class="text-base font-semibold text-white">{{ getProviderMeta(configModal).name }} Settings</h3>
             <button class="text-gray-400 hover:text-white transition-colors" @click="closeConfig">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
 
           <div class="space-y-4">
-            <template v-for="field in providerMeta[configModal]?.fields" :key="field.key">
-              <!-- Toggle field -->
+            <template v-for="field in getProviderMeta(configModal).fields" :key="field.key">
               <div v-if="field.type === 'toggle'" class="flex items-center justify-between py-1">
                 <label class="text-sm font-medium text-gray-300">{{ field.label }}</label>
                 <button
@@ -277,7 +409,6 @@ onMounted(fetchConfig)
                   <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="modalForm[field.key] ? 'translate-x-6' : 'translate-x-1'" />
                 </button>
               </div>
-              <!-- Text / password field -->
               <div v-else>
                 <label class="block text-sm font-medium text-gray-400 mb-1.5">{{ field.label }}</label>
                 <input
@@ -302,6 +433,95 @@ onMounted(fetchConfig)
               class="px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
             >
               {{ modalSaving ? 'Saving...' : 'Save' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Upload Modal -->
+    <Teleport to="body">
+      <div v-if="uploadModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60" @click="uploadModal = false"></div>
+        <div class="relative bg-gray-800 rounded-xl border border-gray-700/50 w-full max-w-lg p-6 space-y-5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-semibold text-white">Upload Custom Gateway</h3>
+            <button class="text-gray-400 hover:text-white transition-colors" @click="uploadModal = false">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-1.5">Gateway File (.php)</label>
+              <input
+                type="file"
+                accept=".php,.txt"
+                @change="onFileChange"
+                class="w-full text-sm text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-700 file:text-gray-300 hover:file:bg-gray-600"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-1.5">Slug</label>
+              <input
+                v-model="uploadForm.slug"
+                type="text"
+                placeholder="e.g. mypay"
+                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none font-mono"
+              />
+              <p class="text-xs text-gray-500 mt-1">Lowercase letters, numbers, and underscores only.</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-1.5">Display Name</label>
+              <input
+                v-model="uploadForm.name"
+                type="text"
+                placeholder="e.g. MyPay Gateway"
+                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-2">
+            <button
+              class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium rounded-lg transition-colors"
+              @click="uploadModal = false"
+            >
+              Cancel
+            </button>
+            <button
+              @click="submitUpload"
+              :disabled="uploading || !uploadForm.file || !uploadForm.slug || !uploadForm.name"
+              class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              {{ uploading ? 'Uploading...' : 'Upload' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Delete Confirmation Modal -->
+    <Teleport to="body">
+      <div v-if="deleteConfirm" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60" @click="deleteConfirm = null"></div>
+        <div class="relative bg-gray-800 rounded-xl border border-gray-700/50 w-full max-w-sm p-6 space-y-4">
+          <h3 class="text-base font-semibold text-white">Delete Gateway</h3>
+          <p class="text-sm text-gray-400">Are you sure you want to delete the <strong class="text-white">{{ deleteConfirm }}</strong> gateway? This action cannot be undone.</p>
+          <div class="flex justify-end gap-3">
+            <button
+              class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium rounded-lg transition-colors"
+              @click="deleteConfirm = null"
+            >
+              Cancel
+            </button>
+            <button
+              @click="doDelete"
+              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Delete
             </button>
           </div>
         </div>
