@@ -126,8 +126,8 @@ onMounted(async () => {
 
             <!-- Last post footer -->
             <div
-              class="px-4 py-2.5 border-t text-xs flex items-center gap-2 min-h-[2.5rem]"
-              :class="isDark ? 'border-gray-800 text-gray-500' : 'border-gray-100 text-gray-400'"
+              class="px-4 py-3 border-t flex items-center gap-3"
+              :class="isDark ? 'border-gray-800/60 bg-gray-900/50' : 'border-gray-100 bg-gray-50/50'"
             >
               <template v-if="category.last_post_user">
                 <UserAvatar
@@ -137,22 +137,27 @@ onMounted(async () => {
                   :online="false"
                   size="sm"
                 />
-                <span :style="category.last_post_user.group_color ? { color: category.last_post_user.group_color } : {}" class="font-medium shrink-0">
-                  {{ category.last_post_user.username }}
-                </span>
-                <span>·</span>
-                <router-link
-                  v-if="category.last_post_thread"
-                  :to="`/thread/${category.last_post_thread.slug}`"
-                  class="truncate hover:text-purple-accent transition-colors"
-                  :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-                >
-                  {{ category.last_post_thread.title }}
-                </router-link>
-                <span class="shrink-0">·</span>
-                <span class="shrink-0">{{ category.last_post_at ? formatRelative(category.last_post_at) : '' }}</span>
+                <div class="min-w-0 flex-1">
+                  <router-link
+                    v-if="category.last_post_thread"
+                    :to="`/thread/${category.last_post_thread.slug}`"
+                    class="block text-xs font-medium truncate hover:text-purple-accent transition-colors leading-snug"
+                    :class="isDark ? 'text-gray-300' : 'text-gray-700'"
+                  >{{ category.last_post_thread.title }}</router-link>
+                  <div class="flex items-center gap-1 mt-0.5">
+                    <span class="text-[11px] font-medium" :style="category.last_post_user.group_color ? { color: category.last_post_user.group_color } : {}" :class="!category.last_post_user.group_color ? 'text-purple-accent' : ''">
+                      {{ category.last_post_user.username }}
+                    </span>
+                    <span class="text-[11px]" :class="isDark ? 'text-gray-600' : 'text-gray-400'">·</span>
+                    <span class="text-[11px]" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ category.last_post_at ? formatRelative(category.last_post_at) : '' }}</span>
+                  </div>
+                </div>
+                <i class="fa-solid fa-clock-rotate-left text-xs shrink-0" :class="isDark ? 'text-gray-700' : 'text-gray-300'"></i>
               </template>
-              <span v-else>No posts yet</span>
+              <template v-else>
+                <i class="fa-regular fa-comment text-xs" :class="isDark ? 'text-gray-700' : 'text-gray-300'"></i>
+                <span class="text-xs" :class="isDark ? 'text-gray-600' : 'text-gray-400'">No posts yet</span>
+              </template>
             </div>
           </div>
         </div>
