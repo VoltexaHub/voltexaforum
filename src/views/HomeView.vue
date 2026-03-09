@@ -64,11 +64,11 @@ onMounted(async () => {
     <div v-else>
       <!-- Card Grid Layout -->
       <div v-if="homeLayout === 'card'">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start" style="grid-auto-rows: 1fr">
           <div
             v-for="(category, catIdx) in categories"
             :key="category.id"
-            class="rounded-xl overflow-hidden border transition-colors duration-300"
+            class="rounded-xl overflow-hidden border transition-colors duration-300 flex flex-col h-full"
             :class="isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'"
           >
             <!-- Colored header bar -->
@@ -98,7 +98,7 @@ onMounted(async () => {
             </div>
 
             <!-- Forum list (2-col grid) -->
-            <div class="p-4">
+            <div class="p-4 flex-1">
               <div v-if="category.forums && category.forums.length" class="grid grid-cols-2 gap-x-4 gap-y-2">
                 <router-link
                   v-for="forum in category.forums.slice(0, 8)"
