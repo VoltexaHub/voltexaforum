@@ -11,6 +11,50 @@ const items = ref([])
 const showCreateForm = ref(false)
 const existingCategories = computed(() => [...new Set(items.value.map(i => i.category).filter(Boolean))])
 
+// Edit modal state
+const editItem = ref(null)
+const editForm = ref({})
+const editSaving = ref(false)
+const editBoostMultiplier = ref(2)
+const editBoostDurationHours = ref(1)
+
+function openEdit(item) {
+  editItem.value = item
+  editForm.value = { ...item }
+  // Parse XP boost fields if editing an xp_boost item
+  if (item.item_type === 'xp_boost' && item.item_value) {
+    try {
+      const parsed = JSON.parse(item.item_value)
+      editBoostMultiplier.value = parsed.multiplier || 2
+      editBoostDurationHours.value = parsed.duration_hours || 1
+    } catch {
+      editBoostMultiplier.value = 2
+      editBoostDurationHours.value = 1
+    }
+  } else {
+    editBoostMultiplier.value = 2
+    editBoostDurationHours.value = 1
+  }
+}
+
+async function saveEdit() {
+  editSaving.value = true
+  try {
+    const payload = { ...editForm.value }
+    if (payload.item_type === 'xp_boost') {
+      payload.item_value = JSON.stringify({ multiplier: editBoostMultiplier.value, duration_hours: editBoostDurationHours.value })
+    }
+    await updateAdminStoreItem(editItem.value.id, payload)
+    toast.show('Item updated')
+    editItem.value = null
+    await fetchItems()
+  } catch (e) {
+    toast.show(e.response?.data?.message || 'Failed to update', 'error')
+  } finally {
+    editSaving.value = false
+  }
+}
+
 const newItem = ref({
   name: '',
   slug: '',
@@ -261,6 +305,9 @@ onMounted(fetchItems)
                 </td>
                 <td class="px-5 py-3">
                   <div class="flex items-center gap-1">
+                    <button @click="openEdit(item)" class="p-1.5 rounded-lg hover:bg-violet-500/20 text-gray-400 hover:text-violet-400 transition-colors" title="Edit">
+                      <i class="fa-solid fa-pen w-4 h-4 text-sm"></i>
+                    </button>
                     <button @click="doDelete(item)" class="p-1.5 rounded-lg hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors" title="Delete">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -278,5 +325,131 @@ onMounted(fetchItems)
         No store items yet. Create your first item above.
       </div>
     </div>
+
+    <!-- Edit Modal -->
+    <Teleport to="body">
+      <div v-if="editItem" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="editItem = null"></div>
+        <div class="relative bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-lg w-full max-h-[85vh] flex flex-col">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-base font-semibold text-white">Edit Store Item</h3>
+            <button @click="editItem = null" class="p-1.5 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+
+          <!-- Scrollable body -->
+          <div class="overflow-y-auto flex-1 space-y-4 pr-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Name</label>
+                <input v-model="editForm.name" type="text" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Slug</label>
+                <input v-model="editForm.slug" type="text" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Icon (emoji)</label>
+                <input v-model="editForm.icon" type="text" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Category</label>
+                <input v-model="editForm.category" type="text" list="edit-category-suggestions" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+                <datalist id="edit-category-suggestions">
+                  <option v-for="cat in existingCategories" :key="cat" :value="cat" />
+                </datalist>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Price ($)</label>
+                <input v-model="editForm.price_money" type="number" step="0.01" placeholder="0.00" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Price (Credits)</label>
+                <input v-model="editForm.price_credits" type="number" placeholder="0" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Item Type</label>
+                <select v-model="editForm.item_type" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none">
+                  <option value="rank">Rank</option>
+                  <option value="currency">Currency (credits)</option>
+                  <option value="kit">Kit</option>
+                  <option value="cosmetic">Cosmetic</option>
+                  <option value="flair">Flair</option>
+                  <option value="postbit_bg">Postbit Background</option>
+                  <option value="xp_boost">XP Boost</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">{{ editForm.item_type === 'xp_boost' ? 'Boost Settings' : 'Command / Value' }}</label>
+                <template v-if="editForm.item_type === 'xp_boost'">
+                  <div class="flex gap-3">
+                    <div class="flex-1">
+                      <label class="block text-xs text-gray-500 mb-1">Multiplier</label>
+                      <select v-model="editBoostMultiplier" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none">
+                        <option :value="1.5">1.5x XP</option>
+                        <option :value="2">2x XP (Double)</option>
+                        <option :value="3">3x XP</option>
+                        <option :value="5">5x XP</option>
+                      </select>
+                    </div>
+                    <div class="flex-1">
+                      <label class="block text-xs text-gray-500 mb-1">Duration</label>
+                      <select v-model="editBoostDurationHours" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none">
+                        <option :value="1">1 Hour</option>
+                        <option :value="3">3 Hours</option>
+                        <option :value="6">6 Hours</option>
+                        <option :value="12">12 Hours</option>
+                        <option :value="24">24 Hours</option>
+                        <option :value="48">48 Hours</option>
+                        <option :value="168">1 Week</option>
+                      </select>
+                    </div>
+                  </div>
+                </template>
+                <input v-else v-model="editForm.item_value" type="text"
+                  :placeholder="editForm.item_type === 'postbit_bg' ? 'https://... (image/gif URL)' : editForm.item_type === 'currency' ? 'Amount e.g. 500' : editForm.item_type === 'flair' ? '🔥' : 'eco give {player} 500'"
+                  class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1">Description</label>
+              <textarea v-model="editForm.description" rows="2" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none resize-none" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Display Order</label>
+                <input v-model="editForm.display_order" type="number" placeholder="0" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+              </div>
+            </div>
+            <div class="flex items-center gap-6">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" v-model="editForm.is_active" class="rounded border-gray-600" />
+                <span class="text-sm text-gray-300">Active</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" v-model="editForm.is_featured" class="rounded border-gray-600" />
+                <span class="text-sm text-gray-300">Featured</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="flex gap-2 mt-5 pt-4 border-t border-gray-700">
+            <button
+              @click="saveEdit"
+              :disabled="editSaving"
+              class="px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg v-if="editSaving" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+              {{ editSaving ? 'Saving...' : 'Save Changes' }}
+            </button>
+            <button @click="editItem = null" class="px-4 py-2 bg-gray-700 text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
