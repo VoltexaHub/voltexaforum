@@ -14,6 +14,8 @@ const uploadError = ref('')
 async function fetchThemes() {
   try {
     const res = await getAdminThemes()
+    themes.value = []
+    await Promise.resolve() // flush Vue reactivity
     themes.value = res.data.data || res.data
   } catch {
     toast.error('Failed to load themes.')
