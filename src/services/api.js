@@ -134,6 +134,7 @@ export const updateAdminUser = (id, data) => api.put('/admin/users/' + id, data)
 export const banUser = (id, data) => api.post('/admin/users/' + id + '/ban', data)
 export const unbanUser = (id) => api.delete('/admin/users/' + id + '/ban')
 export const adjustUserCredits = (id, data) => api.post('/admin/users/' + id + '/credits', data)
+export const adjustUserXp = (id, data) => api.post(`/admin/users/${id}/xp`, data)
 export const grantAward = (id, data) => api.post('/admin/users/' + id + '/awards', data)
 export const revokeAward = (id, awardId) => api.delete('/admin/users/' + id + '/awards/' + awardId)
 
