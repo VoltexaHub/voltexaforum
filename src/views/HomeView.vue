@@ -74,10 +74,10 @@ onMounted(async () => {
             <!-- Colored header bar -->
             <div
               class="px-4 flex items-center justify-between relative overflow-hidden category-card-header"
-              :class="!category.header_image ? cardColors[catIdx % cardColors.length] : ''"
-              :style="category.header_image ? { backgroundImage: `url(${category.header_image})`, backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '120px' } : { minHeight: '56px' }"
+              :class="!category.header_color ? cardColors[catIdx % cardColors.length] : ''"
+              :style="category.header_color ? { backgroundColor: category.header_color, minHeight: '56px' } : { minHeight: '56px' }"
             >
-              <div v-if="category.header_image" class="absolute inset-0 bg-black/50" />
+
               <div class="relative z-10 flex items-center justify-between w-full">
                 <div class="min-w-0">
                   <h3 class="font-semibold text-sm uppercase tracking-wider text-white">

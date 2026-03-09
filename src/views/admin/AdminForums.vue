@@ -182,10 +182,7 @@ function openEditModal(type, item, categoryId = null) {
   editModal.form.is_active = item.is_active !== false
   editModal.form.parent_forum_id = item.parent_forum_id || null
   editModal.form.category_id = categoryId || item.category_id || null
-  editModal.headerImageFile = null
-  editModal.headerImagePreview = null
-  editModal.existingHeaderImage = item.header_image || null
-  editModal.removeHeaderImage = false
+  editModal.form.header_color = item.header_color || null
   editModal.saving = false
   editModal.open = true
 }
@@ -228,21 +225,7 @@ async function saveEdit() {
       delete payload.parent_forum_id
       delete payload.category_id
 
-      if (editModal.headerImageFile || editModal.removeHeaderImage) {
-        const fd = new FormData()
-        for (const [key, val] of Object.entries(payload)) {
-          if (val !== null && val !== undefined) fd.append(key, typeof val === 'boolean' ? (val ? '1' : '0') : val)
-        }
-        if (editModal.headerImageFile) {
-          fd.append('header_image', editModal.headerImageFile)
-        }
-        if (editModal.removeHeaderImage) {
-          fd.append('remove_header_image', '1')
-        }
-        await updateAdminCategory(editModal.id, fd)
-      } else {
-        await updateAdminCategory(editModal.id, payload)
-      }
+      await updateAdminCategory(editModal.id, payload)
     } else {
       await updateAdminForum(editModal.id, payload)
     }
@@ -512,26 +495,30 @@ onMounted(fetchTree)
               <label class="block text-xs font-medium text-gray-400 mb-1">Description</label>
               <textarea v-model="editModal.form.description" rows="3" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none resize-none"></textarea>
             </div>
-            <!-- Header Image (category only) -->
+            <!-- Header Color (category only) -->
             <div v-if="editModal.type === 'category'">
-              <label class="block text-xs font-medium text-gray-400 mb-1">Header Image</label>
-              <div v-if="editModal.headerImagePreview || editModal.existingHeaderImage" class="mb-2 flex items-center gap-3">
-                <img
-                  :src="editModal.headerImagePreview || editModal.existingHeaderImage"
-                  class="h-16 w-28 object-cover rounded-lg border border-gray-600"
+              <label class="block text-xs font-medium text-gray-400 mb-1">Header Color</label>
+              <div class="flex items-center gap-3">
+                <input
+                  type="color"
+                  v-model="editModal.form.header_color"
+                  class="w-10 h-10 rounded-lg border border-gray-600 cursor-pointer bg-transparent p-0.5"
+                />
+                <input
+                  type="text"
+                  v-model="editModal.form.header_color"
+                  placeholder="#7c3aed"
+                  maxlength="7"
+                  class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none font-mono"
                 />
                 <button
-                  @click="removeHeaderImage"
                   type="button"
-                  class="px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                >Remove</button>
+                  @click="editModal.form.header_color = null"
+                  class="px-2 py-1 text-xs text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
+                  title="Reset to default"
+                >Reset</button>
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                @change="onHeaderImageChange"
-                class="block w-full text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-violet-600 file:text-white hover:file:bg-violet-700 file:cursor-pointer"
-              />
+              <p class="text-xs text-gray-500 mt-1">Leave blank to use the default color cycle.</p>
             </div>
             <!-- Display Order -->
             <div>
