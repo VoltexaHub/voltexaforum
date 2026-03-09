@@ -3,7 +3,7 @@ import { provide, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from './composables/useTheme'
 import { useForumStore } from './stores/forum'
-import { getCustomCode } from './services/api'
+import { getCustomCode, getActiveThemeCss } from './services/api'
 import AppHeader from './components/AppHeader.vue'
 import AppFooter from './components/AppFooter.vue'
 import AppToast from './components/AppToast.vue'
@@ -40,11 +40,29 @@ async function injectCustomCode() {
   } catch {}
 }
 
+async function injectActiveThemeCss() {
+  try {
+    const css = await getActiveThemeCss()
+    const existing = document.getElementById('voltexahub-active-theme')
+    if (existing) existing.remove()
+    if (css && !css.includes('Default theme')) {
+      const style = document.createElement('style')
+      style.id = 'voltexahub-active-theme'
+      style.textContent = css
+      document.head.appendChild(style)
+    }
+  } catch {}
+}
+
+// Make injectable so admin themes page can re-trigger it
+window.__injectActiveThemeCss = injectActiveThemeCss
+
 // Load forum config once on app boot — makes it available on any page/refresh
 onMounted(() => {
   forumStore.fetchConfig()
   forumStore.fetchRoles()
   injectCustomCode()
+  injectActiveThemeCss()
 })
 
 // Apply accent color from config dynamically

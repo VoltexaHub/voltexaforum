@@ -190,6 +190,13 @@ export const createAdminGroup = (d) => api.post('/admin/groups', d)
 export const updateAdminGroup = (id, d) => api.put('/admin/groups/' + id, d)
 export const deleteAdminGroup = (id) => api.delete('/admin/groups/' + id)
 
+// Admin - Themes
+export const getAdminThemes = () => api.get('/admin/themes')
+export const uploadTheme = (formData) => api.post('/admin/themes/upload', formData)
+export const activateTheme = (slug) => api.post(`/admin/themes/${slug}/activate`)
+export const deleteTheme = (slug) => api.delete(`/admin/themes/${slug}`)
+export const getActiveThemeCss = () => fetch('/api/themes/active-css').then(r => r.text())
+
 // Admin - Plugins
 export const getAdminPlugins = () => api.get('/admin/plugins')
 export const installPlugin = (slug) => api.post('/admin/plugins/install', { slug })
