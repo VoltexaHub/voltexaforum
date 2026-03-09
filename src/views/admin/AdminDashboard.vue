@@ -124,8 +124,13 @@ function activityIcon(type) {
           class="flex items-center gap-3 px-5 py-3 hover:bg-gray-700/30 transition-colors"
         >
           <i :class="[activityIcon(event.type), 'text-sm text-violet-400 mt-0.5 shrink-0 w-4 text-center']"></i>
-          <span class="text-sm text-gray-300 flex-1">{{ event.text }}</span>
-          <span class="text-xs text-gray-500 shrink-0">{{ event.time }}</span>
+          <span class="text-sm text-gray-300 flex-1">
+            <span class="font-medium text-white">{{ event.user }}</span>
+            <span v-if="event.type === 'registration'"> joined</span>
+            <span v-else-if="event.type === 'purchase'"> purchased <span class="text-violet-400">{{ event.item }}</span></span>
+            <span v-else-if="event.type === 'thread'"> posted <span class="text-gray-400">{{ event.title }}</span></span>
+          </span>
+          <span class="text-xs text-gray-500 shrink-0">{{ event.at ? formatRelative(event.at) : '' }}</span>
         </div>
         <div v-if="!recentActivity.length" class="px-5 py-8 text-center text-sm text-gray-500">No recent activity</div>
       </div>
