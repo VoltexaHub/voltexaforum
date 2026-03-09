@@ -31,6 +31,8 @@ const builtInProviders = {
     icon: 'fa-brands fa-stripe',
     color: '#635bff',
     description: 'Credit card and debit card payments via Stripe',
+    docsUrl: 'https://dashboard.stripe.com/apikeys',
+    docsLabel: 'Get API Keys →',
     fields: [
       { key: 'public_key', label: 'Publishable Key', type: 'text' },
       { key: 'secret_key', label: 'Secret Key', type: 'password' },
@@ -43,6 +45,8 @@ const builtInProviders = {
     icon: 'fa-brands fa-paypal',
     color: '#003087',
     description: 'PayPal checkout for buyers worldwide',
+    docsUrl: 'https://developer.paypal.com/dashboard/',
+    docsLabel: 'Developer Dashboard →',
     fields: [
       { key: 'client_id', label: 'Client ID', type: 'text' },
       { key: 'client_secret', label: 'Client Secret', type: 'password' },
@@ -54,6 +58,8 @@ const builtInProviders = {
     icon: 'fa-solid fa-coins',
     color: '#4f46e5',
     description: 'Accept cryptocurrency payments via Plisio',
+    docsUrl: 'https://plisio.net/account/api',
+    docsLabel: 'Get API Key →',
     fields: [
       { key: 'api_key', label: 'Secret Key', type: 'password' },
       { key: 'sandbox', label: 'Test Mode', type: 'toggle' },
@@ -267,7 +273,16 @@ onMounted(fetchConfig)
                       :class="providers[key]?.enabled ? 'bg-green-500' : 'bg-gray-600'"
                     ></span>
                   </div>
-                  <p class="text-xs text-gray-400 mt-0.5">{{ meta.description }}</p>
+                  <p class="text-xs text-gray-400 mt-0.5">
+                    {{ meta.description }}
+                    <a
+                      v-if="meta.docsUrl"
+                      :href="meta.docsUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="ml-1 text-purple-accent hover:underline"
+                    >{{ meta.docsLabel }}</a>
+                  </p>
                 </div>
               </div>
               <button
@@ -391,7 +406,16 @@ onMounted(fetchConfig)
         <div class="absolute inset-0 bg-black/60" @click="closeConfig"></div>
         <div class="relative bg-gray-800 rounded-xl border border-gray-700/50 w-full max-w-lg p-6 space-y-5">
           <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold text-white">{{ getProviderMeta(configModal).name }} Settings</h3>
+            <div>
+              <h3 class="text-base font-semibold text-white">{{ getProviderMeta(configModal).name }} Settings</h3>
+              <a
+                v-if="getProviderMeta(configModal).docsUrl"
+                :href="getProviderMeta(configModal).docsUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-xs text-purple-accent hover:underline"
+              >{{ getProviderMeta(configModal).docsLabel }}</a>
+            </div>
             <button class="text-gray-400 hover:text-white transition-colors" @click="closeConfig">
               <i class="fa-solid fa-xmark"></i>
             </button>
