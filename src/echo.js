@@ -4,13 +4,13 @@ import Pusher from 'pusher-js'
 window.Pusher = Pusher
 
 export default new Echo({
-  broadcaster: 'pusher',
-  key: import.meta.env.VITE_PUSHER_APP_KEY || 'voltexahub-key',
-  wsHost: import.meta.env.VITE_PUSHER_HOST || window.location.hostname,
-  wsPort: import.meta.env.VITE_PUSHER_PORT || 6001,
-  wssPort: import.meta.env.VITE_PUSHER_PORT || 6001,
-  forceTLS: false,
-  enabledTransports: ['ws'],
+  broadcaster: 'reverb',
+  key: import.meta.env.VITE_REVERB_APP_KEY || 'voltexahub-key',
+  wsHost: import.meta.env.VITE_REVERB_HOST || window.location.hostname,
+  wsPort: import.meta.env.VITE_REVERB_PORT || 443,
+  wssPort: import.meta.env.VITE_REVERB_PORT || 443,
+  forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'https') === 'https',
+  enabledTransports: ['ws', 'wss'],
   authEndpoint: `${window.location.origin}/broadcasting/auth`,
   auth: {
     headers: {

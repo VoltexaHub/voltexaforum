@@ -91,6 +91,10 @@ export const deleteSession = (id) => api.delete('/user/sessions/' + id)
 
 // Store
 export const getStoreItems = (params) => api.get('/store/items', { params })
+
+// Upgrade Plans
+export const createUpgradeCheckout = (planId) => api.post(`/upgrade-plans/${planId}/checkout`)
+export const activateUpgradePlan = (planId) => api.post(`/upgrade-plans/${planId}/activate`)
 export const purchaseWithCredits = (data) => api.post('/store/purchase', data)
 export const createCheckout = (data) => api.post('/store/checkout', data)
 

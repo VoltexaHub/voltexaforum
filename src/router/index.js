@@ -46,6 +46,8 @@ const routes = [
   { path: '/upgrade/success', name: 'UpgradeSuccess', component: () => import('../views/UpgradeSuccessView.vue') },
   { path: '/upgrade/cancel', name: 'UpgradeCancel', component: () => import('../views/UpgradeCancelView.vue') },
   { path: '/upgrade', name: 'Upgrade', component: () => import('../views/UpgradeView.vue') },
+  { path: '/upgrade/success', name: 'UpgradeSuccess', component: () => import('../views/UpgradeSuccess.vue') },
+  { path: '/upgrade/cancel', name: 'UpgradeCancel', redirect: '/upgrade' },
   { path: '/leaderboard', name: 'Leaderboard', component: () => import('../views/LeaderboardView.vue') },
   { path: '/tags/:slug', name: 'TagView', component: () => import('../views/TagView.vue') },
   { path: '/status', name: 'StatusPage', component: () => import('../views/StatusPage.vue') },
