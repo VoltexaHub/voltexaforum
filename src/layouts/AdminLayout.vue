@@ -62,6 +62,7 @@ const navSections = computed(() => [
     items: [
       { to: '/admin/settings/forums', label: 'Forums', icon: 'fa-solid fa-comments' },
       { to: '/admin/thread-prefixes', label: 'Thread Prefixes', icon: 'fa-solid fa-tag' },
+      { to: '/admin/content', label: 'Pages & Help', icon: 'fa-solid fa-file-lines' },
     ],
   },
   {

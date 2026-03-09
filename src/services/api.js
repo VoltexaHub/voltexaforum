@@ -363,3 +363,14 @@ export const getStaffBugReports = (params) => api.get('/staff/bug-reports', { pa
 export const getStaffBugReport = (id) => api.get(`/staff/bug-reports/${id}`)
 export const updateStaffBugReport = (id, data) => api.put(`/staff/bug-reports/${id}`, data)
 export const deleteStaffBugReport = (id) => api.delete(`/staff/bug-reports/${id}`)
+
+// Content Pages
+export const getContentPage = (page) => api.get(`/content/pages/${page}`)
+export const getHelpArticles = () => api.get('/content/help')
+export const getHelpArticle = (slug) => api.get(`/content/help/${slug}`)
+export const getAdminContentPages = () => api.get('/admin/content/pages')
+export const updateAdminContentPages = (data) => api.put('/admin/content/pages', data)
+export const getAdminHelpArticles = () => api.get('/admin/content/help')
+export const createHelpArticle = (data) => api.post('/admin/content/help', data)
+export const updateHelpArticle = (id, data) => api.put(`/admin/content/help/${id}`, data)
+export const deleteHelpArticle = (id) => api.delete(`/admin/content/help/${id}`)

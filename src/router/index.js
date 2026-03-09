@@ -54,6 +54,11 @@ const routes = [
   { path: '/bugs', name: 'BugReports', component: () => import('../views/bugs/BugReportsView.vue'), meta: { title: 'Bug Reports', requiresAuth: true } },
   { path: '/bugs/submit', name: 'BugReportSubmit', component: () => import('../views/bugs/BugReportSubmit.vue'), meta: { title: 'Submit Bug Report', requiresAuth: true } },
   { path: '/bugs/:id', name: 'BugReportView', component: () => import('../views/bugs/BugReportView.vue'), meta: { title: 'Bug Report', requiresAuth: true } },
+  { path: '/rules', name: 'Rules', component: () => import('../views/RulesView.vue'), meta: { title: 'Rules' } },
+  { path: '/privacy', name: 'Privacy', component: () => import('../views/PrivacyView.vue'), meta: { title: 'Privacy Policy' } },
+  { path: '/terms', name: 'Terms', component: () => import('../views/TermsView.vue'), meta: { title: 'Terms of Service' } },
+  { path: '/help', name: 'HelpCenter', component: () => import('../views/HelpView.vue'), meta: { title: 'Help Center' } },
+  { path: '/help/:slug', name: 'HelpArticle', component: () => import('../views/HelpView.vue'), meta: { title: 'Help Center' } },
 
   // Staff routes — lazy loaded
   {
@@ -86,6 +91,7 @@ const routes = [
       { path: 'groups', name: 'AdminGroups', component: () => import('../views/admin/AdminGroups.vue'), meta: { title: 'Groups & Roles' } },
       { path: 'moderation', name: 'AdminModeration', component: () => import('../views/admin/AdminModeration.vue'), meta: { title: 'Moderation' } },
       // Content
+      { path: 'content', name: 'AdminContent', component: () => import('../views/admin/AdminContent.vue'), meta: { title: 'Content' } },
 
       // Commerce
 
