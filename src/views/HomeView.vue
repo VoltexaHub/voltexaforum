@@ -107,8 +107,8 @@ onMounted(async () => {
                   class="flex items-center gap-2 text-sm truncate transition-colors hover:text-purple-accent"
                   :class="isDark ? 'text-gray-300' : 'text-gray-700'"
                 >
-                  <span class="w-2 h-2 rounded-full bg-purple-accent shrink-0"></span>
-                  <i v-if="forum.icon" :class="[forum.icon, 'text-xs text-purple-accent opacity-70']"></i>
+                  <i v-if="forum.icon" :class="[forum.icon, 'text-xs text-purple-accent w-3 text-center shrink-0']"></i>
+                  <span v-else class="w-2 h-2 rounded-full bg-purple-accent shrink-0"></span>
                   <span class="truncate">{{ forum.name }}</span>
                 </router-link>
               </div>
