@@ -19,7 +19,7 @@ const availableProviders = ref([])
 const selectedProvider = ref(null)
 
 const providerMeta = {
-  stripe: { icon: 'fa-solid fa-credit-card', label: 'Credit / Debit Card' },
+  stripe: { icon: 'fa-brands fa-stripe', label: 'Stripe' },
   paypal: { icon: 'fa-brands fa-paypal', label: 'PayPal' },
   coinbase: { icon: 'fa-solid fa-coins', label: 'Coinbase (Crypto)' },
   lemonsqueezy: { icon: 'fa-solid fa-lemon', label: 'LemonSqueezy' },
@@ -281,17 +281,20 @@ async function handleMoneyPurchase(item) {
             </div>
           </div>
 
-          <!-- Payment method selector (multiple providers) -->
-          <div v-if="availableProviders.length > 1" class="mb-4 flex flex-wrap items-center gap-2">
+          <!-- Payment method selector (always shown when providers loaded) -->
+          <div v-if="availableProviders.length > 0" class="mb-4 flex flex-wrap items-center gap-2">
             <span class="text-xs font-semibold uppercase tracking-wider mr-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Pay with:</span>
             <button
               v-for="p in availableProviders"
               :key="p"
               @click="selectedProvider = p"
-              class="px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-colors flex items-center gap-2"
-              :class="selectedProvider === p
-                ? 'bg-purple-accent/15 border-purple-accent text-purple-accent'
-                : isDark ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600' : 'bg-gray-100 border-gray-200 text-gray-600 hover:border-gray-300'"
+              class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors flex items-center gap-2"
+              :class="[
+                availableProviders.length > 1 ? 'cursor-pointer' : 'cursor-default pointer-events-none',
+                selectedProvider === p
+                  ? 'bg-purple-accent/15 border-purple-accent text-purple-accent'
+                  : isDark ? 'bg-gray-800 border-gray-700 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-600'
+              ]"
             >
               <i :class="getProviderMeta(p).icon"></i>
               {{ getProviderMeta(p).label }}
