@@ -183,7 +183,7 @@ function activityIcon(type) {
                 <tr v-for="user in recentRegistrations" :key="user.username || user.id" class="hover:bg-gray-700/30 transition-colors">
                   <td class="px-5 py-3">
                     <div class="flex items-center gap-2">
-                      <UserAvatar :name="user.username" :color="user.avatar_color || '#7c3aed'" size="sm" />
+                      <UserAvatar :name="user.username" :color="user.avatar_color || '#7c3aed'" :avatar-url="user.avatar_url || null" size="sm" />
                       <span class="font-medium text-gray-200">{{ user.username }}</span>
                     </div>
                   </td>
