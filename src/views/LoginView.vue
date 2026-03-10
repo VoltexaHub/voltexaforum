@@ -20,7 +20,8 @@ async function handleLogin() {
   try {
     const { login: apiLogin } = await import('../services/api')
     const res = await apiLogin({ email: email.value, password: password.value })
-    const data = res.data.data
+    // MFA response is returned unwrapped; normal login is wrapped in data.data
+    const data = res.data.requires_mfa ? res.data : res.data.data
 
     if (data.requires_mfa) {
       localStorage.setItem('mfa_temp_token', data.temp_token)
