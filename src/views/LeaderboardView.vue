@@ -7,6 +7,7 @@ const isDark = inject('isDark')
 const type = ref('credits')
 const period = ref('all')
 const entries = ref([])
+const yourRank = ref(null)
 const loading = ref(true)
 
 const types = [
@@ -14,6 +15,7 @@ const types = [
   { key: 'posts', label: 'Posts', icon: 'fa-solid fa-comment' },
   { key: 'threads', label: 'Threads', icon: 'fa-solid fa-newspaper' },
   { key: 'reactions', label: 'Reactions', icon: 'fa-solid fa-heart' },
+  { key: 'xp', label: 'XP', icon: 'fa-solid fa-star' },
 ]
 
 const periods = [
@@ -27,6 +29,13 @@ const typeConfig = {
   posts:     { icon: 'fa-solid fa-comment',    color: 'text-blue-400',   label: 'Posts' },
   threads:   { icon: 'fa-solid fa-newspaper',  color: 'text-green-400',  label: 'Threads' },
   reactions: { icon: 'fa-solid fa-heart',      color: 'text-pink-400',   label: 'Reactions' },
+  xp:        { icon: 'fa-solid fa-star',       color: 'text-yellow-400', label: 'XP' },
+}
+
+function formatJoinDate(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr + 'T00:00:00')
+  return 'Joined ' + d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
 async function load() {
@@ -34,8 +43,10 @@ async function load() {
   try {
     const res = await getLeaderboard({ type: type.value, period: period.value })
     entries.value = res.data.data || []
+    yourRank.value = res.data.your_rank || null
   } catch {
     entries.value = []
+    yourRank.value = null
   } finally {
     loading.value = false
   }
@@ -219,6 +230,11 @@ const medals = ['🥇', '🥈', '🥉']
             <p v-if="entry.user?.user_title" class="text-xs mt-1" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
               {{ entry.user.user_title }}
             </p>
+
+            <!-- Level badge -->
+            <span v-if="entry.user?.level" class="inline-block bg-purple-accent/15 text-purple-accent text-[10px] font-semibold px-1.5 py-0.5 rounded-full mt-1">
+              Lv. {{ entry.user.level }}
+            </span>
           </div>
 
           <!-- Divider -->
@@ -280,6 +296,9 @@ const medals = ['🥇', '🥈', '🥉']
                 <span v-if="entry.user.user_title" class="text-xs truncate block" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
                   {{ entry.user.user_title }}
                 </span>
+                <span v-if="entry.user?.level" class="inline-block bg-purple-accent/15 text-purple-accent text-[10px] font-semibold px-1.5 py-0.5 rounded-full mt-0.5">
+                  Lv. {{ entry.user.level }}
+                </span>
               </div>
             </router-link>
           </div>
@@ -292,12 +311,55 @@ const medals = ['🥇', '🥈', '🥉']
             >
               {{ entry.user.group_label }}
             </span>
+            <p v-if="entry.user?.join_date" class="text-[10px] mt-0.5" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
+              {{ formatJoinDate(entry.user.join_date) }}
+            </p>
           </div>
 
           <!-- Value -->
           <div class="text-right font-semibold text-sm flex items-center justify-end gap-1.5">
             <i :class="[typeConfig[type].icon, typeConfig[type].color]" class="text-xs"></i>
             <span :class="isDark ? 'text-gray-200' : 'text-gray-700'">{{ entry.value?.toLocaleString() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Your rank banner -->
+      <div v-if="yourRank && !yourRank.in_top"
+        class="rounded-xl border border-purple-accent/30 overflow-hidden"
+        :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'"
+      >
+        <div class="px-5 py-2.5 text-xs font-semibold uppercase tracking-wider"
+          :class="isDark ? 'bg-purple-accent/10 text-purple-accent border-b border-purple-accent/20' : 'bg-purple-50 text-purple-accent border-b border-purple-accent/20'"
+        >
+          Your position
+        </div>
+        <div class="grid grid-cols-[60px_1fr_140px_120px] gap-4 items-center px-5 py-3.5">
+          <div class="text-center font-bold text-sm text-purple-accent">
+            #{{ yourRank.rank }}
+          </div>
+          <div class="flex items-center gap-3 min-w-0">
+            <UserAvatar :name="yourRank.user?.username" :avatar-url="yourRank.user?.avatar_url" :avatar-color="yourRank.user?.avatar_color" size="sm" />
+            <div class="min-w-0">
+              <span class="font-medium text-sm truncate block" :style="yourRank.user?.group_color ? { color: yourRank.user.group_color } : {}">
+                {{ yourRank.user?.username }}
+              </span>
+              <span v-if="yourRank.user?.level" class="inline-block bg-purple-accent/15 text-purple-accent text-[10px] font-semibold px-1.5 py-0.5 rounded-full mt-0.5">
+                Lv. {{ yourRank.user.level }}
+              </span>
+            </div>
+          </div>
+          <div>
+            <span v-if="yourRank.user?.group_label"
+              class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+              :style="{ backgroundColor: (yourRank.user.group_color || '#6b7280') + '22', color: yourRank.user.group_color || '#6b7280' }"
+            >
+              {{ yourRank.user.group_label }}
+            </span>
+          </div>
+          <div class="text-right font-semibold text-sm flex items-center justify-end gap-1.5">
+            <i :class="[typeConfig[type].icon, typeConfig[type].color]" class="text-xs"></i>
+            <span :class="isDark ? 'text-gray-200' : 'text-gray-700'">{{ yourRank.value?.toLocaleString() }}</span>
           </div>
         </div>
       </div>
@@ -334,6 +396,9 @@ const medals = ['🥇', '🥈', '🥉']
                 <span v-if="entry.user.user_title" class="text-xs truncate block" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
                   {{ entry.user.user_title }}
                 </span>
+                <span v-if="entry.user?.level" class="inline-block bg-purple-accent/15 text-purple-accent text-[10px] font-semibold px-1.5 py-0.5 rounded-full mt-0.5">
+                  Lv. {{ entry.user.level }}
+                </span>
               </div>
             </router-link>
           </div>
@@ -344,6 +409,9 @@ const medals = ['🥇', '🥈', '🥉']
             >
               {{ entry.user.group_label }}
             </span>
+            <p v-if="entry.user?.join_date" class="text-[10px] mt-0.5" :class="isDark ? 'text-gray-600' : 'text-gray-400'">
+              {{ formatJoinDate(entry.user.join_date) }}
+            </p>
           </div>
           <div class="text-right font-semibold text-sm flex items-center justify-end gap-1.5">
             <i :class="[typeConfig[type].icon, typeConfig[type].color]" class="text-xs"></i>
