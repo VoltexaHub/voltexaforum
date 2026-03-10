@@ -560,7 +560,7 @@ async function handleRevokeAllSessions() {
                 :class="isDark ? 'border-gray-800 bg-gray-800/30' : 'border-gray-100 bg-gray-50'"
               >
                 <div class="flex items-center gap-3">
-                  <i :class="session.is_current ? 'fa-solid fa-laptop' : 'fa-solid fa-desktop'" class="text-xl" :class="isDark ? 'text-gray-400' : 'text-gray-500'"></i>
+                  <i :class="[session.is_current ? 'fa-solid fa-laptop' : 'fa-solid fa-desktop', 'text-xl', isDark ? 'text-gray-400' : 'text-gray-500']"></i>
                   <div>
                     <div class="flex items-center gap-2">
                       <p class="font-medium text-sm">{{ session.name || 'Session' }}</p>
