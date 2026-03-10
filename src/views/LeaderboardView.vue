@@ -70,22 +70,43 @@ const medals = ['🥇', '🥈', '🥉']
       </div>
     </div>
 
-    <!-- Type tabs -->
-    <div class="flex gap-2 flex-wrap">
-      <button
-        v-for="t in types" :key="t.key"
-        @click="type = t.key"
-        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors"
-        :class="type === t.key
-          ? 'bg-purple-accent text-white'
-          : isDark ? 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700' : 'bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200'"
-      >
-        <i :class="t.icon" class="text-xs"></i> {{ t.label }}
-      </button>
+    <!-- Type tabs — mobile: select, desktop: pills -->
+    <div>
+      <!-- Mobile select -->
+      <div class="sm:hidden flex gap-2">
+        <select
+          v-model="type"
+          class="flex-1 px-4 py-3 rounded-lg font-medium border transition-colors"
+          :class="isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'"
+        >
+          <option v-for="t in types" :key="t.key" :value="t.key">{{ t.label }}</option>
+        </select>
+        <select
+          v-model="period"
+          class="px-4 py-3 rounded-lg font-medium border transition-colors"
+          :class="isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'"
+        >
+          <option v-for="p in periods" :key="p.key" :value="p.key">{{ p.label }}</option>
+        </select>
+      </div>
+
+      <!-- Desktop pills -->
+      <div class="hidden sm:flex gap-2 flex-wrap">
+        <button
+          v-for="t in types" :key="t.key"
+          @click="type = t.key"
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors"
+          :class="type === t.key
+            ? 'bg-purple-accent text-white'
+            : isDark ? 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700' : 'bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200'"
+        >
+          <i :class="t.icon" class="text-xs"></i> {{ t.label }}
+        </button>
+      </div>
     </div>
 
-    <!-- Period tabs -->
-    <div class="flex gap-1.5">
+    <!-- Period tabs (desktop only — mobile uses select above) -->
+    <div class="hidden sm:flex gap-1.5">
       <button
         v-for="p in periods" :key="p.key"
         @click="period = p.key"
