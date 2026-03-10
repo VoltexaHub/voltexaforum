@@ -36,7 +36,7 @@ const passwordError = ref('')
 onMounted(async () => {
   try {
     const res = await getMfaStatus()
-    mfaEnabled.value = res.data.data?.mfa_enabled || false
+    mfaEnabled.value = res.data.enabled || false
   } catch {
     // ignore
   } finally {
