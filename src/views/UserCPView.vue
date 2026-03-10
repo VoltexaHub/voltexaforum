@@ -572,8 +572,9 @@ async function handleRevokeAllSessions() {
                       </span>
                     </div>
                     <p class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                      <span v-if="session.location">📍 {{ session.location }} · </span>
+                      <span v-else-if="session.ip_address">{{ session.ip_address }} · </span>
                       Last active: {{ session.last_used_at ? new Date(session.last_used_at).toLocaleString() : 'Just now' }}
-                      · Created: {{ new Date(session.created_at).toLocaleDateString() }}
                     </p>
                   </div>
                 </div>
