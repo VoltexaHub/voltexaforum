@@ -253,13 +253,16 @@ onMounted(async () => {
 
   // Fetch cosmetics & sessions
   try {
-    const [cosmeticsRes, sessionsRes] = await Promise.all([
-      getUserCosmetics(),
-      getUserSessions(),
-    ])
+    const cosmeticsRes = await getUserCosmetics()
     ownedCosmetics.value = cosmeticsRes.data.data
-    sessions.value = sessionsRes.data.data
   } catch {}
+
+  try {
+    const sessionsRes = await getUserSessions()
+    sessions.value = sessionsRes.data.data || []
+  } catch (e) {
+    console.error('Sessions fetch failed:', e?.response?.data || e)
+  }
 
   // Fetch user awards for awards-order section
   if (authStore.hasPerk('awards_reorder')) {
