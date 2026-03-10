@@ -18,16 +18,36 @@ const error = ref('')
 const loading = ref(false)
 const emailSent = ref(false)
 const emailSending = ref(false)
+const trustDevice = ref(false)
+const trustedAutoSent = ref(false)
 
 const tempToken = ref('')
 const hasTotp = ref(false)
 
-onMounted(() => {
+onMounted(async () => {
   tempToken.value = localStorage.getItem('mfa_temp_token') || ''
   hasTotp.value = localStorage.getItem('mfa_has_totp') === 'true'
 
   if (!tempToken.value) {
     router.push('/login')
+    return
+  }
+
+  // Check if this is a trusted device redirect (auto-send email OTP)
+  const autoSendEmail = localStorage.getItem('mfa_auto_send_email')
+  if (autoSendEmail) {
+    localStorage.removeItem('mfa_auto_send_email')
+    trustedAutoSent.value = true
+    activeTab.value = 'email'
+    emailSending.value = true
+    try {
+      await sendMfaEmailOtp(tempToken.value)
+      emailSent.value = true
+    } catch (e) {
+      error.value = e.response?.data?.message || 'Failed to send email code.'
+    } finally {
+      emailSending.value = false
+    }
   }
 })
 
@@ -79,6 +99,13 @@ async function handleVerify() {
     authStore.user = data.user
     localStorage.setItem('voltexahub_token', data.token)
 
+    // Save trusted device if checked
+    if (trustDevice.value && data.user?.email) {
+      localStorage.setItem(`voltexahub_trusted_${data.user.email}`, JSON.stringify({
+        expires: Date.now() + 30 * 24 * 60 * 60 * 1000,
+      }))
+    }
+
     // Clean up
     localStorage.removeItem('mfa_temp_token')
     localStorage.removeItem('mfa_has_totp')
@@ -122,6 +149,15 @@ async function handleVerify() {
         >
           {{ tab.label }}
         </button>
+      </div>
+
+      <!-- Trusted device banner -->
+      <div
+        v-if="trustedAutoSent"
+        class="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm flex items-center gap-2"
+      >
+        <i class="fa-solid fa-shield-check"></i>
+        Trusted device detected — we sent a code to your email.
       </div>
 
       <!-- Error -->
@@ -242,6 +278,16 @@ async function handleVerify() {
           {{ loading ? 'Verifying...' : 'Verify' }}
         </button>
       </div>
+
+      <!-- Trust this device checkbox -->
+      <label class="flex items-center gap-2 mt-5 cursor-pointer select-none">
+        <input
+          v-model="trustDevice"
+          type="checkbox"
+          class="w-4 h-4 rounded border-gray-600 bg-gray-800 text-purple-accent focus:ring-purple-accent focus:ring-offset-0"
+        />
+        <span class="text-sm" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Trust this device for 30 days</span>
+      </label>
 
       <!-- Back to login -->
       <p class="text-center text-sm mt-6" :class="isDark ? 'text-gray-400' : 'text-gray-500'">

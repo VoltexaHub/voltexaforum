@@ -5,7 +5,7 @@ import {
   getAdminUser, updateAdminUser, adjustUserCredits, adjustUserXp,
   banUser as banUserApi, unbanUser,
   grantAward as grantAwardApi, revokeAward as revokeAwardApi,
-  getAdminAwards,
+  getAdminAwards, adminResetUserMfa,
 } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
 import { formatRelative } from '../../utils/date'
@@ -37,6 +37,8 @@ const allAwards = ref([])
 const userAwardsList = ref([])
 const recentPosts = ref([])
 const showDeleteConfirm = ref(false)
+const showMfaResetConfirm = ref(false)
+const mfaResetting = ref(false)
 
 const tabs = [
   { id: 'account', label: 'Account' },
@@ -177,6 +179,20 @@ async function doUnban() {
     fetchUser()
   } catch (e) {
     toast.show(e.response?.data?.message || 'Failed to unban user', 'error')
+  }
+}
+
+async function doResetMfa() {
+  mfaResetting.value = true
+  try {
+    await adminResetUserMfa(userId.value)
+    toast.show('MFA has been reset for this user')
+    showMfaResetConfirm.value = false
+    fetchUser()
+  } catch (e) {
+    toast.show(e.response?.data?.message || 'Failed to reset MFA', 'error')
+  } finally {
+    mfaResetting.value = false
   }
 }
 
@@ -347,6 +363,26 @@ onMounted(() => {
             <label class="block text-sm font-medium text-gray-400 mb-1.5">User Title</label>
             <input v-model="form.userTitle" type="text" placeholder="Custom user title" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
           </div>
+          <!-- MFA Reset -->
+          <div v-if="user.two_factor_confirmed_at" class="border-t border-gray-700/50 pt-4">
+            <label class="block text-sm font-medium text-gray-400 mb-1.5">Two-Factor Authentication</label>
+            <p class="text-xs text-gray-500 mb-2">MFA is currently enabled for this user.</p>
+            <div v-if="!showMfaResetConfirm">
+              <button @click="showMfaResetConfirm = true" class="px-4 py-2 bg-orange-500/10 text-orange-400 text-sm font-medium rounded-lg hover:bg-orange-500/20 transition-colors border border-orange-500/20">
+                Reset MFA
+              </button>
+            </div>
+            <div v-else class="bg-orange-500/5 border border-orange-500/20 rounded-lg p-4 space-y-3">
+              <p class="text-sm text-orange-400">This will disable MFA for this user. They will need to re-enroll. Continue?</p>
+              <div class="flex items-center gap-2">
+                <button @click="doResetMfa" :disabled="mfaResetting" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+                  {{ mfaResetting ? 'Resetting...' : 'Confirm Reset' }}
+                </button>
+                <button @click="showMfaResetConfirm = false" class="px-4 py-2 bg-gray-700 text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
+              </div>
+            </div>
+          </div>
+
           <div class="flex justify-end">
             <button @click="saveSettings" :disabled="saving" class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
               {{ saving ? 'Saving...' : 'Save Changes' }}

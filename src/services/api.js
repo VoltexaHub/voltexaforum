@@ -147,6 +147,7 @@ export const adjustUserCredits = (id, data) => api.post('/admin/users/' + id + '
 export const adjustUserXp = (id, data) => api.post(`/admin/users/${id}/xp`, data)
 export const grantAward = (id, data) => api.post('/admin/users/' + id + '/awards', data)
 export const revokeAward = (id, awardId) => api.delete('/admin/users/' + id + '/awards/' + awardId)
+export const adminResetUserMfa = (id) => api.delete(`/admin/users/${id}/mfa`)
 
 // Admin - Forums
 export const getAdminForumTree = () => api.get('/admin/forums/tree')

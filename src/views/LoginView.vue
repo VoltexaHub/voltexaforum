@@ -26,6 +26,15 @@ async function handleLogin() {
     if (data.requires_mfa) {
       localStorage.setItem('mfa_temp_token', data.temp_token)
       localStorage.setItem('mfa_has_totp', String(!!data.has_totp))
+
+      // Check if this is a trusted device — auto-send email OTP
+      try {
+        const trusted = JSON.parse(localStorage.getItem(`voltexahub_trusted_${email.value}`) || 'null')
+        if (trusted && trusted.expires > Date.now()) {
+          localStorage.setItem('mfa_auto_send_email', '1')
+        }
+      } catch {}
+
       router.push('/login/mfa')
       return
     }
