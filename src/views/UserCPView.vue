@@ -7,6 +7,7 @@ import {
   toggleCosmetic,
   getUserSessions,
   deleteSession,
+  deleteAllSessions,
   uploadPostbitBg,
   removePostbitBg,
   saveCustomCss as apiSaveCustomCss,
@@ -316,6 +317,20 @@ async function handleRemoveSession(id) {
     sessions.value = sessions.value.filter(s => s.id !== id)
   } catch {}
 }
+
+const revokingAll = ref(false)
+async function handleRevokeAllSessions() {
+  revokingAll.value = true
+  try {
+    await deleteAllSessions()
+    sessions.value = sessions.value.filter(s => s.is_current)
+    saveMessage.value = 'All other sessions revoked.'
+  } catch (e) {
+    saveError.value = e.response?.data?.message || 'Failed to revoke sessions.'
+  } finally {
+    revokingAll.value = false
+  }
+}
 </script>
 
 <template>
@@ -522,7 +537,17 @@ async function handleRemoveSession(id) {
 
           <!-- SESSIONS -->
           <div v-show="activeSection === 'sessions'">
-            <h2 class="text-xl font-bold mb-6">Active Sessions</h2>
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold">Active Sessions</h2>
+              <button
+                v-if="sessions.filter(s => !s.is_current).length > 0"
+                @click="handleRevokeAllSessions"
+                :disabled="revokingAll"
+                class="px-4 py-1.5 rounded-lg text-sm font-semibold text-red-400 border border-red-400/30 hover:bg-red-400/10 transition-colors disabled:opacity-50"
+              >
+                {{ revokingAll ? 'Revoking...' : 'Revoke all other sessions' }}
+              </button>
+            </div>
 
             <div class="space-y-3">
               <div
@@ -532,28 +557,29 @@ async function handleRemoveSession(id) {
                 :class="isDark ? 'border-gray-800 bg-gray-800/30' : 'border-gray-100 bg-gray-50'"
               >
                 <div class="flex items-center gap-3">
-                  <i :class="session.current ? 'fa-solid fa-laptop' : 'fa-solid fa-desktop'" class="text-xl"></i>
+                  <i :class="session.is_current ? 'fa-solid fa-laptop' : 'fa-solid fa-desktop'" class="text-xl" :class="isDark ? 'text-gray-400' : 'text-gray-500'"></i>
                   <div>
                     <div class="flex items-center gap-2">
-                      <p class="font-medium text-sm">{{ session.browser || session.device }}</p>
+                      <p class="font-medium text-sm">{{ session.name || 'Session' }}</p>
                       <span
-                        v-if="session.current"
+                        v-if="session.is_current"
                         class="text-xs px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 font-semibold"
                       >
                         Current
                       </span>
                     </div>
                     <p class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-                      {{ session.location }} · {{ session.last_active }}
+                      Last active: {{ session.last_used_at ? new Date(session.last_used_at).toLocaleString() : 'Just now' }}
+                      · Created: {{ new Date(session.created_at).toLocaleDateString() }}
                     </p>
                   </div>
                 </div>
                 <button
-                  v-if="!session.current"
+                  v-if="!session.is_current"
                   @click="handleRemoveSession(session.id)"
                   class="px-4 py-1.5 rounded-lg text-sm font-semibold text-red-400 border border-red-400/30 hover:bg-red-400/10 transition-colors shrink-0"
                 >
-                  Log out
+                  Revoke
                 </button>
               </div>
             </div>

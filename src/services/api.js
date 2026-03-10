@@ -86,8 +86,9 @@ export const getUserCosmetics = () => api.get('/user/cosmetics')
 export const toggleCosmetic = (id) => api.put('/user/cosmetics/' + id + '/toggle')
 export const updateNotificationSettings = (data) => api.put('/user/settings/notifications', data)
 export const updatePrivacySettings = (data) => api.put('/user/settings/privacy', data)
-export const getUserSessions = () => api.get('/user/sessions')
-export const deleteSession = (id) => api.delete('/user/sessions/' + id)
+export const getUserSessions = () => api.get('/auth/sessions')
+export const deleteSession = (id) => api.delete('/auth/sessions/' + id)
+export const deleteAllSessions = () => api.delete('/auth/sessions')
 
 // Store
 export const getStoreItems = (params) => api.get('/store/items', { params })
