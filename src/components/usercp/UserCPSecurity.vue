@@ -49,10 +49,10 @@ async function handleEnableMfa() {
   setupError.value = ''
   try {
     const res = await enableMfa()
-    const data = res.data.data
-    otpauthUri.value = data.otpauth_uri
+    const data = res.data
+    otpauthUri.value = data.qr_code_url
     secretKey.value = data.secret
-    qrDataUrl.value = await QRCode.toDataURL(data.otpauth_uri, { width: 200, margin: 2 })
+    qrDataUrl.value = await QRCode.toDataURL(data.qr_code_url, { width: 200, margin: 2 })
     setupCode.value = ''
     showSetupModal.value = true
   } catch (e) {
@@ -67,7 +67,7 @@ async function handleConfirmSetup() {
   setupError.value = ''
   try {
     const res = await confirmMfa(setupCode.value)
-    recoveryCodes.value = res.data.data?.recovery_codes || []
+    recoveryCodes.value = res.data.recovery_codes || []
     showSetupModal.value = false
     showRecoveryCodes.value = true
     mfaEnabled.value = true
@@ -113,7 +113,7 @@ async function handlePasswordConfirm() {
       emit('message', 'Two-factor authentication disabled.')
     } else if (passwordModalAction.value === 'regenerate') {
       const res = await regenerateRecoveryCodes(confirmPassword.value)
-      recoveryCodes.value = res.data.data?.recovery_codes || []
+      recoveryCodes.value = res.data.recovery_codes || []
       showPasswordModal.value = false
       showRecoveryCodes.value = true
     }
