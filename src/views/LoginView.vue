@@ -15,10 +15,29 @@ const email = ref('')
 const password = ref('')
 
 async function handleLogin() {
-  const success = await authStore.login({ email: email.value, password: password.value })
-  if (success) {
+  authStore.loading = true
+  authStore.error = null
+  try {
+    const { login: apiLogin } = await import('../services/api')
+    const res = await apiLogin({ email: email.value, password: password.value })
+    const data = res.data.data
+
+    if (data.requires_mfa) {
+      localStorage.setItem('mfa_temp_token', data.temp_token)
+      localStorage.setItem('mfa_has_totp', String(!!data.has_totp))
+      router.push('/login/mfa')
+      return
+    }
+
+    authStore.token = data.token
+    authStore.user = data.user
+    localStorage.setItem('voltexahub_token', data.token)
     const redirect = route.query.redirect || '/'
     router.push(redirect)
+  } catch (e) {
+    authStore.error = e.response?.data?.message || 'Login failed'
+  } finally {
+    authStore.loading = false
   }
 }
 </script>

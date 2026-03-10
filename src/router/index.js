@@ -42,6 +42,7 @@ const routes = [
   { path: '/register', name: 'Register', component: RegisterView },
   { path: '/forgot-password', name: 'ForgotPassword', component: ForgotPasswordView },
   { path: '/reset-password', name: 'ResetPassword', component: ResetPasswordView },
+  { path: '/login/mfa', name: 'MfaVerify', component: () => import('../views/MfaVerifyView.vue'), meta: { requiresGuest: true } },
   { path: '/verify-email', name: 'VerifyEmail', component: () => import('../views/EmailVerifyView.vue') },
   { path: '/upgrade/success', name: 'UpgradeSuccess', component: () => import('../views/UpgradeSuccessView.vue') },
   { path: '/upgrade/cancel', name: 'UpgradeCancel', component: () => import('../views/UpgradeCancelView.vue') },
@@ -165,6 +166,11 @@ router.beforeEach((to) => {
   // Redirect logged-in users away from guest-only pages
   if (['Login', 'Register', 'ForgotPassword', 'ResetPassword'].includes(to.name) && authStore.isLoggedIn) {
     return '/'
+  }
+
+  // Allow MFA verify page only with a temp token
+  if (to.name === 'MfaVerify' && !localStorage.getItem('mfa_temp_token')) {
+    return '/login'
   }
 })
 

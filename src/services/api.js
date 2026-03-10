@@ -50,6 +50,15 @@ export const getUser = () => api.get('/user')
 export const forgotPassword = (email) => api.post('/auth/forgot-password', { email })
 export const resetPassword = (data) => api.post('/auth/reset-password', data)
 
+// MFA
+export const getMfaStatus = () => api.get('/auth/mfa/status')
+export const enableMfa = () => api.post('/auth/mfa/enable')
+export const confirmMfa = (code) => api.post('/auth/mfa/confirm', { code })
+export const disableMfa = (password) => api.delete('/auth/mfa/disable', { data: { password } })
+export const regenerateRecoveryCodes = (password) => api.post('/auth/mfa/recovery-codes', { password })
+export const sendMfaEmailOtp = (temp_token) => api.post('/auth/mfa/email', { temp_token })
+export const verifyMfa = (temp_token, code, type) => api.post('/auth/mfa/verify', { temp_token, code, type })
+
 // Forum
 export const getForumConfig = () => api.get('/forum/config')
 export const getRoles = () => api.get('/roles')

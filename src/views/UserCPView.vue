@@ -22,6 +22,7 @@ import UserCPProfile from '../components/usercp/UserCPProfile.vue'
 import UserCPAccount from '../components/usercp/UserCPAccount.vue'
 import UserCPNotifications from '../components/usercp/UserCPNotifications.vue'
 import UserCPCover from '../components/usercp/UserCPCover.vue'
+import UserCPSecurity from '../components/usercp/UserCPSecurity.vue'
 
 const isDark = inject('isDark')
 const authStore = useAuthStore()
@@ -37,6 +38,7 @@ const allSidebarLinks = [
   { id: 'notifications', label: 'Notifications', icon: 'fa-solid fa-bell' },
   { id: 'privacy', label: 'Privacy', icon: 'fa-solid fa-eye' },
   { id: 'cosmetics', label: 'Cosmetics', icon: 'fa-solid fa-palette' },
+  { id: 'security', label: 'Security', icon: 'fa-solid fa-shield-halved' },
   { id: 'sessions', label: 'Sessions', icon: 'fa-solid fa-desktop' },
   { id: 'cover', label: 'Profile Cover', icon: 'fa-solid fa-image', perk: 'profile_cover' },
   { id: 'postbit', label: 'Postbit Background', icon: 'fa-solid fa-panorama', perk: null },
@@ -423,6 +425,11 @@ async function handleRevokeAllSessions() {
           <!-- NOTIFICATIONS -->
           <div v-show="activeSection === 'notifications'">
             <UserCPNotifications :is-dark="isDark" @message="handleSubMessage" @error="handleSubError" />
+          </div>
+
+          <!-- SECURITY -->
+          <div v-show="activeSection === 'security'">
+            <UserCPSecurity :is-dark="isDark" @message="handleSubMessage" @error="handleSubError" />
           </div>
 
           <!-- PRIVACY -->
