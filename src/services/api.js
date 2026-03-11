@@ -136,6 +136,7 @@ export const getAchievements = () => api.get('/achievements')
 
 // Admin - Dashboard
 export const getAdminDashboard = () => api.get('/admin/dashboard')
+export const getSystemStats = () => api.get('/admin/system/stats')
 
 // Admin - Users
 export const getAdminUsers = (params) => api.get('/admin/users', { params })

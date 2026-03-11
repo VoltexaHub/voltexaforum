@@ -1,10 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { getAdminDashboard } from '../../services/api'
+import { ref, onMounted, computed, inject } from 'vue'
+import { getAdminDashboard, getSystemStats } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
 import UserAvatar from '../../components/UserAvatar.vue'
 import { formatRelative } from '../../utils/date'
 
+const isDark = inject('isDark')
 const toast = useToastStore()
 const loading = ref(true)
 const error = ref(null)
@@ -17,6 +18,16 @@ const topForums = ref([])
 const quickActions = ref({ pending_reports: 0 })
 
 const statCards = ref([])
+const systemStats = ref(null)
+const systemStatsLoading = ref(true)
+
+function formatBytes(bytes) {
+  if (!bytes) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i]
+}
+
 
 function buildStatCards(s) {
   return [
@@ -55,7 +66,21 @@ async function fetchData() {
   }
 }
 
-onMounted(fetchData)
+async function fetchSystemStats() {
+  try {
+    const res = await getSystemStats()
+    systemStats.value = res.data.data
+  } catch (e) {
+    // silently fail
+  } finally {
+    systemStatsLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchData()
+  fetchSystemStats()
+})
 
 function activityIcon(type) {
   const map = { registration: 'fa-solid fa-user-plus', purchase: 'fa-solid fa-credit-card', thread: 'fa-solid fa-pen-to-square', ban: 'fa-solid fa-ban', post: 'fa-solid fa-comment' }
@@ -103,6 +128,87 @@ function activityIcon(type) {
       <router-link to="/admin/awards" class="inline-flex items-center gap-2 px-4 py-2.5 bg-violet-500/10 text-violet-400 rounded-lg text-sm font-medium hover:bg-violet-500/20 transition-colors border border-violet-500/20">
         <i class="fa-solid fa-award"></i> New Award
       </router-link>
+    </div>
+
+    <!-- System Stats -->
+    <div>
+      <h2 class="text-base font-semibold mb-3" :class="isDark ? 'text-white' : 'text-gray-900'">System</h2>
+      <div v-if="systemStatsLoading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div v-for="i in 6" :key="i" class="rounded-xl border p-4 animate-pulse h-24" :class="isDark ? 'bg-gray-800 border-gray-700/50' : 'bg-gray-50 border-gray-200'"></div>
+      </div>
+      <div v-else-if="systemStats" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+
+        <!-- Disk -->
+        <div class="rounded-xl border p-4" :class="isDark ? 'bg-gray-800 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fa-solid fa-hard-drive text-violet-400 text-sm"></i>
+            <span class="text-xs font-medium" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Disk</span>
+          </div>
+          <div class="text-lg font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ systemStats.disk.percent }}%</div>
+          <div class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ formatBytes(systemStats.disk.used) }} / {{ formatBytes(systemStats.disk.total) }}</div>
+          <div class="mt-2 h-1.5 rounded-full" :class="isDark ? 'bg-gray-700' : 'bg-gray-200'">
+            <div class="h-1.5 rounded-full transition-all"
+              :style="{ width: systemStats.disk.percent + '%' }"
+              :class="systemStats.disk.percent > 85 ? 'bg-red-500' : systemStats.disk.percent > 65 ? 'bg-amber-500' : 'bg-violet-500'"></div>
+          </div>
+        </div>
+
+        <!-- Memory -->
+        <div class="rounded-xl border p-4" :class="isDark ? 'bg-gray-800 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fa-solid fa-memory text-blue-400 text-sm"></i>
+            <span class="text-xs font-medium" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Memory</span>
+          </div>
+          <div class="text-lg font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ systemStats.memory.percent }}%</div>
+          <div class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ formatBytes(systemStats.memory.used) }} / {{ formatBytes(systemStats.memory.total) }}</div>
+          <div class="mt-2 h-1.5 rounded-full" :class="isDark ? 'bg-gray-700' : 'bg-gray-200'">
+            <div class="h-1.5 rounded-full transition-all"
+              :style="{ width: systemStats.memory.percent + '%' }"
+              :class="systemStats.memory.percent > 85 ? 'bg-red-500' : systemStats.memory.percent > 65 ? 'bg-amber-500' : 'bg-blue-500'"></div>
+          </div>
+        </div>
+
+        <!-- CPU -->
+        <div class="rounded-xl border p-4" :class="isDark ? 'bg-gray-800 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fa-solid fa-microchip text-emerald-400 text-sm"></i>
+            <span class="text-xs font-medium" :class="isDark ? 'text-gray-400' : 'text-gray-500'">CPU Load</span>
+          </div>
+          <div class="text-lg font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ systemStats.cpu.load_1 }}</div>
+          <div class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">5m: {{ systemStats.cpu.load_5 }} · 15m: {{ systemStats.cpu.load_15 }}</div>
+        </div>
+
+        <!-- Uptime -->
+        <div class="rounded-xl border p-4" :class="isDark ? 'bg-gray-800 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fa-solid fa-clock text-cyan-400 text-sm"></i>
+            <span class="text-xs font-medium" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Uptime</span>
+          </div>
+          <div class="text-lg font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ systemStats.uptime.human }}</div>
+          <div class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Since last restart</div>
+        </div>
+
+        <!-- Database -->
+        <div class="rounded-xl border p-4" :class="isDark ? 'bg-gray-800 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fa-solid fa-database text-amber-400 text-sm"></i>
+            <span class="text-xs font-medium" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Database</span>
+          </div>
+          <div class="text-lg font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">{{ formatBytes(systemStats.database.size) }}</div>
+          <div class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">{{ systemStats.database.name }}</div>
+        </div>
+
+        <!-- Versions -->
+        <div class="rounded-xl border p-4" :class="isDark ? 'bg-gray-800 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fa-brands fa-php text-rose-400 text-sm"></i>
+            <span class="text-xs font-medium" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Stack</span>
+          </div>
+          <div class="text-sm font-bold" :class="isDark ? 'text-white' : 'text-gray-900'">PHP {{ systemStats.versions.php }}</div>
+          <div class="text-xs mt-0.5" :class="isDark ? 'text-gray-500' : 'text-gray-400'">Laravel {{ systemStats.versions.laravel }}</div>
+        </div>
+
+      </div>
     </div>
 
     <!-- Recent Activity -->
