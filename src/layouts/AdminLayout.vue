@@ -54,7 +54,7 @@ const navSections = computed(() => [
     items: [
       { to: '/admin/users', label: 'Users', icon: 'fa-solid fa-users' },
       { to: '/admin/groups', label: 'Groups & Roles', icon: 'fa-solid fa-users-gear' },
-      { to: '/admin/moderation', label: 'Moderation', icon: 'fa-solid fa-shield-halved' },
+      { to: '/admin/moderation', label: 'Moderation', icon: 'fa-solid fa-gavel' },
     ],
   },
   {
@@ -71,7 +71,7 @@ const navSections = computed(() => [
       { to: '/admin/upgrades', label: 'Upgrade Plans', icon: 'fa-solid fa-rocket' },
       { to: '/admin/store/items', label: 'Store Items', icon: 'fa-solid fa-store' },
       { to: '/admin/store/purchases', label: 'Purchases', icon: 'fa-solid fa-credit-card' },
-      { to: '/admin/settings/store', label: 'Store Settings', icon: 'fa-solid fa-sliders' },
+      { to: '/admin/settings/store', label: 'Store Settings', icon: 'fa-solid fa-shop' },
       { to: '/admin/advertisements', label: 'Advertisements', icon: 'fa-solid fa-rectangle-ad' },
     ],
   },
@@ -114,9 +114,9 @@ const navSections = computed(() => [
     items: [
       { to: '/admin/settings/general', label: 'General', icon: 'fa-solid fa-sliders' },
       { to: '/admin/settings/email', label: 'Email & SMTP', icon: 'fa-solid fa-envelope' },
-      { to: '/admin/settings/credits', label: 'Credits', icon: 'fa-solid fa-coins' },
-      { to: '/admin/settings/security', label: 'Security', icon: 'fa-solid fa-shield-halved' },
+      { to: '/admin/settings/security', label: 'Security', icon: 'fa-solid fa-lock' },
       { to: '/admin/settings/seo', label: 'SEO', icon: 'fa-solid fa-magnifying-glass-chart' },
+      { to: '/admin/settings/credits', label: 'Credits', icon: 'fa-solid fa-coins' },
     ],
   },
 ])
