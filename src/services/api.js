@@ -303,6 +303,14 @@ export const checkUnlocked = (hash) => api.get('/locked-content/check', { params
 export const getContentStatus = (hash) => api.get(`/locked-content/${hash}/status`)
 export const reportContent = (hash, status) => api.post(`/locked-content/${hash}/report`, { status })
 
+// Admin - Error Log & Maintenance
+export const getErrorLogSettings = () => api.get('/admin/error-log/settings')
+export const updateErrorLogSettings = (data) => api.put('/admin/error-log/settings', data)
+export const getErrorLog = (params) => api.get('/admin/error-log', { params })
+export const deleteErrorLogEntry = (id) => api.delete(`/admin/error-log/${id}`)
+export const clearErrorLog = () => api.delete('/admin/error-log/clear')
+export const runMaintenanceTool = (tool, data = {}) => api.post(`/admin/maintenance/${tool}`, data)
+
 // Admin - Database
 export const exportDatabase = () => api.post('/admin/database/export', {}, { responseType: 'blob' })
 export const importDatabase = (formData) => api.post('/admin/database/import', formData)

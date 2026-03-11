@@ -113,6 +113,8 @@ const routes = [
       { path: 'plugins', name: 'AdminPlugins', component: () => import('../views/admin/AdminPlugins.vue'), meta: { title: 'Plugins' } },
       // System
       { path: 'database', name: 'AdminDatabase', component: () => import('../views/admin/AdminDatabase.vue'), meta: { title: 'Database' } },
+      { path: 'system/error-log', name: 'AdminErrorLog', component: () => import('../views/admin/AdminErrorLog.vue'), meta: { title: 'Error Log' } },
+      { path: 'system/maintenance', name: 'AdminMaintenance', component: () => import('../views/admin/AdminMaintenance.vue'), meta: { title: 'Maintenance' } },
       { path: 'thread-prefixes', name: 'AdminThreadPrefixes', component: () => import('../views/admin/AdminThreadPrefixes.vue'), meta: { title: 'Thread Prefixes' } },
       // Settings
       { path: 'settings', redirect: '/admin/settings/general' },

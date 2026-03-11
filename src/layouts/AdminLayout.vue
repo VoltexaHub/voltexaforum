@@ -105,6 +105,8 @@ const navSections = computed(() => [
     label: 'System',
     items: [
       { to: '/admin/database', label: 'Database', icon: 'fa-solid fa-database' },
+      { to: '/admin/system/error-log', label: 'Error Log', icon: 'fa-solid fa-triangle-exclamation' },
+      { to: '/admin/system/maintenance', label: 'Maintenance', icon: 'fa-solid fa-wrench' },
     ],
   },
   {
