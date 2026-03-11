@@ -1,5 +1,6 @@
 <script setup>
 import { ref, inject, computed, onMounted } from 'vue'
+import { useSeo } from '../composables/useSeo'
 import { useForumStore } from '../stores/forum'
 import { usePresenceStore } from '../stores/presence'
 import { getForums as fetchForumsApi } from '../services/api'
@@ -14,6 +15,8 @@ const presenceStore = usePresenceStore()
 const categories = ref([])
 const loading = ref(true)
 const error = ref(null)
+
+useSeo({})
 
 const homeLayout = computed(() => forumStore.config?.home_layout || 'classic')
 

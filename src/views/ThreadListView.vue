@@ -1,6 +1,7 @@
 <script setup>
-import { inject, ref, onMounted, watch } from 'vue'
+import { inject, ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useSeo } from '../composables/useSeo'
 import { getForumThreads } from '../services/api'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
@@ -22,6 +23,12 @@ const currentPage = ref(1)
 const pagination = ref(null)
 const search = ref('')
 let searchTimer = null
+
+useSeo({
+  title: computed(() => forumMeta.value?.name || ''),
+  description: computed(() => forumMeta.value?.description || ''),
+  url: computed(() => forumMeta.value ? `${window.location.origin}/forum/${route.params.slug}` : ''),
+})
 
 function onSearchInput() {
   clearTimeout(searchTimer)

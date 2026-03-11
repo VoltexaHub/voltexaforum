@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { createHead } from '@unhead/vue/client'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import '@fortawesome/fontawesome-free/css/all.min.css'
@@ -15,7 +16,10 @@ import { usePresenceStore } from './stores/presence'
 const app = createApp(App)
 const pinia = createPinia()
 
+const head = createHead()
+
 app.use(pinia)
+app.use(head)
 app.use(router)
 app.use(PrimeVue, {
   ripple: true,

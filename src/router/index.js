@@ -124,6 +124,7 @@ const routes = [
       { path: 'settings/credits', name: 'AdminSettingsCredits', component: () => import('../views/admin/settings/AdminSettingsCredits.vue'), meta: { title: 'Credits' } },
       { path: 'settings/store', name: 'AdminSettingsStore', component: () => import('../views/admin/settings/AdminSettingsStore.vue'), meta: { title: 'Store Settings' } },
       { path: 'settings/security', name: 'AdminSettingsSecurity', component: () => import('../views/admin/settings/AdminSettingsSecurity.vue'), meta: { title: 'Security Settings' } },
+      { path: 'settings/seo', name: 'AdminSettingsSeo', component: () => import('../views/admin/settings/AdminSettingsSeo.vue'), meta: { title: 'SEO Settings' } },
       // Old config route redirect
       { path: 'config', redirect: '/admin/settings/general' },
       // Forums (kept for redirect target and direct access)

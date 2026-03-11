@@ -33,6 +33,7 @@ const editModal = reactive({
     description: '',
     display_order: 0,
     is_active: true,
+    noindex: false,
     parent_forum_id: null,
     category_id: null,
   },
@@ -203,6 +204,7 @@ function openEditModal(type, item, categoryId = null) {
   editModal.form.description = item.description || ''
   editModal.form.display_order = item.display_order ?? 0
   editModal.form.is_active = item.is_active !== false
+  editModal.form.noindex = item.noindex === true
   editModal.form.parent_forum_id = item.parent_forum_id || null
   editModal.form.category_id = categoryId || item.category_id || null
   editModal.form.header_color = item.header_color || null
@@ -566,6 +568,21 @@ onMounted(fetchTree)
                 :class="editModal.form.is_active ? 'bg-violet-600' : 'bg-gray-600'"
               >
                 <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200" :class="editModal.form.is_active ? 'translate-x-6' : 'translate-x-1'" />
+              </button>
+            </div>
+            <!-- Noindex toggle (forum only) -->
+            <div v-if="editModal.type === 'forum'" class="flex items-center justify-between">
+              <div>
+                <label class="text-sm text-gray-300">Noindex this forum</label>
+                <p class="text-xs text-gray-500 mt-0.5">Excludes from sitemap and search engines</p>
+              </div>
+              <button
+                type="button"
+                @click="editModal.form.noindex = !editModal.form.noindex"
+                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0 ml-4"
+                :class="editModal.form.noindex ? 'bg-amber-600' : 'bg-gray-600'"
+              >
+                <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200" :class="editModal.form.noindex ? 'translate-x-6' : 'translate-x-1'" />
               </button>
             </div>
           </div>

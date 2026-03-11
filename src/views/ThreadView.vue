@@ -1,6 +1,7 @@
 <script setup>
 import { inject, ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useSeo } from '../composables/useSeo'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
 import { getThread, getThreadPosts, pinThread, lockThread, deleteThread, moveThread, likeThread as likeThreadApi, reportPost, toggleThreadSubscription, getThreadSubscription, markSolved, unmarkSolved } from '../services/api'
@@ -19,6 +20,42 @@ const forumStore = useForumStore()
 const thread = ref(null)
 const posts = ref([])
 const loading = ref(true)
+
+// SEO meta tags
+const seoTitle = computed(() => thread.value?.title || '')
+const seoDescription = computed(() => {
+  if (!posts.value.length) return ''
+  const body = posts.value[0]?.body || ''
+  // Strip BBCode brackets
+  return body.replace(/\[.*?\]/g, '').substring(0, 160)
+})
+const seoUrl = computed(() => thread.value ? `${window.location.origin}/thread/${thread.value.slug ?? thread.value.id}` : '')
+const seoJsonLd = computed(() => {
+  if (!thread.value) return null
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'DiscussionForumPosting',
+    headline: thread.value.title,
+    url: seoUrl.value,
+    datePublished: thread.value.created_at,
+    author: {
+      '@type': 'Person',
+      name: thread.value.user?.username || 'Unknown',
+    },
+    interactionStatistic: {
+      '@type': 'InteractionCounter',
+      interactionType: 'https://schema.org/CommentAction',
+      userInteractionCount: thread.value.post_count || posts.value.length,
+    },
+  }
+})
+useSeo({
+  title: seoTitle,
+  description: seoDescription,
+  url: seoUrl,
+  type: 'article',
+  jsonLd: seoJsonLd,
+})
 const error = ref(null)
 const pagination = ref(null)
 const currentPage = ref(1)
