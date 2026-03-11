@@ -2,6 +2,7 @@
 import { inject, ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import {
+  resendVerification,
   updatePrivacySettings,
   getUserCosmetics,
   toggleCosmetic,
@@ -28,6 +29,21 @@ const isDark = inject('isDark')
 const authStore = useAuthStore()
 
 const activeSection = ref('profile')
+
+const resendLoading = ref(false)
+const resendSent = ref(false)
+async function handleResendVerification() {
+  if (resendLoading.value || resendSent.value) return
+  resendLoading.value = true
+  try {
+    await resendVerification()
+    resendSent.value = true
+  } catch (e) {
+    // silently fail — email may already be sent
+  } finally {
+    resendLoading.value = false
+  }
+}
 const saving = ref(false)
 const saveMessage = ref(null)
 const saveError = ref(null)
@@ -341,6 +357,32 @@ async function handleRevokeAllSessions() {
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
     <h1 class="text-2xl font-bold mb-6">Settings</h1>
+
+    <!-- Email verification banner -->
+    <div v-if="authStore.user && !authStore.user.email_verified"
+      class="mb-5 p-4 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+      :class="isDark ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-700'"
+    >
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-triangle-exclamation text-amber-400 shrink-0"></i>
+        <div>
+          <p class="font-semibold text-sm">Your email address is not verified</p>
+          <p class="text-xs mt-0.5 opacity-80">You won't be able to post threads or replies until your email is verified.</p>
+        </div>
+      </div>
+      <button
+        @click="handleResendVerification"
+        :disabled="resendLoading || resendSent"
+        class="shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-60"
+        :class="resendSent
+          ? (isDark ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-green-50 text-green-600 border border-green-200')
+          : (isDark ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30' : 'bg-amber-100 hover:bg-amber-200 text-amber-700 border border-amber-200')"
+      >
+        <i v-if="resendLoading" class="fa-solid fa-spinner fa-spin mr-1.5"></i>
+        <i v-else-if="resendSent" class="fa-solid fa-check mr-1.5"></i>
+        {{ resendSent ? 'Email sent!' : resendLoading ? 'Sending...' : 'Resend verification email' }}
+      </button>
+    </div>
 
     <!-- Toast messages -->
     <div v-if="saveMessage" class="mb-4 p-4 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm flex items-center justify-between">
