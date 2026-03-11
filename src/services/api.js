@@ -277,7 +277,7 @@ export const getCustomCode = () => api.get('/public/custom-code')
 
 // Email Verification
 export const verifyEmail = (params) => api.post('/email/verify', params)
-export const resendVerification = () => api.post('/email/resend')
+export const resendVerification = () => api.post('/auth/email/resend')
 
 export const uploadImage = (formData) => api.post("/media/image", formData)
 export const previewContent = (data) => api.post("/content/preview", data)
