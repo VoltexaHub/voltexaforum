@@ -307,6 +307,11 @@ export const reportContent = (hash, status) => api.post(`/locked-content/${hash}
 export const exportDatabase = () => api.post('/admin/database/export', {}, { responseType: 'blob' })
 export const importDatabase = (formData) => api.post('/admin/database/import', formData)
 
+// Admin - Security Settings & Re-auth
+export const getSecuritySettings = () => api.get('/admin/settings/security')
+export const updateSecuritySettings = (data) => api.put('/admin/settings/security', data)
+export const verifyReauth = (data) => api.post('/admin/reauth', data)
+
 // Admin - Payment Providers
 export const getPaymentProviders = () => api.get('/admin/payment-providers')
 export const updatePaymentProvider = (provider, data) => api.put(`/admin/payment-providers/${provider}`, data)

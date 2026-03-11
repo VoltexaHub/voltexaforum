@@ -9,6 +9,7 @@ import {
 } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
 import FaIconPicker from '../../components/FaIconPicker.vue'
+import ReauthModal from '../../components/admin/ReauthModal.vue'
 
 const toast = useToastStore()
 const loading = ref(true)
@@ -145,27 +146,49 @@ async function submitCreateForum(categoryId) {
   }
 }
 
-// --- Delete handlers ---
+// --- Delete handlers (with re-auth) ---
 
-async function doDeleteCategory(id) {
+const showReauth = ref(false)
+const reauthTitle = ref('')
+const reauthDescription = ref('')
+const pendingDeleteAction = ref(null)
+
+function doDeleteCategory(id) {
   if (!confirm('Delete this category and all its forums?')) return
-  try {
-    await deleteAdminCategory(id)
-    toast.show('Category deleted')
-    fetchTree()
-  } catch (e) {
-    toast.show(e.response?.data?.message || 'Failed to delete category', 'error')
+  reauthTitle.value = 'Delete Category'
+  reauthDescription.value = 'Verify your identity before deleting this category.'
+  pendingDeleteAction.value = async () => {
+    try {
+      await deleteAdminCategory(id)
+      toast.show('Category deleted')
+      fetchTree()
+    } catch (e) {
+      toast.show(e.response?.data?.message || 'Failed to delete category', 'error')
+    }
   }
+  showReauth.value = true
 }
 
-async function doDeleteForum(id) {
+function doDeleteForum(id) {
   if (!confirm('Delete this forum and all its threads?')) return
-  try {
-    await deleteAdminForum(id)
-    toast.show('Forum deleted')
-    fetchTree()
-  } catch (e) {
-    toast.show(e.response?.data?.message || 'Failed to delete forum', 'error')
+  reauthTitle.value = 'Delete Forum'
+  reauthDescription.value = 'Verify your identity before deleting this forum.'
+  pendingDeleteAction.value = async () => {
+    try {
+      await deleteAdminForum(id)
+      toast.show('Forum deleted')
+      fetchTree()
+    } catch (e) {
+      toast.show(e.response?.data?.message || 'Failed to delete forum', 'error')
+    }
+  }
+  showReauth.value = true
+}
+
+function onReauthConfirmed() {
+  if (pendingDeleteAction.value) {
+    pendingDeleteAction.value()
+    pendingDeleteAction.value = null
   }
 }
 
@@ -449,6 +472,14 @@ onMounted(fetchTree)
     <div v-if="!loading && !tree.length && !error" class="bg-gray-800 rounded-xl border border-gray-700/50 p-12 text-center">
       <p class="text-gray-500">No categories configured yet. Add your first category to get started.</p>
     </div>
+
+    <!-- Re-auth Modal -->
+    <ReauthModal
+      v-model="showReauth"
+      :title="reauthTitle"
+      :description="reauthDescription"
+      @confirmed="onReauthConfirmed"
+    />
 
     <!-- Edit Modal -->
     <Teleport to="body">

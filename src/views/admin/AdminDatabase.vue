@@ -64,13 +64,21 @@
               class="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-300 transition-colors"
             >Cancel</button>
             <button
-              @click="handleImport"
+              @click="showConfirmModal = false; showReauth = true"
               class="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-colors"
             >Yes, Restore</button>
           </div>
         </div>
       </div>
     </Teleport>
+
+    <!-- Re-auth Modal -->
+    <ReauthModal
+      v-model="showReauth"
+      title="Confirm Database Restore"
+      description="Verify your identity before restoring the database."
+      @confirmed="handleImport"
+    />
 
     <!-- Toast Notification -->
     <Teleport to="body">
@@ -90,6 +98,7 @@
 <script setup>
 import { ref } from 'vue'
 import { exportDatabase, importDatabase } from '../../services/api'
+import ReauthModal from '../../components/admin/ReauthModal.vue'
 
 const exporting = ref(false)
 const importing = ref(false)
@@ -97,6 +106,7 @@ const selectedFile = ref(null)
 const showConfirmModal = ref(false)
 const fileInput = ref(null)
 
+const showReauth = ref(false)
 const toast = ref({ show: false, message: '', type: 'success' })
 
 function showToast(message, type = 'success') {

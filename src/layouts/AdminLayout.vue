@@ -113,6 +113,7 @@ const navSections = computed(() => [
       { to: '/admin/settings/general', label: 'General', icon: 'fa-solid fa-sliders' },
       { to: '/admin/settings/email', label: 'Email & SMTP', icon: 'fa-solid fa-envelope' },
       { to: '/admin/settings/credits', label: 'Credits', icon: 'fa-solid fa-coins' },
+      { to: '/admin/settings/security', label: 'Security', icon: 'fa-solid fa-shield-halved' },
     ],
   },
 ])

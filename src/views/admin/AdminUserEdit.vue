@@ -10,6 +10,7 @@ import {
 import { useToastStore } from '../../stores/toast'
 import { formatRelative } from '../../utils/date'
 import UserAvatar from '../../components/UserAvatar.vue'
+import ReauthModal from '../../components/admin/ReauthModal.vue'
 
 const route = useRoute()
 const toast = useToastStore()
@@ -39,6 +40,8 @@ const recentPosts = ref([])
 const showDeleteConfirm = ref(false)
 const showMfaResetConfirm = ref(false)
 const mfaResetting = ref(false)
+const showMfaReauth = ref(false)
+const showDeleteReauth = ref(false)
 
 const tabs = [
   { id: 'account', label: 'Account' },
@@ -375,7 +378,7 @@ onMounted(() => {
             <div v-else class="bg-orange-500/5 border border-orange-500/20 rounded-lg p-4 space-y-3">
               <p class="text-sm text-orange-400">This will disable MFA for this user. They will need to re-enroll. Continue?</p>
               <div class="flex items-center gap-2">
-                <button @click="doResetMfa" :disabled="mfaResetting" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
+                <button @click="showMfaReauth = true" :disabled="mfaResetting" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors">
                   {{ mfaResetting ? 'Resetting...' : 'Confirm Reset' }}
                 </button>
                 <button @click="showMfaResetConfirm = false" class="px-4 py-2 bg-gray-700 text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
@@ -508,7 +511,7 @@ onMounted(() => {
           </button>
           <div v-else class="flex items-center gap-3">
             <span class="text-sm text-red-400">Are you sure?</span>
-            <button class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">Confirm Delete</button>
+            <button @click="showDeleteReauth = true" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">Confirm Delete</button>
             <button @click="showDeleteConfirm = false" class="px-4 py-2 bg-gray-700 text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
           </div>
         </div>
@@ -545,5 +548,19 @@ onMounted(() => {
       <p class="text-gray-400">User not found.</p>
       <router-link to="/admin/users" class="text-violet-400 hover:text-violet-300 text-sm mt-2 inline-block">Back to Users</router-link>
     </div>
+
+    <!-- Re-auth Modals -->
+    <ReauthModal
+      v-model="showMfaReauth"
+      title="Reset User MFA"
+      description="Verify your identity before resetting this user's MFA."
+      @confirmed="doResetMfa"
+    />
+    <ReauthModal
+      v-model="showDeleteReauth"
+      title="Delete User Account"
+      description="Verify your identity before deleting this user."
+      @confirmed="showDeleteConfirm = false"
+    />
   </div>
 </template>
