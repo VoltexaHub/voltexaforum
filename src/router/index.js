@@ -111,6 +111,8 @@ const routes = [
       { path: 'appearance/custom-code', name: 'AdminAppearanceCustomCode', component: () => import('../views/admin/appearance/AdminAppearanceCustomCode.vue'), meta: { title: 'Custom CSS/JS' } },
       // Plugins
       { path: 'plugins', name: 'AdminPlugins', component: () => import('../views/admin/AdminPlugins.vue'), meta: { title: 'Plugins' } },
+      // System
+      { path: 'database', name: 'AdminDatabase', component: () => import('../views/admin/AdminDatabase.vue'), meta: { title: 'Database' } },
       { path: 'thread-prefixes', name: 'AdminThreadPrefixes', component: () => import('../views/admin/AdminThreadPrefixes.vue'), meta: { title: 'Thread Prefixes' } },
       // Settings
       { path: 'settings', redirect: '/admin/settings/general' },

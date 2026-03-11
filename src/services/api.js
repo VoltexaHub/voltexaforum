@@ -303,6 +303,10 @@ export const checkUnlocked = (hash) => api.get('/locked-content/check', { params
 export const getContentStatus = (hash) => api.get(`/locked-content/${hash}/status`)
 export const reportContent = (hash, status) => api.post(`/locked-content/${hash}/report`, { status })
 
+// Admin - Database
+export const exportDatabase = () => api.post('/admin/database/export', {}, { responseType: 'blob' })
+export const importDatabase = (formData) => api.post('/admin/database/import', formData)
+
 // Admin - Payment Providers
 export const getPaymentProviders = () => api.get('/admin/payment-providers')
 export const updatePaymentProvider = (provider, data) => api.put(`/admin/payment-providers/${provider}`, data)

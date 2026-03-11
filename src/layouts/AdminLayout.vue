@@ -102,6 +102,12 @@ const navSections = computed(() => [
     ],
   },
   {
+    label: 'System',
+    items: [
+      { to: '/admin/database', label: 'Database', icon: 'fa-solid fa-database' },
+    ],
+  },
+  {
     label: 'Settings',
     items: [
       { to: '/admin/settings/general', label: 'General', icon: 'fa-solid fa-sliders' },
