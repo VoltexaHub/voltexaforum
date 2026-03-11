@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, inject, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import DOMPurify from 'dompurify'
 import { search as searchApi } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
 
@@ -32,9 +33,10 @@ const hasResults = computed(() => {
 })
 
 function highlightTerm(text, term) {
-  if (!term || !text) return text
+  if (!term || !text) return DOMPurify.sanitize(text)
+  const safe = DOMPurify.sanitize(text, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
   const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return text.replace(new RegExp(`(${escaped})`, 'gi'), '<strong class="text-purple-accent">$1</strong>')
+  return safe.replace(new RegExp(`(${escaped})`, 'gi'), '<strong class="text-purple-accent">$1</strong>')
 }
 
 async function doSearch(page = 1) {
@@ -212,7 +214,7 @@ onMounted(() => {
               <div class="text-xs font-medium mb-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
                 in <span class="text-purple-accent">{{ post.thread_title || 'Thread' }}</span>
               </div>
-              <p class="text-sm leading-relaxed" :class="isDark ? 'text-gray-300' : 'text-gray-700'" v-html="highlightTerm(post.excerpt || post.body, query)" />
+              <p class="text-sm leading-relaxed" :class="isDark ? 'text-gray-300' : 'text-gray-700'" v-html="highlightTerm(post.excerpt, query)" />
               <div class="flex items-center gap-3 mt-2 text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
                 <span>by {{ post.author?.username }}</span>
                 <span>{{ post.created_at }}</span>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { getContentPage } from '../services/api'
 
 const isDark = inject('isDark')

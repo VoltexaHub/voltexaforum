@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { getHelpArticles, getHelpArticle } from '../services/api'
 
 const isDark = inject('isDark')
@@ -15,9 +16,7 @@ const search = ref('')
 const activeCategory = ref(null)
 
 function sanitize(html) {
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+  return DOMPurify.sanitize(html)
 }
 
 const slug = computed(() => route.params.slug)

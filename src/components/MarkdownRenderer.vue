@@ -1,6 +1,7 @@
 <script setup>
 import { computed, inject, ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
 import { unlockContent, getContentStatus, reportContent } from '../services/api'
@@ -21,9 +22,19 @@ const container = ref(null)
 const modal = ref({ show: false, hash: null, cost: 0, el: null, loading: false, error: null })
 
 function sanitize(html) {
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['p','br','strong','em','u','s','del','ins','h1','h2','h3','h4','h5','h6',
+      'ul','ol','li','blockquote','pre','code','hr','table','thead','tbody','tr','th','td',
+      'a','img','span','div','figure','figcaption','details','summary',
+      // s9e rendered tags
+      'abbr','cite','sup','sub','kbd','samp','var'],
+    ALLOWED_ATTR: ['href','src','alt','title','class','id','data-hash','data-cost',
+      'target','rel','width','height','colspan','rowspan'],
+    ALLOW_DATA_ATTR: false,
+    FORCE_BODY: false,
+    FORBID_TAGS: ['script','style','iframe','frame','object','embed','form','input','button'],
+    FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','style'],
+  })
 }
 
 const rendered = computed(() => {
