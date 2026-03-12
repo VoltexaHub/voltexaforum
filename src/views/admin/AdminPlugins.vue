@@ -26,6 +26,7 @@ const router = useRouter()
 
 const plugins = ref([])
 const loading = ref(true)
+const building = ref(false)
 
 // If ?plugin= is in the URL, render that plugin's settings instead
 const activeSlug = computed(() => route.query.plugin || null)
@@ -64,7 +65,15 @@ async function doToggle(slug) {
   const prev = plugin.enabled
   plugin.enabled = !prev
   try {
-    await togglePlugin(slug)
+    const { data } = await togglePlugin(slug)
+    if (data?.building) {
+      building.value = true
+      toast.success('Plugin activated. Rebuilding frontend... this may take 30 seconds.')
+      setTimeout(() => {
+        building.value = false
+        window.location.reload()
+      }, 35000)
+    }
   } catch {
     plugin.enabled = prev
     toast.error('Failed to toggle plugin.')
@@ -110,6 +119,11 @@ onMounted(fetchPlugins)
 
   <!-- Plugin Manager (default view at /admin/plugins) -->
   <div v-else class="space-y-6">
+    <div v-if="building" class="rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400 px-4 py-3 text-sm flex items-center gap-2">
+      <i class="fa-solid fa-spinner animate-spin"></i>
+      Rebuilding frontend — this takes ~30 seconds. Page will reload automatically.
+    </div>
+
     <div class="flex items-center gap-3">
       <h2 class="text-lg font-semibold text-white">Plugin Manager</h2>
       <span class="px-2.5 py-0.5 bg-violet-500/10 text-violet-400 rounded-full text-xs font-semibold">
