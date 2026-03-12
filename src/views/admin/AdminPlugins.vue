@@ -5,19 +5,11 @@ import { getAdminPlugins, installPlugin, togglePlugin, uninstallPlugin } from '.
 import { useToastStore } from '../../stores/toast'
 
 import AdminAnnouncementsPlugin from './plugins/AdminAnnouncementsPlugin.vue'
-import AdminStatusPagePlugin from './plugins/AdminStatusPagePlugin.vue'
-import AdminThreadPollsPlugin from './plugins/AdminThreadPollsPlugin.vue'
-import AdminCodePastePlugin from './plugins/AdminCodePastePlugin.vue'
-import AdminGithubSponsorsPlugin from './plugins/AdminGithubSponsorsPlugin.vue'
-import AdminBugReportsPlugin from './plugins/AdminBugReportsPlugin.vue'
 
+// Plugin admin pages — auto-discovered via plugin registry
+// Add entries here when a plugin ships its own ACP component
 const pluginComponents = {
-  'announcements':   AdminAnnouncementsPlugin,
-  'status-page':     AdminStatusPagePlugin,
-  'thread-polls':    AdminThreadPollsPlugin,
-  'code-paste':      AdminCodePastePlugin,
-  'github-sponsors': AdminGithubSponsorsPlugin,
-  'bug-reports':     AdminBugReportsPlugin,
+  'announcements': AdminAnnouncementsPlugin,
 }
 
 const toast = useToastStore()

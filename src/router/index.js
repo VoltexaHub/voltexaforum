@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import pluginRoutes from '../plugins/pluginRoutes'
 import HomeView from '../views/HomeView.vue'
 import ThreadListView from '../views/ThreadListView.vue'
 import ThreadView from '../views/ThreadView.vue'
@@ -44,17 +45,12 @@ const routes = [
   { path: '/reset-password', name: 'ResetPassword', component: ResetPasswordView },
   { path: '/login/mfa', name: 'MfaVerify', component: () => import('../views/MfaVerifyView.vue'), meta: { requiresGuest: true } },
   { path: '/verify-email', name: 'VerifyEmail', component: () => import('../views/EmailVerifyView.vue') },
+  { path: '/upgrade', name: 'Upgrade', component: () => import('../views/UpgradeView.vue') },
   { path: '/upgrade/success', name: 'UpgradeSuccess', component: () => import('../views/UpgradeSuccessView.vue') },
   { path: '/upgrade/cancel', name: 'UpgradeCancel', component: () => import('../views/UpgradeCancelView.vue') },
-  { path: '/upgrade', name: 'Upgrade', component: () => import('../views/UpgradeView.vue') },
-  { path: '/upgrade/success', name: 'UpgradeSuccess', component: () => import('../views/UpgradeSuccess.vue') },
-  { path: '/upgrade/cancel', name: 'UpgradeCancel', redirect: '/upgrade' },
   { path: '/leaderboard', name: 'Leaderboard', component: () => import('../views/LeaderboardView.vue') },
   { path: '/tags/:slug', name: 'TagView', component: () => import('../views/TagView.vue') },
-  { path: '/status', name: 'StatusPage', component: () => import('../views/StatusPage.vue') },
-  { path: '/bugs', name: 'BugReports', component: () => import('../views/bugs/BugReportsView.vue'), meta: { title: 'Bug Reports', requiresAuth: true } },
-  { path: '/bugs/submit', name: 'BugReportSubmit', component: () => import('../views/bugs/BugReportSubmit.vue'), meta: { title: 'Submit Bug Report', requiresAuth: true } },
-  { path: '/bugs/:id', name: 'BugReportView', component: () => import('../views/bugs/BugReportView.vue'), meta: { title: 'Bug Report', requiresAuth: true } },
+
   { path: '/rules', name: 'Rules', component: () => import('../views/RulesView.vue'), meta: { title: 'Rules' } },
   { path: '/privacy', name: 'Privacy', component: () => import('../views/PrivacyView.vue'), meta: { title: 'Privacy Policy' } },
   { path: '/terms', name: 'Terms', component: () => import('../views/TermsView.vue'), meta: { title: 'Terms of Service' } },
@@ -73,8 +69,7 @@ const routes = [
       { path: 'threads', name: 'StaffThreads', component: () => import('../views/staff/StaffThreads.vue'), meta: { title: 'Thread Management' } },
       { path: 'users', name: 'StaffUsers', component: () => import('../views/staff/StaffUsers.vue'), meta: { title: 'User Management' } },
       { path: 'awards', name: 'StaffAwards', component: () => import('../views/staff/StaffAwards.vue'), meta: { title: 'Awards' } },
-      { path: 'bugs', name: 'StaffBugReports', component: () => import('../views/staff/StaffBugReports.vue'), meta: { title: 'Bug Reports' } },
-      { path: 'bugs/:id', name: 'StaffBugReportDetail', component: () => import('../views/staff/StaffBugReportDetail.vue'), meta: { title: 'Bug Report Detail' } },
+
     ],
   },
 
@@ -134,6 +129,9 @@ const routes = [
     ],
   },
 ]
+
+// Merge in routes from installed plugins
+routes.push(...pluginRoutes)
 
 const router = createRouter({
   history: createWebHistory(),
