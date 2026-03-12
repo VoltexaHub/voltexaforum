@@ -10,6 +10,7 @@ import ThreadPrefix from '../components/ThreadPrefix.vue'
 import ThreadTags from '../components/ThreadTags.vue'
 import PostCard from '../components/PostCard.vue'
 import PostEditor from '../components/PostEditor.vue'
+import PluginSlot from '../components/PluginSlot.vue'
 
 const isDark = inject('isDark')
 const route = useRoute()
@@ -422,6 +423,9 @@ onMounted(loadThread)
         </div>
       </div>
 
+      <!-- Plugin slot: before posts -->
+      <PluginSlot name="thread.before-posts" :context="{ thread }" />
+
       <!-- Posts -->
       <div class="space-y-4">
         <PostCard
@@ -440,6 +444,9 @@ onMounted(loadThread)
           @report="openReportModal"
         />
       </div>
+
+      <!-- Plugin slot: after posts -->
+      <PluginSlot name="thread.after-posts" :context="{ thread }" />
 
       <!-- Pagination -->
       <div v-if="pagination && pagination.last_page > 1" class="flex items-center justify-center gap-2 mt-6">

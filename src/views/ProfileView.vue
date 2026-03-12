@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { getUserProfile } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
+import PluginSlot from '../components/PluginSlot.vue'
 import { formatDate, formatDateTime, formatRelative, formatJoinDate } from '../utils/date'
 
 const isDark = inject('isDark')
@@ -253,6 +254,9 @@ onUnmounted(() => {
           </div>
         </div>
       </div>
+
+      <!-- Plugin slot: profile stats -->
+      <PluginSlot name="profile.stats" :context="{ user: profile }" />
 
       <!-- Level & Years of Service -->
       <div v-if="profile.level != null || profile.years_of_service" class="flex flex-col sm:flex-row gap-3 mb-6">
