@@ -408,6 +408,9 @@ export const createHelpArticle = (data) => api.post('/admin/content/help', data)
 export const updateHelpArticle = (id, data) => api.put(`/admin/content/help/${id}`, data)
 export const deleteHelpArticle = (id) => api.delete(`/admin/content/help/${id}`)
 
+// Activity
+export const getRecentActivity = () => api.get('/activity/recent')
+
 // Admin - SEO Settings
 export const getAdminSeoSettings = () => api.get('/admin/settings/seo')
 export const updateAdminSeoSettings = (data) => api.put('/admin/settings/seo', data)
