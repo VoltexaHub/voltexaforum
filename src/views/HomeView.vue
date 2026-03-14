@@ -71,7 +71,7 @@ onMounted(async () => {
     <div v-else>
       <!-- Card Grid Layout -->
       <div v-if="homeLayout === 'card'">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start" style="grid-auto-rows: 1fr">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start" style="grid-auto-rows: 1fr">
           <div
             v-for="(category, catIdx) in categories"
             :key="category.id"
