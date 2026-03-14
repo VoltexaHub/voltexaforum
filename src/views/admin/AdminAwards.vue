@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getAdminAwards, createAdminAward, updateAdminAward, deleteAdminAward } from '../../services/api'
+import { getAdminAwards, createAdminAward, updateAdminAward, deleteAdminAward, getAdminAchievements } from '../../services/api'
 import { useToastStore } from '../../stores/toast'
 
 const toast = useToastStore()
@@ -8,19 +8,20 @@ const loading = ref(true)
 const error = ref(null)
 
 const awards = ref([])
+const achievements = ref([])
 const showCreateForm = ref(false)
 const editingAwardId = ref(null)
 
-const newAward = ref({ name: '', icon: '', description: '' })
+const newAward = ref({ name: '', icon: '', description: '', type: 'manual', achievement_id: null, price_credits: null, price_money: null })
 const newAwardFile = ref(null)
 const newAwardPreview = ref(null)
 
-const editAward = ref({ name: '', icon: '', description: '' })
+const editAward = ref({ name: '', icon: '', description: '', type: 'manual', achievement_id: null, price_credits: null, price_money: null })
 const editAwardFile = ref(null)
 const editAwardPreview = ref(null)
 
 function resetNew() {
-  newAward.value = { name: '', icon: '', description: '' }
+  newAward.value = { name: '', icon: '', description: '', type: 'manual', achievement_id: null, price_credits: null, price_money: null }
   newAwardFile.value = null
   newAwardPreview.value = null
 }
@@ -55,7 +56,7 @@ function onEditFileChange(e) {
 
 function startEdit(award) {
   editingAwardId.value = award.id
-  editAward.value = { name: award.name, icon: award.icon || '', description: award.description || '' }
+  editAward.value = { name: award.name, icon: award.icon || '', description: award.description || '', type: award.type || 'manual', achievement_id: award.achievement_id || null, price_credits: award.price_credits || null, price_money: award.price_money || null }
   editAwardFile.value = null
   editAwardPreview.value = null
 }
@@ -88,9 +89,13 @@ async function submitCreate() {
       data.append('name', newAward.value.name)
       data.append('icon', newAward.value.icon)
       data.append('description', newAward.value.description)
+      data.append('type', newAward.value.type)
+      if (newAward.value.achievement_id) data.append('achievement_id', newAward.value.achievement_id)
+      if (newAward.value.price_credits) data.append('price_credits', newAward.value.price_credits)
+      if (newAward.value.price_money) data.append('price_money', newAward.value.price_money)
       data.append('icon_file', newAwardFile.value)
     } else {
-      data = newAward.value
+      data = { ...newAward.value }
     }
     await createAdminAward(data)
     toast.show('Award created')
@@ -110,9 +115,13 @@ async function submitEdit(awardId) {
       data.append('name', editAward.value.name)
       data.append('icon', editAward.value.icon)
       data.append('description', editAward.value.description)
+      data.append('type', editAward.value.type)
+      if (editAward.value.achievement_id) data.append('achievement_id', editAward.value.achievement_id)
+      if (editAward.value.price_credits) data.append('price_credits', editAward.value.price_credits)
+      if (editAward.value.price_money) data.append('price_money', editAward.value.price_money)
       data.append('icon_file', editAwardFile.value)
     } else {
-      data = editAward.value
+      data = { ...editAward.value }
     }
     await updateAdminAward(awardId, data)
     toast.show('Award updated')
@@ -134,7 +143,19 @@ async function doDelete(id) {
   }
 }
 
-onMounted(fetchAwards)
+async function fetchAchievements() {
+  try {
+    const res = await getAdminAchievements()
+    achievements.value = res.data.data || res.data || []
+  } catch {
+    // silently fail — achievements picker will just be empty
+  }
+}
+
+onMounted(() => {
+  fetchAwards()
+  fetchAchievements()
+})
 </script>
 
 <template>
@@ -172,6 +193,37 @@ onMounted(fetchAwards)
           <input v-model="newAward.description" type="text" placeholder="What is this award for?" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
         </div>
       </div>
+      <!-- Type selector -->
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Award Type</label>
+        <select v-model="newAward.type" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none">
+          <option value="manual">Manual — Staff granted</option>
+          <option value="achievement">Achievement — Auto-granted</option>
+          <option value="purchasable">Purchasable — Credits or money</option>
+        </select>
+      </div>
+
+      <!-- Achievement picker -->
+      <div v-if="newAward.type === 'achievement'">
+        <label class="block text-xs font-medium text-gray-400 mb-1">Linked Achievement</label>
+        <select v-model="newAward.achievement_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none">
+          <option :value="null">None</option>
+          <option v-for="a in achievements" :key="a.id" :value="a.id">{{ a.name }}</option>
+        </select>
+      </div>
+
+      <!-- Price inputs -->
+      <div v-if="newAward.type === 'purchasable'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Credits Price</label>
+          <input v-model.number="newAward.price_credits" type="number" placeholder="0" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">$ Money Price</label>
+          <input v-model.number="newAward.price_money" type="number" step="0.01" placeholder="0.00" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+        </div>
+      </div>
+
       <div>
         <label class="block text-xs font-medium text-gray-400 mb-1">Award Icon (PNG/JPG/GIF, max 2MB)</label>
         <input type="file" accept="image/png,image/jpeg,image/gif" @change="onNewFileChange" class="w-full text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-violet-600 file:text-white hover:file:bg-violet-700 file:cursor-pointer" />
@@ -209,6 +261,28 @@ onMounted(fetchAwards)
             <input v-model="editAward.name" type="text" placeholder="Name" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
             <input v-model="editAward.icon" type="text" placeholder="Emoji icon" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
             <input v-model="editAward.description" type="text" placeholder="Description" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+            <!-- Type selector -->
+            <select v-model="editAward.type" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none">
+              <option value="manual">Manual — Staff granted</option>
+              <option value="achievement">Achievement — Auto-granted</option>
+              <option value="purchasable">Purchasable — Credits or money</option>
+            </select>
+            <!-- Achievement picker -->
+            <select v-if="editAward.type === 'achievement'" v-model="editAward.achievement_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none">
+              <option :value="null">None</option>
+              <option v-for="a in achievements" :key="a.id" :value="a.id">{{ a.name }}</option>
+            </select>
+            <!-- Price inputs -->
+            <div v-if="editAward.type === 'purchasable'" class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Credits Price</label>
+                <input v-model.number="editAward.price_credits" type="number" placeholder="0" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">$ Money Price</label>
+                <input v-model.number="editAward.price_money" type="number" step="0.01" placeholder="0.00" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-200 focus:border-violet-500 focus:outline-none" />
+              </div>
+            </div>
             <div>
               <label class="block text-xs font-medium text-gray-400 mb-1">Award Icon (PNG/JPG/GIF, max 2MB)</label>
               <div v-if="award.icon_url && !editAwardPreview" class="mb-2 flex items-center gap-2">
@@ -251,6 +325,19 @@ onMounted(fetchAwards)
           <div>
             <h3 class="font-semibold text-white text-sm">{{ award.name }}</h3>
             <p class="text-xs text-gray-400 mt-0.5">{{ award.description }}</p>
+          </div>
+          <!-- Type badge -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span v-if="!award.type || award.type === 'manual'" class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">Manual</span>
+            <template v-else-if="award.type === 'achievement'">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-violet-500/20 text-violet-400">Achievement</span>
+              <span v-if="award.achievement?.name" class="text-xs text-violet-300">&rarr; {{ award.achievement.name }}</span>
+            </template>
+            <template v-else-if="award.type === 'purchasable'">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Purchasable</span>
+              <span v-if="award.price_credits" class="text-xs text-green-300">{{ award.price_credits }} credits</span>
+              <span v-if="award.price_money" class="text-xs text-green-300">${{ Number(award.price_money).toFixed(2) }}</span>
+            </template>
           </div>
           <div class="text-xs text-gray-500">
             Awarded {{ award.times_awarded || award.timesAwarded || 0 }} {{ (award.times_awarded || award.timesAwarded || 0) === 1 ? 'time' : 'times' }}
