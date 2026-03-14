@@ -29,7 +29,7 @@
     </div>
 
     <!-- Settings card -->
-    <div class="bg-gray-800 rounded-xl border border-gray-700/50 p-5">
+    <div v-if="settings" class="bg-gray-800 rounded-xl border border-gray-700/50 p-5">
       <div class="flex flex-wrap items-center gap-5">
         <!-- Enable toggle -->
         <label class="flex items-center gap-3 cursor-pointer">
@@ -185,7 +185,7 @@ import { useToastStore } from '../../stores/toast'
 
 const toast = useToastStore()
 
-const settings = ref({ enabled: false, prune_days: 30 })
+const settings = ref(null)
 const settingsSaving = ref(false)
 const logs = ref([])
 const logsLoading = ref(true)
@@ -204,7 +204,9 @@ async function loadSettings() {
   try {
     const res = await getErrorLogSettings()
     settings.value = res.data
-  } catch {}
+  } catch {
+    settings.value = { enabled: false, prune_days: 30 }
+  }
 }
 
 async function loadLogs(page = 1) {
