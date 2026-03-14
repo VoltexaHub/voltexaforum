@@ -246,7 +246,7 @@ async function handleDeletePost() {
           <!-- Awards -->
           <div
             v-if="post.author?.user_awards?.length"
-            class="grid grid-cols-3 gap-1 mt-2 pt-2 border-t w-full place-items-center"
+            class="flex flex-wrap justify-center gap-1 mt-2 pt-2 border-t w-full"
             :class="isDark ? 'border-gray-700/60' : 'border-gray-100'"
           >
             <template v-for="ua in post.author.user_awards.slice(0, 6)" :key="ua.id">
