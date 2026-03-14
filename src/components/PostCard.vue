@@ -245,12 +245,27 @@ async function handleDeletePost() {
 
           <!-- Awards -->
           <div
-            v-if="post.author?.awards?.length"
+            v-if="post.author?.user_awards?.length"
             class="flex flex-wrap justify-center gap-1 mt-2 pt-2 border-t w-full"
             :class="isDark ? 'border-gray-700/60' : 'border-gray-100'"
           >
-            <template v-for="award in post.author.awards.slice(0, 6)" :key="award.id">
-              <img v-if="award.icon_url" :src="award.icon_url" class="w-5 h-5 object-contain" :title="award.name" />
+            <template v-for="ua in post.author.user_awards.slice(0, 6)" :key="ua.id">
+              <img
+                v-if="ua.award?.icon_url"
+                :src="ua.award.icon_url"
+                class="w-5 h-5 object-contain rounded"
+                :title="ua.award.name"
+              />
+              <span
+                v-else-if="ua.award?.icon"
+                class="text-base leading-none"
+                :title="ua.award.name"
+              >{{ ua.award.icon }}</span>
+              <span
+                v-else
+                class="text-yellow-500 text-xs"
+                :title="ua.award?.name"
+              ><i class="fa-solid fa-award"></i></span>
             </template>
           </div>
         </div>
