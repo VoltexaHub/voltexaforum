@@ -44,6 +44,7 @@ const navLinks = [
   { to: '/', label: 'Forum', icon: 'fa-solid fa-comments' },
   { to: '/store', label: 'Store', icon: 'fa-solid fa-store' },
   { to: '/achievements', label: 'Achievements', icon: 'fa-solid fa-trophy' },
+  { to: '/awards', label: 'Awards', icon: 'fa-solid fa-medal' },
   { to: '/upgrade', label: 'Upgrade', icon: 'fa-solid fa-rocket' },
 ]
 

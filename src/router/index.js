@@ -35,6 +35,7 @@ const routes = [
   { path: '/messages', name: 'Messages', component: MessagesView, meta: { requiresAuth: true } },
   { path: '/messages/:id', name: 'Conversation', component: MessagesView, meta: { requiresAuth: true } },
   { path: '/members', name: 'Members', component: () => import('../views/MembersView.vue') },
+  { path: '/awards', name: 'Awards', component: () => import('../views/AwardsView.vue') },
 
   { path: '/staff', name: 'Staff', component: () => import('../views/StaffView.vue') },
   { path: '/search', name: 'Search', component: SearchView },

@@ -89,6 +89,18 @@ watch(() => profile.value?.xp_boost_active, (active) => {
 onUnmounted(() => {
   if (boostInterval) clearInterval(boostInterval)
 })
+
+const sortedAwards = computed(() => {
+  const awards = profile.value?.awards || []
+  const order = profile.value?.awards_sort_order
+  if (!Array.isArray(order) || order.length === 0) return awards
+  const orderMap = new Map(order.map((id, i) => [id, i]))
+  return [...awards].sort((a, b) => {
+    const ai = orderMap.has(a.id) ? orderMap.get(a.id) : Infinity
+    const bi = orderMap.has(b.id) ? orderMap.get(b.id) : Infinity
+    return ai - bi
+  })
+})
 </script>
 
 <template>
@@ -557,9 +569,9 @@ onUnmounted(() => {
 
       <!-- Awards tab -->
       <div v-if="activeTab === 'awards'">
-        <div v-if="profile.awards?.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div v-if="sortedAwards.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div
-            v-for="award in profile.awards"
+            v-for="award in sortedAwards"
             :key="award.id"
             class="rounded-xl p-5 border transition-colors duration-300"
             :class="isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200 shadow-sm'"

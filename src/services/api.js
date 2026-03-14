@@ -134,6 +134,10 @@ export const getOnlineUsers = () => api.get('/users/online')
 // Achievements
 export const getAchievements = () => api.get('/achievements')
 
+// Awards (public)
+export const getAwards = () => api.get('/awards')
+export const getAwardDetail = (id, page = 1) => api.get(`/awards/${id}`, { params: { page } })
+
 // Admin - Dashboard
 export const getAdminDashboard = () => api.get('/admin/dashboard')
 export const getSystemStats = () => api.get('/admin/system/stats')
