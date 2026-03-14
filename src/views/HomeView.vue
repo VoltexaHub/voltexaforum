@@ -6,7 +6,6 @@ import { usePresenceStore } from '../stores/presence'
 import { getForums as fetchForumsApi } from '../services/api'
 import UserAvatar from '../components/UserAvatar.vue'
 import UsergroupLegend from '../components/UsergroupLegend.vue'
-import HomeSidebar from '../components/HomeSidebar.vue'
 import { formatRelative } from '../utils/date'
 
 const isDark = inject('isDark')
@@ -38,9 +37,6 @@ onMounted(async () => {
 
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-    <div class="flex flex-col lg:flex-row gap-6 items-start">
-    <!-- Main content -->
-    <div class="min-w-0 flex-1">
     <!-- Loading -->
     <div v-if="loading" class="space-y-4">
       <div v-for="i in 3" :key="i" class="rounded-xl p-5 animate-pulse" :class="isDark ? 'bg-gray-900' : 'bg-white shadow-sm'">
@@ -71,7 +67,7 @@ onMounted(async () => {
     <div v-else>
       <!-- Card Grid Layout -->
       <div v-if="homeLayout === 'card'">
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start" style="grid-auto-rows: 1fr">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start" style="grid-auto-rows: 1fr">
           <div
             v-for="(category, catIdx) in categories"
             :key="category.id"
@@ -342,10 +338,5 @@ onMounted(async () => {
         </span>
       </div>
     </div>
-    </div><!-- /main content -->
-
-    <!-- Right Sidebar -->
-    <HomeSidebar :is-dark="isDark" />
-    </div><!-- /flex wrapper -->
   </div>
 </template>
