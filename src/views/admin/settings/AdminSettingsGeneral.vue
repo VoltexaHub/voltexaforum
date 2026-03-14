@@ -16,7 +16,6 @@ const settings = ref({
   accent_color: '#7c3aed',
   home_layout: 'classic',
   maintenance_mode: false,
-  multi_game: false,
   show_usergroup_legend: false,
 })
 
@@ -44,7 +43,6 @@ async function fetchConfig() {
     const d = res.data.data || res.data
     if (d.forum) Object.assign(settings.value, d.forum)
     if (d.forum_name) settings.value.forum_name = d.forum_name
-    if (d.multi_game !== undefined) settings.value.multi_game = d.multi_game === true || d.multi_game === 'true'
     if (d.accent_color) settings.value.accent_color = d.accent_color
     if (d.maintenance_mode !== undefined) settings.value.maintenance_mode = d.maintenance_mode === true || d.maintenance_mode === 'true'
     if (d.show_usergroup_legend !== undefined) settings.value.show_usergroup_legend = d.show_usergroup_legend === true || d.show_usergroup_legend === 'true'
@@ -377,20 +375,6 @@ onMounted(async () => {
               :class="settings.maintenance_mode ? 'bg-red-600' : 'bg-gray-600'"
             >
               <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="settings.maintenance_mode ? 'translate-x-6' : 'translate-x-1'" />
-            </button>
-          </div>
-
-          <div class="flex items-center justify-between py-2">
-            <div>
-              <div class="text-sm font-medium text-gray-300">Multi-game Mode</div>
-              <div class="text-xs text-gray-500 mt-0.5">Enabling this shows game selector and groups forums by game</div>
-            </div>
-            <button
-              @click="settings.multi_game = !settings.multi_game"
-              class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-              :class="settings.multi_game ? 'bg-violet-600' : 'bg-gray-600'"
-            >
-              <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="settings.multi_game ? 'translate-x-6' : 'translate-x-1'" />
             </button>
           </div>
 
