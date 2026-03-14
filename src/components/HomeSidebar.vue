@@ -29,7 +29,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <aside class="w-full lg:w-72 lg:shrink-0 space-y-3">
+  <aside class="hidden lg:block lg:w-72 lg:shrink-0 space-y-3">
 
     <!-- ── User Card ── -->
     <div
