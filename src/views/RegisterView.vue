@@ -1,5 +1,5 @@
 <script setup>
-import { inject, ref, computed } from 'vue'
+import { inject, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useForumStore } from '../stores/forum'
@@ -15,6 +15,22 @@ const email = ref('')
 const password = ref('')
 const passwordConfirmation = ref('')
 const clientError = ref(null)
+const turnstileToken = ref('')
+const turnstileWidgetId = ref(null)
+const honeypot = ref('')
+const TURNSTILE_SITE_KEY = '0x4AAAAAACra9imllnJh9uRz'
+
+onMounted(() => {
+  if (window.turnstile) {
+    turnstileWidgetId.value = window.turnstile.render('#turnstile-container', {
+      sitekey: TURNSTILE_SITE_KEY,
+      callback: (token) => { turnstileToken.value = token },
+      'expired-callback': () => { turnstileToken.value = '' },
+      'error-callback': () => { turnstileToken.value = '' },
+      theme: 'dark',
+    })
+  }
+})
 
 const fieldErrors = computed(() => {
   if (typeof authStore.error === 'object' && authStore.error !== null) {
@@ -41,7 +57,14 @@ async function handleRegister() {
     email: email.value,
     password: password.value,
     password_confirmation: passwordConfirmation.value,
+    cf_turnstile_response: turnstileToken.value,
+    website: honeypot.value,
   })
+
+  if (window.turnstile && turnstileWidgetId.value !== null) {
+    window.turnstile.reset(turnstileWidgetId.value)
+  }
+  turnstileToken.value = ''
 
   if (success) {
     router.push('/')
@@ -76,6 +99,9 @@ async function handleRegister() {
 
       <!-- Form -->
       <form @submit.prevent="handleRegister" class="space-y-5">
+        <div style="position: absolute; left: -9999px; top: -9999px; opacity: 0; pointer-events: none;" aria-hidden="true" tabindex="-1">
+          <input v-model="honeypot" type="text" name="website" autocomplete="off" tabindex="-1" />
+        </div>
         <div>
           <label class="block text-sm font-medium mb-2" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
             Username
@@ -143,6 +169,9 @@ async function handleRegister() {
             :class="isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'"
           />
         </div>
+
+        <div id="turnstile-container" class="flex justify-center"></div>
+        <p v-if="fieldErrors.captcha" class="text-xs text-red-400 -mt-2">{{ fieldErrors.captcha[0] }}</p>
 
         <button
           type="submit"
