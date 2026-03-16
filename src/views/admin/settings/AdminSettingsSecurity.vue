@@ -9,7 +9,7 @@ const saving = ref(false)
 
 const settings = ref({
   admin_reauth_required: true,
-  turnstile_site_key: '',
+  turnstile_site: '',
   turnstile_secret_key: '',
 })
 
@@ -18,7 +18,7 @@ async function fetchSettings() {
   try {
     const res = await getSecuritySettings()
     settings.value.admin_reauth_required = res.data.admin_reauth_required
-    settings.value.turnstile_site_key = res.data.turnstile_site_key || ''
+    settings.value.turnstile_site = res.data.turnstile_site || ''
     settings.value.turnstile_secret_key = ''
   } catch (e) {
     toast.show(e.response?.data?.message || 'Failed to load security settings', 'error')
@@ -32,7 +32,7 @@ async function save() {
   try {
     await updateSecuritySettings({
       admin_reauth_required: settings.value.admin_reauth_required,
-      turnstile_site_key: settings.value.turnstile_site_key,
+      turnstile_site: settings.value.turnstile_site,
       turnstile_secret_key: settings.value.turnstile_secret_key,
     })
     toast.show('Security settings saved')
@@ -122,7 +122,7 @@ onMounted(fetchSettings)
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">Site Key <span class="text-gray-500 font-normal">(public)</span></label>
             <input
-              v-model="settings.turnstile_site_key"
+              v-model="settings.turnstile_site"
               type="text"
               placeholder="0x4AAAAAAA..."
               class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500"

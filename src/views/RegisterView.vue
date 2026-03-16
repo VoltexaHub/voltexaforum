@@ -18,7 +18,7 @@ const clientError = ref(null)
 const turnstileToken = ref('')
 const turnstileWidgetId = ref(null)
 const honeypot = ref('')
-const turnstileSiteKey = computed(() => forumStore.config?.turnstile_site_key || '')
+const turnstileSiteKey = computed(() => forumStore.config?.turnstile_site || '')
 
 onMounted(() => {
   if (window.turnstile && turnstileSiteKey.value) {
