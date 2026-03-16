@@ -11,6 +11,7 @@ const settings = ref({
   admin_reauth_required: true,
   turnstile_site: '',
   turnstile_secret_key: '',
+  email_blocklist: '',
 })
 
 async function fetchSettings() {
@@ -20,6 +21,7 @@ async function fetchSettings() {
     settings.value.admin_reauth_required = res.data.admin_reauth_required
     settings.value.turnstile_site = res.data.turnstile_site || ''
     settings.value.turnstile_secret_key = ''
+    settings.value.email_blocklist = res.data.email_blocklist || ''
   } catch (e) {
     toast.show(e.response?.data?.message || 'Failed to load security settings', 'error')
   } finally {
@@ -34,6 +36,7 @@ async function save() {
       admin_reauth_required: settings.value.admin_reauth_required,
       turnstile_site: settings.value.turnstile_site,
       turnstile_secret_key: settings.value.turnstile_secret_key,
+      email_blocklist: settings.value.email_blocklist,
     })
     toast.show('Security settings saved')
   } catch (e) {
@@ -139,6 +142,23 @@ onMounted(fetchSettings)
             <p class="text-xs text-gray-500 mt-1">Leave blank to keep the existing secret key. Once saved, the secret is never shown again.</p>
           </div>
           <p class="text-xs text-gray-500">Leave both fields empty to disable CAPTCHA on registration.</p>
+        </div>
+      </div>
+
+      <!-- Email Blocklist -->
+      <div class="bg-gray-800 rounded-xl border border-gray-700/50 p-6 space-y-5">
+        <div>
+          <h3 class="text-base font-semibold text-white">Disposable Email Blocklist</h3>
+          <p class="text-xs text-gray-400 mt-1">One domain per line. Registrations using these domains (or subdomains) will be rejected. Lines starting with # are treated as comments.</p>
+        </div>
+        <div>
+          <textarea
+            v-model="settings.email_blocklist"
+            rows="10"
+            placeholder="mailinator.com&#10;guerrillamail.com&#10;yopmail.com&#10;# add more domains here..."
+            class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 font-mono resize-y"
+          ></textarea>
+          <p class="text-xs text-gray-500 mt-1">Changes take effect immediately after saving — no restart required.</p>
         </div>
       </div>
     </template>
