@@ -18,12 +18,12 @@ const clientError = ref(null)
 const turnstileToken = ref('')
 const turnstileWidgetId = ref(null)
 const honeypot = ref('')
-const TURNSTILE_SITE_KEY = '0x4AAAAAACra9imllnJh9uRz'
+const turnstileSiteKey = computed(() => forumStore.config?.turnstile_site_key || '')
 
 onMounted(() => {
-  if (window.turnstile) {
+  if (window.turnstile && turnstileSiteKey.value) {
     turnstileWidgetId.value = window.turnstile.render('#turnstile-container', {
-      sitekey: TURNSTILE_SITE_KEY,
+      sitekey: turnstileSiteKey.value,
       callback: (token) => { turnstileToken.value = token },
       'expired-callback': () => { turnstileToken.value = '' },
       'error-callback': () => { turnstileToken.value = '' },
