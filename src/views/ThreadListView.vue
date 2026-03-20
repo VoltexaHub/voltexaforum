@@ -281,13 +281,13 @@ function tagClass(tag) {
           <!-- Replies -->
           <div class="hidden sm:block text-center font-medium text-sm"
                :class="isDark ? 'text-gray-300' : 'text-gray-700'">
-            {{ thread.replies_count ?? 0 }}
+            {{ thread.reply_count ?? 0 }}
           </div>
 
           <!-- Views -->
           <div class="hidden sm:block text-center text-sm"
                :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-            {{ (thread.views ?? 0).toLocaleString() }}
+            {{ (thread.view_count ?? 0).toLocaleString() }}
           </div>
 
           <!-- Last reply -->

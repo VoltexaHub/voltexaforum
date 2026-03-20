@@ -189,7 +189,7 @@ onMounted(() => {
                   </div>
                   <div class="flex items-center gap-3 mt-1 text-xs" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
                     <span>by {{ thread.author?.username }}</span>
-                    <span>{{ thread.replies_count ?? 0 }} replies</span>
+                    <span>{{ thread.reply_count ?? 0 }} replies</span>
                     <span>{{ thread.created_at }}</span>
                   </div>
                 </div>
